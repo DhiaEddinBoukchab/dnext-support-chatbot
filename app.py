@@ -277,7 +277,7 @@ def main():
         print("=" * 60)
         
         demo.launch(
-            share=False,
+            share=True,
             server_name=Config.SERVER_NAME,
             server_port=Config.SERVER_PORT,
             show_error=True
