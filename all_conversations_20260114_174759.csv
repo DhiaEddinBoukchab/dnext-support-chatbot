@@ -1,0 +1,538 @@
+ID,User ID,Message,Response,Type,Timestamp,Response Time (ms)
+8,5,eazeazeazea,"For this request, please contact support@dnext.io",ACTIONABLE,2026-01-14 16:46:34,1992
+7,5,hi,Hello! How can I assist you today?,ACTIONABLE,2026-01-14 16:44:24,3137
+6,5,Show me Python API code,"Below is a **complete, ready‑to‑run** Python example that shows how to:
+
+1. **Authenticate** with your Dnext API token.  
+2. **Download a Dataset** (`download_dataset`).  
+3. **Download a TradeMatrix (TradeFlow)** (`download_tradeflow`).  
+
+Both helpers share the same task‑polling logic (`_get_task_status`) so the code can be reused for any asynchronous Dnext export.
+
+```python
+# --------------------------------------------------------------
+# Dnext API – Python helper functions
+# --------------------------------------------------------------
+import time
+import json
+import requests
+import pandas as pd
+from io import BytesIO
+
+# ------------------------------------------------------------------
+# 1️⃣  Helper: poll the asynchronous task until it succeeds
+# ------------------------------------------------------------------
+def _get_task_status(task_id: str, token: str) -> bool:
+    """"""
+    Repeatedly query the task endpoint until the status is 'SUCCEEDED'
+    (or the wait time exceeds a safe limit).
+    """"""
+    headers = {
+        ""Authorization"": f""Bearer {token}"",
+        ""Content-Type"": ""application/json"",
+    }
+
+    success = False
+    wait_time = 2          # start with a short pause
+    max_wait = 30          # seconds – adjust if you expect very large files
+
+    while not success and wait_time < max_wait:
+        time.sleep(wait_time)
+        resp = requests.get(
+            f""https://api.dnext.io/v1.0/tasks/{task_id}"",
+            headers=headers,
+        )
+        try:
+            success = resp.json().get(""status"") == ""SUCCEEDED""
+        except Exception:
+            # If the response is malformed, increase the wait and retry
+            wait_time += 1
+            continue
+
+        if not success:
+            wait_time += 1
+
+    return success
+
+
+# ------------------------------------------------------------------
+# 2️⃣  Download a **Dataset**
+# ------------------------------------------------------------------
+def download_dataset(dataset_code: str, token: str) -> pd.DataFrame | None:
+    """"""
+    Retrieves a CSV dataset and returns it as a pandas DataFrame.
+    Returns None if the export does not finish successfully.
+    """"""
+    headers = {
+        ""Authorization"": f""Bearer {token}"",
+        ""Content-Type"": ""application/json"",
+    }
+
+    # Initiate the export
+    dl_url = f""https://api.dnext.io/v1.0/data/datasets/{dataset_code}/download""
+    resp = requests.post(dl_url, headers=headers)
+
+    # Extract the asynchronous task ID
+    task_id = resp.json()[""task""][""id""]
+
+    # Wait until the export is ready
+    if _get_task_status(task_id, token):
+        # Get the temporary download URL
+        data_url = resp.json()[""result""][""url""]
+        data_resp = requests.get(data_url)
+
+        # Load CSV into pandas
+        df = pd.read_csv(BytesIO(data_resp.content))
+
+        # OPTIONAL: Example of post‑processing – convert a date column
+        if ""Publication Date"" in df.columns:
+            df[""Publication Date""] = pd.to_datetime(
+                df[""Publication Date""], errors=""coerce""
+            )
+        return df
+    else:
+        return None
+
+
+# ------------------------------------------------------------------
+# 3️⃣  Download a **TradeMatrix (TradeFlow)**
+# ------------------------------------------------------------------
+def download_tradeflow(tradeflow_code: str, token: str) -> pd.DataFrame | None:
+    """"""
+    Retrieves a TradeMatrix export (CSV) and returns it as a pandas DataFrame.
+    Returns None if the export does not finish successfully.
+    """"""
+    headers = {
+        ""Authorization"": f""Bearer {token}"",
+        ""Content-Type"": ""application/json"",
+    }
+
+    # Payload – adjust the strategies / forecast list as needed
+    payload = {
+        ""intraflows"": {""strategy"": ""include""},   # ""include"" or ""exclude""
+        ""forecasts"": {
+            ""strategy"": ""include"",               # ""include"" or ""exclude""
+            ""list"": [""forecast_code""],           # replace with real forecast codes
+        },
+        ""row"": True,
+        ""refresh"": False,
+        ""format"": ""csv"",
+    }
+
+    dl_url = f""https://api.dnext.io/v1.0/fundamentals/tradeflows/{tradeflow_code}/download""
+    resp = requests.post(dl_url, headers=headers, data=json.dumps(payload))
+
+    task_id = resp.json()[""task""][""id""]
+
+    if _get_task_status(task_id, token):
+        data_url = resp.json()[""result""][""url""]
+        data_resp = requests.get(data_url)
+        df = pd.read_csv(BytesIO(data_resp.content))
+        return df
+    else:
+        return None
+
+
+# ------------------------------------------------------------------
+# 4️⃣  Example usage
+# ------------------------------------------------------------------
+if __name__ == ""__main__"":
+    # 👉 Replace with your actual token, dataset code, and tradeflow code
+    API_TOKEN = ""YOUR_DNEXT_API_TOKEN""
+    DATASET_CODE = ""example_dataset_code""
+    TRADEFLOW_CODE = ""example_tradeflow_code""
+
+    # ---- Download a dataset -------------------------------------------------
+    dataset_df = download_dataset(DATASET_CODE, API_TOKEN)
+    if dataset_df is not None:
+        print(""Dataset downloaded – first rows:"")
+        print(dataset_df.head())
+    else:
+        print(""Dataset export failed or timed out."")
+
+    # ---- Download a tradeflow ------------------------------------------------
+    tradeflow_df = download_tradeflow(TRADEFLOW_CODE, API_TOKEN)
+    if tradeflow_df is not None:
+        print(""\nTradeFlow downloaded – first rows:"")
+        print(tradeflow_df.head())
+    else:
+        print(""TradeFlow export failed or timed out."")
+```
+
+### How to run
+
+1. **Prerequisites**  
+   - Python 3.8+  
+   - `requests` and `pandas` libraries (`pip install requests pandas`)
+
+2. **Insert your credentials**  
+   Replace `YOUR_DNEXT_API_TOKEN`, `example_dataset_code`, and `example_tradeflow_code` with the values you obtain from the Dnext platform.
+
+3. **Execute**  
+   ```bash
+   python dnext_download.py
+   ```
+
+### Common pitfalls
+
+- **Expired token** – tokens are time‑limited; generate a fresh one if you receive a 401 error.  
+- **Incorrect codes** – verify the dataset or tradeflow code via the platform UI (they appear in the “Code” column or in the URL).  
+- **Large exports** – increase `max_wait` in `_get_task_status` if you expect very large files.
+
+Feel free to adapt the payload in `download_tradeflow` to include/exclude specific intraflows or forecasts as required. If you encounter any authentication or permission issues, double‑check that the token belongs to a",ACTIONABLE,2026-01-14 16:44:00,5745
+5,3,How do I download a dataset?,"**How to Download a Dataset from Dnext**
+
+Below are two ways to get a dataset:  
+1️⃣ Through the web‑platform UI  
+2️⃣ Programmatically via the Dnext API (Python)
+
+---
+
+### 1️⃣ Download via the Platform UI  
+
+**Prerequisites**  
+- You are logged into the Dnext Market Intelligence Platform.  
+- You know either the **product name**, **location**, **dataset code**, or **dataset name** you want.
+
+**Steps**
+
+1. **Open the Datasets list** – Click the **“Datasets”** button in the top‑left menu.  
+2. **Search for your dataset** – Use the search bar and filter by one of the following:  
+   - Product name  
+   - Location  
+   - Dataset code (you can find the code in the list or on the summary page)  
+   - Dataset name  
+3. **Locate the record** – When the desired dataset appears, click the **“Visualize Record”** button.  
+4. **Download** – In the visualization screen, click the **“Download”** button at the top‑right corner.  
+5. **Save the file** – The platform will generate a CSV file and prompt you to save it locally.
+
+**Common pitfalls**  
+- *Missing dataset code*: If you cannot see the code in the list, open the **Visualize** view; the code is displayed in the metadata panel.  
+- *Large files*: Very large datasets may take a few seconds to prepare before the download button becomes active.
+
+---
+
+### 2️⃣ Download via the Dnext API (Python)
+
+If you prefer automation or need the data inside a script, use the API endpoint that returns the dataset as a CSV and loads it into a pandas DataFrame.
+
+```python
+import requests
+import pandas as pd
+from io import BytesIO
+import time
+
+# -------------------------------------------------
+# Helper: poll the task status until the file is ready
+# -------------------------------------------------
+def _get_task_status(task_id: str, token: str) -> bool:
+    headers = {
+        ""Authorization"": f""Bearer {token}"",
+        ""Content-Type"": ""application/json"",
+    }
+    wait = 2
+    while wait < 30:
+        time.sleep(wait)
+        resp = requests.get(
+            f""https://api.dnext.io/v1.0/tasks/{task_id}"",
+            headers=headers,
+        )
+        try:
+            if resp.json().get(""status"") == ""SUCCEEDED"":
+                return True
+        except Exception:
+            pass
+        wait += 1
+    return False
+
+# -------------------------------------------------
+# Main function: download a dataset by its code
+# -------------------------------------------------
+def download_dataset(code: str, token: str) -> pd.DataFrame | None:
+    """"""
+    Parameters
+    ----------
+    code : str
+        The dataset code (e.g., ""AGRI_2024_Q1"").
+    token : str
+        Your personal API bearer token.
+
+    Returns
+    -------
+    pandas.DataFrame or None
+        Returns the dataset as a DataFrame if the download succeeds,
+        otherwise None.
+    """"""
+    headers = {
+        ""Authorization"": f""Bearer {token}"",
+        ""Content-Type"": ""application/json"",
+    }
+
+    # Request the export job
+    dl_url = f""https://api.dnext.io/v1.0/data/datasets/{code}/download""
+    res = requests.post(dl_url, headers=headers)
+    res.raise_for_status()
+
+    task_id = res.json()[""task""][""id""]
+
+    # Wait until the export job finishes
+    if not _get_task_status(task_id, token):
+        print(""Dataset generation timed out."")
+        return None
+
+    # Retrieve the generated file
+    data_url = res.json()[""result""][""url""]
+    data_resp = requests.get(data_url)
+    data_resp.raise_for_status()
+
+    # Load CSV into pandas
+    df = pd.read_csv(BytesIO(data_resp.content))
+
+    # OPTIONAL: filter by publication year (example)
+    if ""Publication Date"" in df.columns:
+        df[""Publication Date""] = pd.to_datetime(
+            df[""Publication Date""], errors=""coerce""
+        )
+        df = df[df[""Publication Date""].dt.year >= 2025]
+
+    return df
+
+# -------------------------------------------------
+# Example usage
+# -------------------------------------------------
+if __name__ == ""__main__"":
+    MY_DATASET_CODE = ""YOUR_DATASET_CODE""
+    MY_TOKEN = ""YOUR_API_BEARER_TOKEN""
+
+    dataset_df = download_dataset(MY_DATASET_CODE, MY_TOKEN)
+    if dataset_df is not None:
+        print(""Dataset downloaded – first rows:"")
+        print(dataset_df.head())
+    else:
+        print(""Failed to download the dataset."")
+```
+
+**Key points**
+
+- Replace `YOUR_DATASET_CODE` with the actual dataset code you obtained from the platform (see step 5 of the UI guide).  
+- Replace `YOUR_API_BEARER_TOKEN` with the token issued for your account.  
+- The function returns a **pandas DataFrame**, ready for analysis.  
+- The helper `_get_task_status` polls the task endpoint until the export job reports **SUCCEEDED** (max ~30 seconds).  
+
+---
+
+### Quick Recap
+
+| Method | When to use | Output |
+|--------|-------------|--------|
+| **UI download** | One‑off download, no coding needed | CSV file saved locally |
+| **API download** | Automated workflows, large‑scale or repeated pulls | pandas DataFrame (or you can save the CSV yourself) |
+
+If you encounter any issues locating the dataset code or receiving authentication errors, please verify your login credentials or contact **support@dnext.io**.",ACTIONABLE,2026-01-14 16:03:08,4905
+4,1,hi,"**Hello!** How can I assist you today? If you have a question about the Production Module, setting up a new production, or need help with any Dnext feature, just let me know the details and I’ll provide the guidance you need.",ACTIONABLE,2026-01-14 15:57:59,2549
+3,2,hi,Hello! How can I assist you today?,ACTIONABLE,2026-01-14 15:56:16,2342
+2,2,Password reset steps?,"**Password Reset Procedure**
+
+Before you begin, make sure you have access to the email address associated with your Dnext account.
+
+---
+
+### Prerequisites
+- Ability to receive email from **no‑reply@dnext.io** (check spam/junk folders).
+- A device with internet access to reach the Dnext login page.
+
+---
+
+### Step‑by‑Step Guide
+
+1. **Open the login page**  
+   Navigate to the Dnext platform’s sign‑in screen.
+
+2. **Select “Forgot Password”**  
+   Click the **Forgot Password** link located beneath the password field.
+
+3. **Enter your registered email address**  
+   Provide the email you use for Dnext and submit the request.
+
+4. **Check your inbox**  
+   - You will receive a verification email from **no‑reply@dnext.io**.  
+   - The email contains a **verification code** (or a reset link).
+
+5. **Enter the verification code**  
+   - Return to the password‑reset screen.  
+   - Input the code exactly as shown (case‑sensitive) and confirm.
+
+6. **Create a new password**  
+   - Choose a password that meets the platform’s complexity requirements (e.g., minimum length, mix of upper‑case, lower‑case, numbers, and symbols).  
+   - Re‑type the password to confirm.
+
+7. **Submit the new password**  
+   Click **Reset Password** (or similar) to finalize the change.
+
+8. **Log in with the new credentials**  
+   Return to the login page and sign in using your **new password**.
+
+9. **Verify successful login**  
+   - Ensure you can access your dashboard and other features.  
+   - If you encounter any issues, double‑check that the password complies with the complexity rules.
+
+---
+
+### Common Pitfalls & Tips
+- **Email not received:** Verify the address is correct, check spam/junk folders, and ensure your email server isn’t blocking messages from *no‑reply@dnext.io*.
+- **Incorrect verification code:** The code is case‑sensitive and expires after a short period; request a new code if needed.
+- **Password complexity errors:** Use a mix of characters (e.g., `A1b!cD2e`) and avoid common words or sequential patterns.
+- **Browser cache issues:** If the reset page behaves unexpectedly, clear your browser cache and cookies before retrying.
+
+---
+
+### If Self‑Service Reset Fails
+- **Contact Support:**  
+  Email **support@dnext.io** with a brief description of the problem, the email address on the account, and any error messages you received.
+
+Following these steps will restore access to your Dnext account securely and efficiently. ✅",ACTIONABLE,2026-01-14 15:55:39,3607
+1,1,How do I download a dataset?,"**How to Download a Dataset from Dnext**
+
+Below are two ways to get a dataset – through the web UI and programmatically with the Dnext API. Choose the method that best fits your workflow.
+
+---
+
+## 1️⃣ Download via the Web Platform  
+
+**Prerequisites**  
+- Valid Dnext login credentials.  
+- The dataset you need must be available in the platform.
+
+**Steps**
+
+1. **Open the platform** and click the **“Datasets”** button in the top‑left menu.  
+2. **Search** for your dataset using any of the following filters:  
+   - Product name  
+   - Location  
+   - Dataset code (see *How to find a dataset code* below)  
+   - Dataset name  
+3. In the results list, locate the desired record and click **“Visualize Record”**.  
+4. The visualization screen shows the dataset’s metadata (code, description, etc.).  
+5. Click the **“Download”** button at the top‑right of the screen.  
+6. The file (CSV by default) will be saved to your computer.
+
+**How to find a dataset code (if you need it later)**  
+
+- In the **Datasets** list, the **“Code”** column displays the code directly.  
+- Or, open the dataset’s **visualization page**; the code appears on the summary panel.
+
+---
+
+## 2️⃣ Download via the Dnext API (Python)
+
+**Prerequisites**  
+- An **API token** (Bearer token) for your account.  
+- The **dataset code** you want to download.  
+- Python 3.x with `requests`, `pandas`, and `io` installed.
+
+**Complete, ready‑to‑run example**
+
+```python
+import requests
+import pandas as pd
+from io import BytesIO
+import time
+
+# -------------------------------------------------
+# Helper: poll the task status until the export is ready
+# -------------------------------------------------
+def _get_task_status(task_id: str, token: str) -> bool:
+    headers = {
+        ""Authorization"": f""Bearer {token}"",
+        ""Content-Type"": ""application/json"",
+    }
+    wait = 2  # seconds
+    while wait < 30:
+        time.sleep(wait)
+        resp = requests.get(
+            f""https://api.dnext.io/v1.0/tasks/{task_id}"",
+            headers=headers,
+        )
+        try:
+            if resp.json().get(""status"") == ""SUCCEEDED"":
+                return True
+        except Exception:
+            pass
+        wait += 1
+    return False
+
+# -------------------------------------------------
+# Main function: download a dataset and return a DataFrame
+# -------------------------------------------------
+def download_dataset(code: str, token: str) -> pd.DataFrame | None:
+    """"""
+    Downloads the dataset identified by `code` using the Dnext API.
+    Returns a pandas DataFrame (or None if the export fails).
+    """"""
+    headers = {
+        ""Authorization"": f""Bearer {token}"",
+        ""Content-Type"": ""application/json"",
+    }
+
+    # Request the export
+    dl_url = f""https://api.dnext.io/v1.0/data/datasets/{code}/download""
+    resp = requests.post(dl_url, headers=headers)
+    resp.raise_for_status()
+
+    task_id = resp.json()[""task""][""id""]
+
+    # Wait until the export is ready
+    if not _get_task_status(task_id, token):
+        print(""Export did not complete in time."")
+        return None
+
+    # Retrieve the generated file
+    data_url = resp.json()[""result""][""url""]
+    data_resp = requests.get(data_url)
+    data_resp.raise_for_status()
+
+    # Load into a DataFrame (CSV format)
+    df = pd.read_csv(BytesIO(data_resp.content))
+
+    # OPTIONAL: filter to recent years (example shown in docs)
+    if ""Publication Date"" in df.columns:
+        df[""Publication Date""] = pd.to_datetime(
+            df[""Publication Date""], errors=""coerce""
+        )
+        df = df[df[""Publication Date""].dt.year >= 2025]
+
+    return df
+
+# -------------------------------------------------
+# Example usage
+# -------------------------------------------------
+if __name__ == ""__main__"":
+    # Replace with your actual values
+    DATASET_CODE = ""YOUR_DATASET_CODE""
+    API_TOKEN = ""YOUR_BEARER_TOKEN""
+
+    dataset_df = download_dataset(DATASET_CODE, API_TOKEN)
+    if dataset_df is not None:
+        print(""Dataset downloaded – first 5 rows:"")
+        print(dataset_df.head())
+    else:
+        print(""Failed to download the dataset."")
+```
+
+**Key points**
+
+- The API call is **asynchronous**; you must poll the task endpoint until the status is `SUCCEEDED`.  
+- The final download URL is provided in the `result.url` field of the original response.  
+- The example includes a simple filter on the `Publication Date` column (optional).  
+
+**Common pitfalls**
+
+- **Expired or missing token** – the request will return 401. Regenerate the token from the platform.  
+- **Wrong dataset code** – the API returns 404. Verify the code via the UI (see step 1).  
+- **Network timeouts** – increase the `wait` loop limit if you consistently need more than 30 seconds.
+
+---
+
+### Need further help?
+
+If you encounter authentication issues, missing data, or any other platform‑specific problem, please contact **support@dnext.io**.",ACTIONABLE,2026-01-14 15:52:57,5107

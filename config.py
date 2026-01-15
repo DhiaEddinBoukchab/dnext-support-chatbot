@@ -18,7 +18,7 @@ class Config:
     
     # Models
     EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
-    GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     
     # Server
     SERVER_PORT = int(os.getenv("SERVER_PORT", "7860"))
