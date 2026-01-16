@@ -9,7 +9,7 @@ class Config:
     """Application configuration"""
     
     # API Keys
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     
     # Paths
     BASE_DIR = Path(__file__).parent
@@ -17,8 +17,8 @@ class Config:
     CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", "./chroma_db")
     
     # Models
-    EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
-    GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+    EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-large")
+    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1")
     
     # Server
     SERVER_PORT = int(os.getenv("SERVER_PORT", "7860"))
@@ -32,11 +32,11 @@ class Config:
     @classmethod
     def validate(cls):
         """Validate required configuration"""
-        if not cls.GROQ_API_KEY:
+        if not cls.OPENAI_API_KEY:
             raise ValueError(
-                "❌ GROQ_API_KEY not found!\n"
+                "❌ OPENAI_API_KEY not found!\n"
                 "Please set it in .env file or environment variables.\n"
-                "Get your key from: https://console.groq.com/keys"
+                "Get your key from: https://platform.openai.com/account/api-keys"
             )
         
         docs_path = Path(cls.DOCS_FOLDER)

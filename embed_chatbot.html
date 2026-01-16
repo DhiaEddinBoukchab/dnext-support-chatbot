@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dnext Chat Widget - Embed Example</title>
+    <style>
+        /* Chat bubble button styles */
+        .dnext-chat-bubble {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 9998;
+            border: none;
+        }
+
+        .dnext-chat-bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .dnext-chat-bubble img {
+            width: 35px;
+            height: 35px;
+            filter: brightness(0) invert(1);
+        }
+
+        /* Badge for notifications */
+        .dnext-chat-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Chat widget container */
+        .dnext-chat-widget {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 380px;
+            height: 600px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 9999;
+            animation: slideUp 0.3s ease;
+        }
+
+        .dnext-chat-widget.active {
+            display: flex;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Widget header */
+        .dnext-chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dnext-chat-header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dnext-chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            padding: 5px;
+        }
+
+        .dnext-chat-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .dnext-chat-status {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .dnext-close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .dnext-close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Widget iframe */
+        .dnext-chat-iframe {
+            flex: 1;
+            border: none;
+            width: 100%;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .dnext-chat-widget {
+                width: 100%;
+                height: 100%;
+                bottom: 0;
+                right: 0;
+                border-radius: 0;
+            }
+
+            .dnext-chat-bubble {
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+
+        /* Pulse animation for attention */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(102, 126, 234, 0.8);
+            }
+            100% {
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            }
+        }
+
+        .dnext-chat-bubble.pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Example page content -->
+    <div style="padding: 40px; max-width: 800px; margin: 0 auto;">
+        <h1>Your Website Content</h1>
+        <p>This is your regular website content. The chat widget appears in the bottom-right corner.</p>
+        <p>Click the chat bubble to open the Dnext Support Assistant!</p>
+    </div>
+
+    <!-- Chat Bubble Button -->
+    <button class="dnext-chat-bubble pulse" id="dnext-chat-toggle">
+        <img src="assets/Dnext_logo.jpg" alt="Chat">
+        <span class="dnext-chat-badge" id="dnext-chat-badge" style="display: none;">1</span>
+    </button>
+
+    <!-- Chat Widget Container -->
+    <div class="dnext-chat-widget" id="dnext-chat-widget">
+        <div class="dnext-chat-header">
+            <div class="dnext-chat-header-info">
+                <img src="assets/Dnext_logo.jpg" 
+                     alt="Bot Avatar" 
+                     class="dnext-chat-avatar">
+                <div>
+                    <div class="dnext-chat-title">Dnext Assistant</div>
+                    <div class="dnext-chat-status">● Online</div>
+                </div>
+            </div>
+            <button class="dnext-close-btn" id="dnext-close-btn">×</button>
+        </div>
+        <iframe 
+            id="dnext-chat-iframe"
+            class="dnext-chat-iframe"
+            src=""
+            allow="microphone; camera"
+            loading="lazy">
+        </iframe>
+    </div>
+
+    <script>
+        // ==================== CONFIGURATION ====================
+        // REPLACE THIS URL WITH YOUR GRADIO APP URL
+        const CHATBOT_URL = "https://bd8f1297ff22847650.gradio.live/"; // Change this!
+        // Or use your custom domain: "https://chat.dnext.io"
+        
+        // Optional: Add custom parameters
+        const CHATBOT_PARAMS = "?__theme=light"; // Can add &embed=true if needed
+
+        // ==================== WIDGET LOGIC ====================
+        const chatBubble = document.getElementById('dnext-chat-toggle');
+        const chatWidget = document.getElementById('dnext-chat-widget');
+        const closeBtn = document.getElementById('dnext-close-btn');
+        const chatIframe = document.getElementById('dnext-chat-iframe');
+        const chatBadge = document.getElementById('dnext-chat-badge');
+
+        let isOpen = false;
+        let isLoaded = false;
+
+        // Toggle chat widget
+        function toggleChat() {
+            isOpen = !isOpen;
+            chatWidget.classList.toggle('active', isOpen);
+            
+            // Load iframe only when first opened (lazy loading)
+            if (isOpen && !isLoaded) {
+                chatIframe.src = CHATBOT_URL + CHATBOT_PARAMS;
+                isLoaded = true;
+            }
+
+            // Remove pulse animation when opened
+            if (isOpen) {
+                chatBubble.classList.remove('pulse');
+                chatBadge.style.display = 'none';
+            }
+
+            // Update bubble icon
+            updateBubbleIcon();
+        }
+
+        // Update bubble icon based on state
+        function updateBubbleIcon() {
+            const img = chatBubble.querySelector('img');
+            if (isOpen) {
+                img.src = "https://api.iconify.design/mdi:close.svg";
+            } else {
+                img.src = "https://api.iconify.design/mdi:robot.svg";
+            }
+        }
+
+        // Event listeners
+        chatBubble.addEventListener('click', toggleChat);
+        closeBtn.addEventListener('click', toggleChat);
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isOpen) {
+                toggleChat();
+            }
+        });
+
+        // Optional: Show notification badge after some time
+        setTimeout(() => {
+            if (!isOpen) {
+                chatBadge.style.display = 'flex';
+            }
+        }, 5000);
+
+        // Optional: Listen for messages from iframe (for advanced features)
+        window.addEventListener('message', (event) => {
+            // Handle messages from the chatbot iframe
+            // Example: event.data could contain chat events
+            if (event.origin === new URL(CHATBOT_URL).origin) {
+                console.log('Message from chatbot:', event.data);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-from groq import Groq
+from openai import OpenAI
 from typing import List, Dict
 import logging
 import requests
@@ -7,16 +7,16 @@ from bs4 import BeautifulSoup
 logger = logging.getLogger(__name__)
 
 class LLMHandler:
-    """Handles Groq LLM interactions with conversation classification"""
+    """Handles OpenAI LLM interactions with conversation classification"""
 
     def __init__(self, api_key: str, model: str):
-        """Initialize Groq client"""
+        """Initialize OpenAI client"""
         try:
-            self.client = Groq(api_key=api_key)
+            self.client = OpenAI(api_key=api_key)
             self.model = model
-            logger.info("✅ Groq client initialized")
+            logger.info("✅ OpenAI client initialized")
         except Exception as e:
-            logger.error(f"Failed to initialize Groq client: {e}")
+            logger.error(f"Failed to initialize OpenAI client: {e}")
             raise
 
     # =========================
@@ -44,7 +44,7 @@ ACTIONABLE:
 - Market data, analysis, forecasts
 - API, code, technical questions
 - Subscription, access, account questions
-- Any term where the word "Dnext" exists
+- Any query where the word "Dnext" exists 
 
 User message:
 "{query}"

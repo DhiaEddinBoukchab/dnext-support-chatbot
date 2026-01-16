@@ -73,7 +73,7 @@ class ChatbotApp:
         # Core components
         self.embedding_manager = EmbeddingManager(Config.EMBEDDING_MODEL)
         self.vector_store = VectorStore(Config.CHROMA_DB_PATH)
-        self.llm_handler = LLMHandler(Config.GROQ_API_KEY, Config.GROQ_MODEL)
+        self.llm_handler = LLMHandler(Config.OPENAI_API_KEY, Config.OPENAI_MODEL)
         self.doc_processor = DocumentProcessor()
         
         self._initialize_database()
