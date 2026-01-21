@@ -2,13 +2,15 @@ import gradio as gr
 from pathlib import Path
 from datetime import datetime
 import logging
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 import time
+from langsmith import traceable
 
 from config import Config
 from src.embeddings import EmbeddingManager
 from src.vector_store import VectorStore
 from src.llm_handler import LLMHandler
+from src.vlm_handler import VLMHandler
 from database import DatabaseRepository
 from auth_service import AuthenticationService
 from models import Conversation, UserStatus
@@ -74,7 +76,11 @@ class ChatbotApp:
         self.embedding_manager = EmbeddingManager(Config.EMBEDDING_MODEL)
         self.vector_store = VectorStore(Config.CHROMA_DB_PATH)
         self.llm_handler = LLMHandler(Config.OPENAI_API_KEY, Config.OPENAI_MODEL)
+        self.vlm_handler = VLMHandler(Config.GROQ_API_KEY, Config.GROQ_VISION_MODEL) if Config.GROQ_API_KEY else None
         self.doc_processor = DocumentProcessor()
+        
+        if not self.vlm_handler:
+            logger.warning("⚠️ Groq API key not configured. Image analysis feature will be disabled.")
         
         self._initialize_database()
     
@@ -88,8 +94,9 @@ class ChatbotApp:
             logger.info("No existing database found. Creating new one...")
             self.load_documents()
     
+    @traceable(name="load_and_index_documents")
     def load_documents(self) -> Tuple[bool, str]:
-        """Load and index all documents"""
+        """Load and index all documents with tracing"""
         try:
             logger.info(f"Loading documents from {Config.DOCS_FOLDER}...")
             
@@ -147,6 +154,74 @@ class ChatbotApp:
             logger.error(error_msg)
             return False, error_msg
     
+    @traceable(
+        name="retrieve_relevant_chunks",
+        run_type="retriever"
+    )
+    def retrieve_relevant_chunks(self, message: str, top_k: int = None) -> Dict:
+        """
+        Retrieve relevant chunks with full tracing
+        Returns both results and formatted context
+        """
+        if top_k is None:
+            top_k = Config.TOP_K_RESULTS
+        
+        # Get query embedding
+        query_embedding = self.embedding_manager.encode(message)
+        
+        # Query vector store
+        results = self.vector_store.query(query_embedding, top_k)
+        
+        # Prepare detailed chunk information for logging
+        if results['documents'] and results['documents'][0]:
+            chunks_info = []
+            for i, (doc, metadata, distance) in enumerate(zip(
+                results['documents'][0],
+                results['metadatas'][0],
+                results['distances'][0] if 'distances' in results else [None] * len(results['documents'][0])
+            )):
+                chunk_info = {
+                    "rank": i + 1,
+                    "document": metadata.get('document', 'Unknown'),
+                    "section": metadata.get('section', 'Unknown'),
+                    "chunk_index": metadata.get('chunk_index', -1),
+                    "source_file": metadata.get('source_file', 'Unknown'),
+                    "distance": float(distance) if distance is not None else None,
+                    "content_preview": doc[:200] + "..." if len(doc) > 200 else doc,
+                    "content_length": len(doc)
+                }
+                chunks_info.append(chunk_info)
+            
+            # Log for debugging
+            logger.info(f"Retrieved {len(results['documents'][0])} chunks:")
+            for chunk in chunks_info:
+                logger.info(f"  - Rank {chunk['rank']}: {chunk['document']} / {chunk['section']} (distance: {chunk['distance']})")
+        
+        return results
+    
+    def _format_context(self, results: Dict) -> str:
+        """Format retrieved chunks into context"""
+        if not results['documents'] or not results['documents'][0]:
+            return ""
+        
+        context_parts = []
+        
+        for i, (doc, metadata) in enumerate(zip(
+            results['documents'][0],
+            results['metadatas'][0]
+        )):
+            section = metadata.get('section', 'Unknown')
+            document = metadata.get('document', 'Unknown')
+            context_parts.append(
+                f"[Source {i+1} - Document: {document}, Section: {section}]\n{doc}"
+            )
+        
+        return "\n\n---\n\n".join(context_parts)
+    
+    @traceable(
+        name="answer_query_with_rag",
+        run_type="chain"
+    )
     def answer_query(self, message: str, history: List, user_id: int) -> str:
         """Process query and generate answer - tracks conversation"""
         start_time = time.time()
@@ -163,13 +238,18 @@ class ChatbotApp:
             if conversation_type == "CASUAL":
                 logger.info("Handling as casual conversation")
                 answer = self.llm_handler.generate_response("", message)
+                retrieval_used = False
+                chunks_retrieved = 0
             else:
-                # For technical questions
+                # For technical questions - with detailed retrieval tracing
                 logger.info("Handling as technical question")
                 
-                query_embedding = self.embedding_manager.encode(message)
-                results = self.vector_store.query(query_embedding, Config.TOP_K_RESULTS)
+                # Retrieve relevant chunks (traced separately)
+                results = self.retrieve_relevant_chunks(message)
                 context = self._format_context(results)
+                
+                chunks_retrieved = len(results['documents'][0]) if results['documents'] else 0
+                retrieval_used = True
                 
                 if not context:
                     answer = "I couldn't find relevant information in our documentation about this. For specific assistance, please contact our support team at support@dnext.io 📧"
@@ -190,27 +270,99 @@ class ChatbotApp:
             )
             self.db.save_conversation(conversation)
             
+            logger.info(f"Query processed in {response_time_ms}ms | Type: {conversation_type} | Chunks: {chunks_retrieved}")
+            
             return answer
             
         except Exception as e:
             logger.error(f"Error answering query: {e}")
             return f"❌ Error: {str(e)}"
     
-    def _format_context(self, results: Dict) -> str:
-        """Format retrieved chunks into context"""
-        if not results['documents'] or not results['documents'][0]:
-            return ""
+    @traceable(
+    name="analyze_image_with_vlm",
+    run_type="chain"
+)
+    def analyze_image(self, image: Optional[gr.Image], prompt: str, user_id: int) -> str:
+        """
+        Process uploaded image with VLM
         
-        context_parts = []
+        Args:
+            image: Uploaded image from Gradio
+            prompt: User prompt for image analysis
+            user_id: User ID
+            
+        Returns:
+            Analysis response
+        """
+        try:
+            if not self.vlm_handler:
+                return "❌ Image analysis feature is not configured. Please ensure GROQ_API_KEY is set."
+            
+            if image is None:
+                return "❌ Please upload an image first."
+            
+            if not prompt.strip():
+                prompt = "Analyze this image and help me understand what I'm seeing."
+            
+            # Verify user access
+            if not self.auth.verify_user_access(user_id):
+                return "❌ Your account has been suspended. Please contact support."
+            
+            logger.info(f"Analyzing image for user {user_id}")
+            start_time = time.time()
+            
+            # RETRIEVE CONTEXT from vector store (similar to text queries)
+            # Search for relevant documentation based on the prompt
+            results = self.retrieve_relevant_chunks(prompt, top_k=3)
+            context = self._format_context(results)
+            
+            # Process image based on type
+            if isinstance(image, str):
+                # File path
+                result = self.vlm_handler.analyze_image(
+                    image_path=image, 
+                    prompt=prompt,
+                    context=context  # ADD CONTEXT HERE
+                )
+            else:
+                # PIL Image or other format - convert to bytes
+                import io
+                img_bytes = io.BytesIO()
+                if hasattr(image, 'save'):
+                    image.save(img_bytes, format='PNG')
+                    img_bytes.seek(0)
+                    result = self.vlm_handler.analyze_image(
+                        image_bytes=img_bytes.getvalue(), 
+                        prompt=prompt,
+                        context=context  # ADD CONTEXT HERE
+                    )
+                else:
+                    return "❌ Invalid image format."
+            
+            response_time_ms = int((time.time() - start_time) * 1000)
+            
+            if result["success"]:
+                # Save image analysis to database
+                conversation = Conversation(
+                    user_id=user_id,
+                    message=f"[IMAGE ANALYSIS] {prompt}",
+                    response=result["response"],
+                    timestamp=datetime.now(),
+                    conversation_type="IMAGE_ANALYSIS",
+                    response_time_ms=response_time_ms
+                )
+                self.db.save_conversation(conversation)
+                
+                logger.info(f"Image analyzed in {response_time_ms}ms")
+                return result["response"]
+            else:
+                error_msg = f"❌ Error analyzing image: {result['error']}"
+                logger.error(error_msg)
+                return error_msg
         
-        for i, (doc, metadata) in enumerate(zip(
-            results['documents'][0],
-            results['metadatas'][0]
-        )):
-            section = metadata.get('section', 'Unknown')
-            context_parts.append(f"[Source {i+1} - {section}]\n{doc}")
-        
-        return "\n\n---\n\n".join(context_parts)
+        except Exception as e:
+            logger.error(f"Error in analyze_image: {e}")
+            return f"❌ Error analyzing image: {str(e)}"
     
     def create_interface(self):
         """Create Gradio interface with authentication"""
@@ -263,6 +415,27 @@ class ChatbotApp:
                         with gr.Row():
                             clear = gr.Button("Clear Chat")
                             logout_btn = gr.Button("Logout", variant="stop")
+                        
+                        # Image Analysis Section
+                        gr.Markdown("### 🖼️ Image Analysis")
+                        image_upload = gr.Image(
+                            type="pil",
+                            label="Upload Screenshot or Image",
+                            scale=1
+                        )
+                        
+                        image_prompt = gr.Textbox(
+                            placeholder="Describe what you want me to analyze in the image...",
+                            label="Image Analysis Prompt (Optional)",
+                            lines=2
+                        )
+                        
+                        analyze_btn = gr.Button("Analyze Image", variant="secondary")
+                        image_result = gr.Textbox(
+                            label="Analysis Result",
+                            lines=4,
+                            interactive=False
+                        )
                     
                     with gr.Column(scale=1):
                         gr.Markdown("### 💡 Example Questions")
@@ -282,6 +455,12 @@ class ChatbotApp:
                         - Be specific with your questions
                         - Mention exact features
                         - Request code examples when needed
+                        
+                        ### 🖼️ Image Analysis
+                        - Upload screenshots for analysis
+                        - Ask about errors or UI issues
+                        - Extract text from images
+                        - Analyze documents
                         """)
             
             # Event handlers
@@ -335,9 +514,22 @@ class ChatbotApp:
                     name_input: ""
                 }
             
+            def analyze_image_handler(image, prompt, user):
+                """Handle image analysis"""
+                if not user:
+                    return "❌ Please log in first."
+                
+                result = self.analyze_image(image, prompt, user.user_id)
+                return result
+            
             msg.submit(respond, [msg, chatbot, user_state], [chatbot, msg])
             submit.click(respond, [msg, chatbot, user_state], [chatbot, msg])
             clear.click(clear_chat, None, [chatbot, msg])
+            analyze_btn.click(
+                analyze_image_handler,
+                [image_upload, image_prompt, user_state],
+                image_result
+            )
             logout_btn.click(
                 logout_handler,
                 None,
@@ -370,6 +562,7 @@ def main():
         print("\n" + "=" * 60)
         print("✅ Chatbot is ready!")
         print("📊 Admin dashboard: Run admin_launcher.py")
+        print("🔍 LangSmith tracing enabled")
         print("=" * 60)
         
         demo.launch(

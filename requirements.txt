@@ -5,3 +5,7 @@ python-dotenv>=1.0.0
 beautifulsoup4>=4.12.0
 pandas>=2.0.0
 pathlib>=1.0.0
+langchain 
+langchain-openai
+Pillow>=10.0.0
+requests>=2.31.0

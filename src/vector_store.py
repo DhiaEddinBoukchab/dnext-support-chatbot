@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Dict, Tuple
 import logging
 import shutil
-
+from langsmith import traceable
 logger = logging.getLogger(__name__)
 
 class VectorStore:
@@ -68,6 +68,7 @@ class VectorStore:
             logger.info(f"Creating new collection: {name}")
             return self.create_collection(name)
     
+    @traceable(name="add_documents_to_vectorstore")
     def add_documents(self, chunks: List[str], metadatas: List[Dict], 
                      embeddings: List[List[float]]):
         """Add documents to collection"""
@@ -82,19 +83,31 @@ class VectorStore:
             documents=chunks,
             metadatas=metadatas
         )
+        
+        logger.info(f"Added {len(chunks)} documents to vector store")
+    
+    @traceable(
+        name="query_vectorstore",
+        run_type="retriever",
+        metadata={"retriever_type": "chromadb"}
+    )
     
     def query(self, query_embedding: List[float], top_k: int = 3):
-        """Query similar documents"""
+        """Query similar documents with detailed tracing"""
         if not self.collection:
             raise ValueError("Collection not initialized")
         
         try:
-            return self.collection.query(
+            results = self.collection.query(
                 query_embeddings=[query_embedding],
                 n_results=top_k
             )
+            
+            # Log retrieval details
+            logger.info(f"Retrieved {len(results['documents'][0])} chunks")
+            
+            return results
         except Exception as e:
-            # If embedding dimension mismatch, reset and raise informative error
             if "expecting embedding with dimension" in str(e).lower():
                 logger.error(f"Embedding dimension mismatch detected: {e}")
                 logger.info("This usually happens when switching embedding models. Please reload documents.")

@@ -10,6 +10,7 @@ class Config:
     
     # API Keys
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
     
     # Paths
     BASE_DIR = Path(__file__).parent
@@ -19,6 +20,7 @@ class Config:
     # Models
     EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-large")
     OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1")
+    GROQ_VISION_MODEL = os.getenv("GROQ_VISION_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
     
     # Server
     SERVER_PORT = int(os.getenv("SERVER_PORT", "7860"))
@@ -29,6 +31,12 @@ class Config:
     CHUNK_OVERLAP = 50
     TOP_K_RESULTS = 3
     
+
+    # LangSmith Configuration
+    LANGCHAIN_TRACING_V2 = os.getenv("LANGCHAIN_TRACING_V2", "true")
+    LANGCHAIN_API_KEY = os.getenv("LANGCHAIN_API_KEY")
+    LANGCHAIN_PROJECT = os.getenv("LANGCHAIN_PROJECT", "dnext-support-chatbot")
+
     @classmethod
     def validate(cls):
         """Validate required configuration"""

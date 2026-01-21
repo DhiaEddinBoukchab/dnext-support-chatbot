@@ -2,6 +2,8 @@ from openai import OpenAI
 from typing import List
 import logging
 import os
+from langsmith import traceable
+
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +16,11 @@ class EmbeddingManager:
             logger.info(f"Loading embedding model: {model_name}")
             self.model_name = model_name
             self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-            logger.info("✅ OpenAI embedding model initialized successfully")
+            logger.info("✅ OpenAI embedding model initialized with LangSmith tracing")
         except Exception as e:
             logger.error(f"Failed to initialize embedding model: {e}")
             raise
-    
+    @traceable(name="encode_single_text")
     def encode(self, text: str) -> List[float]:
         """Encode single text to embedding"""
         try:
@@ -30,7 +32,7 @@ class EmbeddingManager:
         except Exception as e:
             logger.error(f"Failed to encode text: {e}")
             raise
-    
+    @traceable(name="encode_batch_texts")
     def encode_batch(self, texts: List[str]) -> List[List[float]]:
         """Encode multiple texts to embeddings"""
         try:
