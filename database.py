@@ -364,6 +364,33 @@ class DatabaseRepository:
     
     # ==================== ANALYTICS ====================
     
+    def delete_user_conversations(self, user_id: int) -> int:
+        """Delete all conversations for a user. Returns number of deleted records."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM conversations WHERE user_id = ?', (user_id,))
+                conn.commit()
+                return cursor.rowcount
+        except Exception as e:
+            logger.error(f"Error deleting conversations for user {user_id}: {e}")
+            return 0
+
+    def delete_user(self, user_id: int) -> bool:
+        """Delete a user and all their conversations"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                # Delete conversations first (foreign key constraint)
+                cursor.execute('DELETE FROM conversations WHERE user_id = ?', (user_id,))
+                # Then delete the user
+                cursor.execute('DELETE FROM users WHERE user_id = ?', (user_id,))
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            logger.error(f"Error deleting user {user_id}: {e}")
+            return False
+
     def get_statistics(self) -> dict:
         """Get overall statistics"""
         try:

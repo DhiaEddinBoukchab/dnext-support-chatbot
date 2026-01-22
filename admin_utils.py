@@ -120,6 +120,54 @@ def export_conversations(user_email: str = None):
     print(f"✅ Exported {len(conversations)} conversations to {filename}")
 
 
+def delete_conversations(user_ids: list):
+    """Delete conversations for specified users"""
+    db = DatabaseRepository()
+    total_deleted = 0
+    
+    for user_id in user_ids:
+        user = db.get_user_by_id(user_id)
+        
+        if not user:
+            print(f"⚠️  User ID {user_id} not found!")
+            continue
+        
+        deleted_count = db.delete_user_conversations(user_id)
+        total_deleted += deleted_count
+        print(f"✅ Deleted {deleted_count} conversations for user {user_id} ({user.email})")
+    
+    print(f"\n📊 Total conversations deleted: {total_deleted}")
+
+
+def delete_users(user_ids: list):
+    """Delete users and all their conversations"""
+    db = DatabaseRepository()
+    
+    print("\n⚠️  WARNING: This will permanently delete users and all their conversations!")
+    confirmation = input(f"Are you sure you want to delete users {user_ids}? Type 'yes' to confirm: ")
+    
+    if confirmation.lower() != 'yes':
+        print("❌ Deletion cancelled.")
+        return
+    
+    total_deleted = 0
+    for user_id in user_ids:
+        user = db.get_user_by_id(user_id)
+        
+        if not user:
+            print(f"⚠️  User ID {user_id} not found!")
+            continue
+        
+        success = db.delete_user(user_id)
+        if success:
+            total_deleted += 1
+            print(f"✅ Deleted user {user_id} ({user.email}) and all their conversations")
+        else:
+            print(f"❌ Failed to delete user {user_id}")
+    
+    print(f"\n📊 Total users deleted: {total_deleted}")
+
+
 def main():
     """Main CLI interface"""
     parser = argparse.ArgumentParser(description='Admin utilities for Dnext Chatbot')
@@ -148,6 +196,14 @@ def main():
     export_parser = subparsers.add_parser('export', help='Export conversations to CSV')
     export_parser.add_argument('--email', help='User email (optional, exports all if not provided)')
     
+    # Delete conversations
+    delete_parser = subparsers.add_parser('delete-conversations', help='Delete conversations for specified users')
+    delete_parser.add_argument('user_ids', nargs='+', type=int, help='User IDs to delete conversations for')
+    
+    # Delete users
+    delete_user_parser = subparsers.add_parser('delete-user', help='Delete users and all their conversations')
+    delete_user_parser.add_argument('user_ids', nargs='+', type=int, help='User IDs to delete')
+    
     args = parser.parse_args()
     
     if args.command == 'create-admin':
@@ -162,6 +218,10 @@ def main():
         show_stats()
     elif args.command == 'export':
         export_conversations(args.email)
+    elif args.command == 'delete-conversations':
+        delete_conversations(args.user_ids)
+    elif args.command == 'delete-user':
+        delete_users(args.user_ids)
     else:
         parser.print_help()
 

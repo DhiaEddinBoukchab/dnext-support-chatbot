@@ -41,7 +41,7 @@ def main():
         print("=" * 60 + "\n")
         
         # Launch (localhost only, no sharing)
-        admin_dashboard.launch(share=False)
+        admin_dashboard.launch(share=True)
         
     except Exception as e:
         logger.error(f"Failed to start admin dashboard: {e}")
