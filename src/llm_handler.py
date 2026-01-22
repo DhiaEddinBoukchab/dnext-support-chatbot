@@ -1,5 +1,5 @@
 from openai import OpenAI
-from typing import List, Dict
+from typing import List, Dict, Generator
 import logging
 import requests
 from bs4 import BeautifulSoup
@@ -7,8 +7,8 @@ from bs4 import BeautifulSoup
 logger = logging.getLogger(__name__)
 
 class LLMHandler:
-    """Handles OpenAI LLM interactions with conversation classification"""
-
+    """Handles OpenAI LLM interactions with conversation classification and streaming"""
+    
     def __init__(self, api_key: str, model: str):
         """Initialize OpenAI client"""
         try:
@@ -71,10 +71,10 @@ CASUAL or ACTIONABLE
             return "ACTIONABLE"  # Safe default
 
     # =========================
-    # RESPONSE GENERATION
+    # RESPONSE GENERATION (NON-STREAMING)
     # =========================
     def generate_response(self, context: str, query: str) -> str:
-        """Generate response using LLM with website-aware context"""
+        """Generate response using LLM with website-aware context (non-streaming)"""
         
         conversation_type = self.classify_conversation(query)
 
@@ -103,12 +103,50 @@ CASUAL or ACTIONABLE
             return f"❌ Error generating response: {str(e)}"
 
     # =========================
+    # RESPONSE GENERATION (STREAMING) - NEW
+    # =========================
+    def generate_response_stream(self, context: str, query: str) -> Generator[str, None, None]:
+        """Generate streaming response using LLM with website-aware context"""
+        
+        conversation_type = self.classify_conversation(query)
+
+        if conversation_type == "CASUAL":
+            prompt = self._create_casual_prompt(query)
+        else:  # ACTIONABLE
+            # Fetch dnext.io content
+            website_context = self.fetch_website_content("https://www.dnext.io/")
+            
+            # Combine with previous context (e.g., docs)
+            combined_context = f"{context}\n\n--- WEBSITE CONTENT ---\n{website_context}"
+            
+            prompt = self._create_technical_prompt(combined_context, query)
+
+        try:
+            # Create streaming response
+            stream = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3 if conversation_type == "CASUAL" else 0.2,
+                max_tokens=800 if conversation_type == "CASUAL" else 1500,
+                stream=True  # Enable streaming
+            )
+            
+            # Yield chunks as they arrive
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    yield chunk.choices[0].delta.content
+
+        except Exception as e:
+            logger.error(f"LLM streaming error: {e}")
+            yield f"❌ Error generating response: {str(e)}"
+
+    # =========================
     # PROMPTS
     # =========================
     def _create_casual_prompt(self, query: str) -> str:
         """Prompt for casual conversation"""
         return f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
-You are Dnext Assistant, a friendly and helpful AI assistant for the Dnext platform.
+You are Dnext Assistant, a professional and helpful AI assistant for the Dnext platform.
 
 <|start_header_id|>user<|end_header_id|>
 {query}
@@ -116,9 +154,8 @@ You are Dnext Assistant, a friendly and helpful AI assistant for the Dnext platf
 <|start_header_id|>assistant<|end_header_id|>
 **Instructions:**
 - Respond naturally and warmly like a human support agent
-- Be friendly, short, and engaging
-- Use emojis when appropriate 😊👋
-- If asked what you can help with, mention:
+- Be formal, short, and engaging
+- If asked what you can help with, mention else dont mention:
 • Market data and analysis
 • Forecasts
 • API usage
@@ -179,6 +216,9 @@ You are Dnext Assistant, a technical and product support expert providing precis
 
 Now provide the best possible answer:"""
 
+    # =========================
+    # WEBSITE CONTENT FETCHING
+    # =========================
     def fetch_website_content(self, url: str) -> str:
         """Fetch and clean text content from a website."""
         try:
@@ -186,6 +226,7 @@ Now provide the best possible answer:"""
             response.raise_for_status()
             soup = BeautifulSoup(response.text, "html.parser")
 
+            # Remove scripts and styles
             for script in soup(["script", "style"]):
                 script.decompose()
 
