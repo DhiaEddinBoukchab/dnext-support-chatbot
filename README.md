@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🤖 Dnext Customer Support Chatbot
 
 A RAG-based (Retrieval-Augmented Generation) intelligent customer support chatbot powered by Groq's LLM, ChromaDB vector database, and Gradio interface.
@@ -189,3 +190,6 @@ For issues and questions, please open an issue on GitHub.
 ---
 
 Made with ❤️ for better customer support
+=======
+# DNEXT-AI-Support
+>>>>>>> dnext/main
