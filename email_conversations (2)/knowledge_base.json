@@ -1,0 +1,2102 @@
+{
+  "metadata": {
+    "generated_at": "2026-02-03T16:26:00.650256",
+    "total_entries": 119,
+    "source_folder": "C:\\Users\\DNEXT DHIA\\Desktop\\dnext-support-chatbot\\email_conversations (2)\\email_conversations_no_attachments",
+    "statistics": {
+      "total_folders": 864,
+      "useful_count": 119,
+      "useless_count": 745,
+      "error_count": 0,
+      "categories": {
+        "How-to Guide": 41,
+        "Error Resolution": 16,
+        "Access Issue": 5,
+        "Feature Explanation": 11,
+        "Configuration": 27,
+        "Integration Issue": 1,
+        "Download Problem": 2,
+        "Data Validation": 1,
+        "Platform Navigation": 12,
+        "Data Consistency": 1,
+        "Data Correction": 1,
+        "Data Mapping Issue": 1
+      }
+    }
+  },
+  "knowledge_base": [
+    {
+      "id": "0095F447_RE_ [EXTERNAL] Re_ Arg Prod Evolution",
+      "problem": "User is unable to view the estimated production evolution for corn in Argentina on the dashboard, while soybean data displays correctly.",
+      "solution": "The issue was caused by the use of the Seasonal Month filter on the dashboard. When 'Select All' is chosen, the dashboard displays total values from the SND Main Tables, showing the full production evolution. When a specific month is selected, the dashboard only shows data for that month, which can cause confusion if the user expects to see the full evolution. To correctly view the production evolution, users should select 'Select All' in the Seasonal Month filter or refer to the SND Main Tables page for guidance on appropriate selections and understanding the results.",
+      "keywords": [
+        "dashboard",
+        "production evolution",
+        "corn",
+        "Argentina",
+        "Seasonal Month filter",
+        "SND Main Tables",
+        "data filtering",
+        "data visualization",
+        "filter selection"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "01860B19_RE_ DNEXT - DDGS Tradematrix",
+      "problem": "Trade flow data for Dried Distillers Grains with Solubles (DDGS) was initially missing or incomplete for Brazil, causing discrepancies in export figures shown in the TradeMatrix module.",
+      "solution": "To access the DDGS trade flow data, users should go to the TradeMatrix module and search for 'Dried Distillers Grains with Solubles' in the name column or use the direct URL format: https://[domain]/fundamentals/tradematrix/[identifier]. The Brazil export data was updated to reflect accurate figures matching customs reports for 2025. The update included adding missing HS codes to ensure all relevant export data is captured. Users should verify the updated data in the TradeMatrix after these corrections.",
+      "keywords": [
+        "TradeMatrix",
+        "DDGS",
+        "Dried Distillers Grains with Solubles",
+        "trade flow",
+        "Brazil export data",
+        "HS codes",
+        "data update",
+        "customs data",
+        "export figures",
+        "data query"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "0846648F_RE_ Do you have the NASS fats and oils dataset",
+      "problem": "User needs access to the NASS fats and oils monthly report dataset, including production and stocks data for soybean oil, rapeseed oil, corn oil, and other oils, which is not available in the ready-download links on the platform.",
+      "solution": "The platform initially provided access to the soybean oil data from the NASS report via a specific dataset link. Subsequently, the platform updated the dataset to include all oils from the NASS fats and oils report, making the complete dataset accessible through the same link: https://vags.dnext.io/datasets/vags-cb148487-4c48-11f0-8b51-02abcd39fb87/data-exploration. Users can access this link to explore monthly production and stock data for soybean oil, rapeseed oil, corn oil, and other oils as reported in the NASS fats and oils report.",
+      "keywords": [
+        "NASS fats and oils dataset",
+        "soybean oil data",
+        "rapeseed oil data",
+        "corn oil data",
+        "monthly production",
+        "stocks data",
+        "dataset access",
+        "data platform",
+        "NASS report",
+        "data exploration"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "0948E8EE_Re_ crush margin missing in calc",
+      "problem": "Margin values are missing in a calculation table on the dashboard.",
+      "solution": "If margin data is missing in a dashboard table, check if the dashboard refresh process is blocked or stalled. Performing a manual refresh of the dashboard resolves the issue and restores the missing margin data.",
+      "keywords": [
+        "dashboard",
+        "margin missing",
+        "calculation table",
+        "data missing",
+        "dashboard refresh",
+        "refresh blocked",
+        "data update"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "09C964C6_RE_ DCS-1561 RE_ Platform access - dnexr",
+      "problem": "A user needs access to specific fertilizer-related resources including dashboards, the urea trade matrix, and fertilizer datasets, but the existing DNEXR platform access grants unrestricted access to all data without resource-level control.",
+      "solution": "To provide controlled access to specific fertilizer resources without granting full DNEXR platform access, set up a demo environment that includes all required fertilizer resources. Revoke the user's DNEXR access and grant access to the demo environment instead. Note that the demo environment does not support downloading data such as tradematrix or datasets; if downloading is required, the full platform access or another solution must be considered. For users who do not need to download data, the demo environment suffices for viewing and interacting with the required resources.",
+      "keywords": [
+        "DNEXR",
+        "platform access",
+        "resource-level access",
+        "fertilizer dashboards",
+        "urea trade matrix",
+        "fertilizer datasets",
+        "demo environment",
+        "access control",
+        "data download limitation"
+      ],
+      "category": "Access Issue"
+    },
+    {
+      "id": "0B131115_RE_ units in trade flow data",
+      "problem": "Users need to know the measurement units used in the TradeMatrix trade flow data to correctly interpret the values, such as for ethanol trade data.",
+      "solution": "Currently, the ethanol TradeMatrix data is measured in Megaliters (1 million liters), while most other TradeMatrix datasets use units of 1000 metric tons (1000MT). The platform is working on implementing the display of units in both the TradeMatrix visual interface and API data to make this information explicit. Meanwhile, users can refer to these default units or contact support for clarification on specific datasets.",
+      "keywords": [
+        "TradeMatrix",
+        "trade flow data",
+        "units",
+        "measurement units",
+        "ethanol",
+        "Megaliters",
+        "1000MT",
+        "API data",
+        "data visualization"
+      ],
+      "category": "Feature Explanation"
+    },
+    {
+      "id": "0CF7D076_RE_ Corn Trade matrix _ Urgent",
+      "problem": "Users are unable to reopen and modify saved forecasts or scenarios in grid/matrix view within the TradeMatrix platform. The Edit and Visualize buttons redirect to renaming pages instead of allowing direct grid editing.",
+      "solution": "To reopen and edit a forecast in grid view within TradeMatrix: 1) Load the saved forecast into TradeMatrix. 2) Drag the forecast onto the top layer panel. 3) Make the desired edits directly in the forecastable cells within the TradeMatrix interface. 4) After editing, either save the changes to the current version or publish them as a new version. Note that only the latest version of a forecast can be edited; older versions are read-only. Additionally, when creating a new forecast, use hyphens '-' instead of spaces or underscores in the code field. For Excel files with macros and VBA related to forecasts, open the '.xlsm' files rather than '.xlsx' files to access full functionality.",
+      "keywords": [
+        "TradeMatrix",
+        "forecast editing",
+        "grid view",
+        "matrix view",
+        "save changes",
+        "publish new version",
+        "forecast versioning",
+        "xlsm file",
+        "macros",
+        "VBA",
+        "edit forecast",
+        "visualize forecast"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "0DDC74FC_DNEXT Platform _ sugar lineups access",
+      "problem": "Users need to access and download sugar lineup datasets for specific regions from the DNEXT platform.",
+      "solution": "To download sugar lineup data from the DNEXT platform, open the dataset page URL for the desired region. On the dataset page, click the 'Download' button located at the top right corner to download the data. Additionally, users can use the DNEXT Excel add-in to fetch data directly into Excel. A demo session can be arranged to guide users through the platform features and assist with setting up the Excel add-in.",
+      "keywords": [
+        "DNEXT",
+        "sugar lineup",
+        "dataset access",
+        "download data",
+        "Excel add-in",
+        "data export",
+        "platform features",
+        "how to download"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "0F08479E_RE_ Training Session with Agrorodeo",
+      "problem": "User wants to compare actual precipitation data with forecast values in the weather dashboards.",
+      "solution": "To compare actual precipitation with forecast values in the weather dashboards: 1) Open the Weather Dashboards by navigating to Dashboard > Weather and select the desired region. 2) Click the 'Forecast Run Comparison' button to access the comparison page. 3) In the 'Run Selection' filter, check the box for 'Actual' to display observed precipitation and select the forecast model(s) to compare against. 4) Hover over the chart to view actual precipitation values versus forecast runs for the selected date.",
+      "keywords": [
+        "weather dashboard",
+        "precipitation comparison",
+        "forecast run comparison",
+        "actual vs forecast",
+        "weather data analysis",
+        "dashboard navigation",
+        "forecast models"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "1033A167_RE_ [EXTERNAL] RE_ Unexpected api behaviour recent",
+      "problem": "Users experience intermittent timeout errors when calling the API to download large datasets, causing scheduled tasks to fail or require multiple attempts.",
+      "solution": "Increase the wait time in the polling loop that checks the task status after initiating a dataset download. Instead of relying on a fixed number of retries with fixed sleep intervals, implement a backoff strategy where the wait time starts at 2 seconds and increments by 1 second after each unsuccessful status check, up to a maximum of 30 seconds. This approach controls the real elapsed time more accurately and prevents premature timeout errors. The provided Python script demonstrates how to implement this logic by polling the task status endpoint until the task status is 'SUCCEEDED' or the wait time exceeds 30 seconds. Adjust the wait_time parameter upwards if larger datasets cause timeouts.",
+      "keywords": [
+        "API timeout",
+        "dataset download",
+        "task status polling",
+        "wait time",
+        "backoff strategy",
+        "timeout error",
+        "Python script",
+        "requests",
+        "incremental wait",
+        "large files",
+        "task polling",
+        "retry logic"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "158C1658_RE_ DNEXT service",
+      "problem": "Users need access to a data platform providing the Daily Brazilian Lineups dataset with API access for data retrieval.",
+      "solution": "To grant access to users for the Daily Brazilian Lineups dataset via APIs, create user profiles in the data platform environment and send login credentials directly to each user's email. After account creation, the support team should offer a short demo session to guide users on how to use the APIs effectively. The platform subscription includes access to historical data and ongoing data updates. Monthly subscriptions without historical data are also available for limited periods. The data is sourced from Brazilian ports covering approximately 21 ports, representing 100% of bulk sugar flow, with data verified and cross-checked from multiple sources including port agents who consent to share anonymized derived content.",
+      "keywords": [
+        "Daily Brazilian Lineups",
+        "API access",
+        "user account creation",
+        "data platform",
+        "data subscription",
+        "historical data",
+        "monthly subscription",
+        "data demo",
+        "port agents",
+        "bulk sugar flow",
+        "data ingestion",
+        "data verification"
+      ],
+      "category": "Access Issue"
+    },
+    {
+      "id": "15E5DC12_RE_ DropBox again",
+      "problem": "Numbers in Excel spreadsheets appear with strikethrough formatting and do not update after refresh, causing confusion in data display.",
+      "solution": "This issue is caused by a recent Excel feature under the 'Formulas' tab in the 'Calculation' section called 'Calculation Options'. Within this, there is an option named 'Format stale values' which formats numbers that have not been recalculated with a strikethrough. To resolve the issue, go to the 'Formulas' tab, find the 'Calculation Options' section, and uncheck the 'Format stale values' option. This will remove the strikethrough formatting and ensure numbers display correctly. Additionally, ensure that calculation mode is set to 'Automatic' rather than 'Manual' to keep formulas updated.",
+      "keywords": [
+        "Excel",
+        "strikethrough",
+        "numbers",
+        "format stale values",
+        "calculation options",
+        "manual calculation",
+        "automatic calculation",
+        "formula update",
+        "Excel upgrade"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "1BBAC6A2_RE_ Country Codes",
+      "problem": "Certain country codes exist in the system but cannot be selected during the value mapping step of a dataset workflow.",
+      "solution": "The inability to select some country codes during value mapping is due to the dataset columns (e.g., 'Country Reporter' and 'Country Partner') being filtered to only allow mapping of locations with the type 'COUNTRY'. Codes that have a different type, such as 'WORLD', will not appear as selectable options. To resolve this, review and adjust the filter on the dataset columns to include the desired location types if mapping those codes is required.",
+      "keywords": [
+        "country codes",
+        "value mapping",
+        "dataset",
+        "filter on value",
+        "location type",
+        "COUNTRY",
+        "WORLD",
+        "mapping issue",
+        "dataset configuration"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "1E51C9AC_Re_ Customs calendar is empty",
+      "problem": "Customs calendar displays as empty and does not show schedules, including the US schedule.",
+      "solution": "Add the 'Current' month to the customs calendar data to ensure schedules are displayed properly. This addition fixes the issue permanently by populating the calendar with the relevant current month information.",
+      "keywords": [
+        "customs calendar",
+        "empty calendar",
+        "schedule missing",
+        "US schedule",
+        "current month",
+        "calendar data",
+        "display issue"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "1E7FE069_Re_ Paraguay customs",
+      "problem": "Data for Paraguay customs imports is updated through April 2025, but exports data is only available through January 2025, causing a mismatch in data recency.",
+      "solution": "The issue was caused by a small bug in a newly created data processing script that led to the mismatch between import and export data timing. The bug was identified and fixed, resolving the data discrepancy. Additionally, it was recognized that the current HealthCheck system does not detect such timing mismatches between import and export data. A request has been made to add this check to the HealthCheck process to automatically flag similar issues in the future, preventing recurrence.",
+      "keywords": [
+        "Paraguay customs",
+        "data mismatch",
+        "import export timing",
+        "data recency",
+        "data quality",
+        "HealthCheck",
+        "data processing script bug",
+        "data validation",
+        "customs data",
+        "data update frequency"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "2682E3DD_RE_ [EXTERNAL] RE_ Veg Oil datasets download",
+      "problem": "User is unable to see or use the download button to download datasets from the Datasets tab in the platform.",
+      "solution": "To download a dataset, first click on the 'visualize record' button represented by an eye icon. This opens an interface where a 'Download' button is located at the top right of the screen. Clicking this button will initiate the dataset download in the browser after a short wait. If the download button does not appear, try clearing the browser's cache and cookies, then log out and log back into the platform. This sequence often resolves the issue of the download button not showing up.",
+      "keywords": [
+        "dataset download",
+        "download button missing",
+        "visualize record",
+        "eye icon",
+        "clear cache",
+        "clear cookies",
+        "log out",
+        "log in",
+        "browser download",
+        "datasets tab"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "277CF74A_RE_ Password reset`",
+      "problem": "API integration for pulling SND datasets started receiving zipped files instead of CSV format, causing issues with data processing.",
+      "solution": "The service introduced file compression (zipping) to optimize large downloads, primarily for UI-triggered downloads. However, this compression was unintentionally affecting API calls. The issue was identified and corrected so that the API now delivers datasets in the original CSV format as expected, ensuring compatibility with existing integrations.",
+      "keywords": [
+        "API",
+        "SND datasets",
+        "file compression",
+        "zipped files",
+        "CSV format",
+        "data download",
+        "integration issue",
+        "file format change",
+        "API data pull"
+      ],
+      "category": "Integration Issue"
+    },
+    {
+      "id": "2BFD1B6B_RE_ 5 yrs fob_cfr history needed if possible",
+      "problem": "User needs to access and download 5 years of FOB and CFR historical price data for corn and soybean meal, specifically including CFR data for Jeddah port, and is unsure how to find and download these datasets from the platform.",
+      "solution": "To access and download the required historical FOB and CFR data for corn and soybean meal: 1) Log in to the platform. 2) Navigate to the datasets section by hovering over the table icon in the left menu and clicking on 'dataset'. 3) In the datasets table, use the search field to find the relevant dataset by name: for corn, search 'Corn' and select 'World Corn CNF Updates'; for soybean meal, the dataset 'Soybean Meal CNF' is now available. 4) Click the eye icon on the right side of the dataset row to open the dataset summary page. 5) On the summary page, click the 'Download' button located at the top right to download the data. Note that the corn data covers from 2020 to present and includes CFR data. The soybean meal CNF dataset was added later and is now available for download. If the download button is not visible, log out and log back into the platform to refresh permissions, as a permission issue may cause the button to be disabled.",
+      "keywords": [
+        "FOB historical data",
+        "CFR historical data",
+        "corn price data",
+        "soybean meal data",
+        "dataset download",
+        "platform navigation",
+        "download button disabled",
+        "permission issue",
+        "data access",
+        "timeseries data",
+        "CNF dataset",
+        "Jeddah CFR",
+        "data download instructions"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "2D55FB48_Re_ export sales",
+      "problem": "User requests to add all products to the export sales dashboard but some products are missing.",
+      "solution": "Products such as Barley, Sorghum, and Rice have been successfully added to the export sales dashboard dataset. Other products could not be added due to either lack of tradeflow data or absence of quantities from the USA as origin in the Tradeflow data. When adding products to the export sales dashboard, verify that tradeflow data exists and that there are quantities from the USA as origin; otherwise, those products cannot be included.",
+      "keywords": [
+        "export sales dashboard",
+        "product addition",
+        "tradeflow data",
+        "USA origin quantities",
+        "dataset update",
+        "missing products"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "2D57EF96_Tradematrix Download issue",
+      "problem": "Users experience issues with the download button in the Soft Wheat TradeMatrix and confusion about TradeMatrix code formats.",
+      "solution": "Access the Soft Wheat TradeMatrix via the URL format https://[domain]/fundamentals/tradematrix/sucden-[uuid]. Use TradeMatrix codes in the 'sucden-xxxx-xxxx' format instead of the deprecated 'dnexr-xxxx-xxxx' format. The new 'sucden' codes are linked to the updated system, ensuring that any updates or changes to resources are dynamically reflected. The download button in the TradeMatrix interface is now fully functional and available for use.",
+      "keywords": [
+        "TradeMatrix",
+        "download button",
+        "code format",
+        "sucden",
+        "dnexr",
+        "deprecated",
+        "dynamic updates",
+        "Soft Wheat",
+        "URL format"
+      ],
+      "category": "Download Problem"
+    },
+    {
+      "id": "2DF9490A_RE_ [EXTERNAL] RE_ Corn SnD",
+      "problem": "User is unsure if the code used to download the corn Supply and Demand (SnD) dataset is correct and notices a mismatch in US FSI use values between the downloaded dataset and the official report.",
+      "solution": "The correct code for the corn SnD dataset is 'thul-c4ffcc58-c9b0-4935-a0c8-b93f28d7d674'. Users should verify they are using this code to download the latest corn SnD data. The FSI use values in the dataset for the latest publication date should correspond exactly with the FSI use values reported in the official report. If discrepancies occur, ensure the dataset code is correct and that the dataset is the latest publication version.",
+      "keywords": [
+        "corn SnD dataset",
+        "dataset code",
+        "thul-c4ffcc58-c9b0-4935-a0c8-b93f28d7d674",
+        "FSI use",
+        "data mismatch",
+        "dataset validation",
+        "data consistency",
+        "report comparison"
+      ],
+      "category": "Data Validation"
+    },
+    {
+      "id": "2E44D4F2_RE_ Data on Rapeseed Oil",
+      "problem": "Users could not find updated data on Rapeseed Oil and other vegetable oils on the platform; only Seeds and meal data were visible.",
+      "solution": "The Oils data is now available on the platform under the 'Vegoils' category. Users should look for Oils data within this category to access updated information. Additionally, trade flow data for Oils is also being updated and should be accessible for all countries in the same category.",
+      "keywords": [
+        "Rapeseed Oil data",
+        "vegetable oils data",
+        "Vegoils category",
+        "trade flows",
+        "data update",
+        "platform navigation",
+        "data availability"
+      ],
+      "category": "Platform Navigation"
+    },
+    {
+      "id": "30FD91C4_Re_ mapping urea",
+      "problem": "The product mapping for urea is incorrect or unclear: the platform shows the product code as 'FERTDU' with the name 'Urea', but clients do not recognize 'FERTDU' as urea. The user wants to change the mapping to have the product name as 'Urea' and the code as 'UREA' for clarity.",
+      "solution": "To change the product mapping for urea to have the name 'Urea' and code 'UREA', follow these steps: 1) Edit the product reference with the code 'UREA' and change the name from 'FERTDU' to 'Urea'. 2) Use the Reference Management > Correction feature to replace all instances of the reference with name 'Urea' and code 'FERTDU' with the new reference (name 'Urea', code 'UREA'). Alternatively, if the previous mapping was incorrect and not from static values, use the 'Reapply Mapping' feature to correct the mapping without needing Reference Manager permissions. This method is simpler and less risky. These steps ensure the product is correctly identified as urea on the platform without confusing clients.",
+      "keywords": [
+        "product mapping",
+        "urea",
+        "FERTDU",
+        "UREA",
+        "reference management",
+        "correction",
+        "reapply mapping",
+        "product code",
+        "product name",
+        "mapping issue"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "31D344B2_RE_ VAM_Dnext_ SnD Dropbox, Dataset, Technology tr",
+      "problem": "Users need access to Dnext SnD datasets via Dropbox or alternative platforms and require yearly aggregated data instead of only monthly data. Additionally, users seek guidance on technical aspects such as sample SQL queries for data preparation.",
+      "solution": "1. Access to Dnext SnD datasets is provided via a Dropbox folder titled DNEXT_VAM. Alternative delivery platforms like SharePoint can be used if access is granted.\n2. The datasets are updated monthly by default and do not include yearly aggregated values. However, processed datasets with yearly values can be created upon request for each of the five Dnext SnD datasets (Corn, Oilseeds, Wheat, Veggie Oil, Wheat by Class).\n3. Sample SQL queries for data preparation are provided to assist users in querying the datasets. Examples include selecting specific product codes and filtering data for recent years using SQL syntax.\n4. Training sessions can be arranged to walk users through the technical aspects of the platform.\n5. Oilseeds SnD Excel files were added to the Dropbox upon request.",
+      "keywords": [
+        "Dnext SnD",
+        "Dropbox access",
+        "dataset delivery",
+        "yearly data aggregation",
+        "monthly data",
+        "processed datasets",
+        "SQL queries",
+        "data preparation",
+        "training session",
+        "SharePoint",
+        "data platform",
+        "Oilseeds dataset"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "31EC67F6_Data Quality 11-11-2025",
+      "problem": "Scripts for data processing require specific libraries and tools that are missing on the platform, preventing scheduled execution.",
+      "solution": "To enable scheduling of data processing scripts on the platform: 1) Install the Python library 'xmltodict' to support XML parsing required by the AGRIMER Livestock & Meat France CASH weekly script. 2) Install 'mdbtools' and 'pyodbc' to handle Microsoft Access files needed by the Spain Water Level Dashboard script. These installations will allow the scripts to run and be scheduled properly on the platform.",
+      "keywords": [
+        "xmltodict",
+        "python library",
+        "mdbtools",
+        "pyodbc",
+        "Microsoft Access",
+        "script scheduling",
+        "data processing",
+        "platform configuration"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "34A6FCAB_RE_ Tradeflow soft wheat - no signs of USA",
+      "problem": "TradeFlow Excel Add-in was missing data for certain origins (e.g., USA for soft wheat) and showed discrepancies in data values compared to the TradeMatrix dashboard.",
+      "solution": "The issue was caused by a bug in the TradeFlow Excel Add-in. The bug has been fixed in a new version of the add-in. Users experiencing missing data or discrepancies should update to the corrected version of the Excel Add-in. Installation of the fixed version can be done via a support-guided Teams call to ensure proper setup. After updating, users should refresh their data to see the corrected and complete dataset, including all origins such as the USA.",
+      "keywords": [
+        "TradeFlow",
+        "Excel Add-in",
+        "data missing",
+        "missing origins",
+        "soft wheat",
+        "USA data missing",
+        "data discrepancy",
+        "TradeMatrix dashboard",
+        "bug fix",
+        "addin update",
+        "data refresh"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "35F8A333_RE_ Corn Trade matrix",
+      "problem": "Users experience errors when trying to access or create forecasts in the TradeMatrix platform, and confusion exists about locating the correct Excel spreadsheet with macros for managing grids/forecasts and monthly exports.",
+      "solution": "To resolve TradeMatrix forecast creation issues, refresh the page as a temporary workaround. For managing grids and forecasts with VBA functionality, access the Excel file with macros (.xlsm) located in the shared folder path: 'G&O\\05- COUNTRY_ANALYSIS\\ARGENTINA\\SND\\CRN_ARG_SND.xlsm'. Do not use the similarly named .xlsx file as it lacks macros. To create a forecast in TradeMatrix: 1) Click the Forecast button, 2) Click Create in the Forecast section, 3) Specify Name, Code (use hyphens '-' instead of spaces or underscores), and Color, 4) Click Load, then move the forecast from the left panel to the right. Input data directly into forecastable cells, then either save changes to the current version or publish as a new version. Note that only the latest forecast version can be edited; older versions are read-only.",
+      "keywords": [
+        "TradeMatrix",
+        "forecast creation",
+        "Excel macros",
+        "xlsm file",
+        "forecast versioning",
+        "refresh page workaround",
+        "forecast input",
+        "VBA",
+        "monthly exports",
+        "grid management"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "36B08B13_Re_ Customs Argentina adjusted lineups is WRONG. A",
+      "problem": "The adjusted customs lineups data for Argentina incorrectly assigns all quantities to Saudi Arabia and Yemen, which does not reflect the actual data.",
+      "solution": "The issue was identified in the SQL query used to combine customs and lineups data. The fix involves including the 'Country Partner' column in the join condition to correctly match records: specifically, adding the condition a.\"Country Partner\" = b.\"Country Partner\" in the SQL join. An updated SQL query example was provided for Corn product data, demonstrating how to correctly join and aggregate data from customs and lineups datasets by country partner and product hierarchy. This corrected query ensures that quantities are properly allocated to the correct countries rather than being incorrectly grouped into Saudi Arabia and Yemen.",
+      "keywords": [
+        "customs data",
+        "adjusted lineups",
+        "SQL query",
+        "data prep",
+        "country partner",
+        "join condition",
+        "data aggregation",
+        "Argentina exports",
+        "data correction",
+        "product hierarchy"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "3AE813FB_RE_ Login Credentials",
+      "problem": "User wants to link their Dropbox account to their user account on the Dnext Platform but does not see the expected folders appear in their Dropbox after enabling the connection and authenticating.",
+      "solution": "To link Dropbox to the Dnext Platform user account: 1) Log in to the Dnext Platform with your credentials. 2) Access the User Profile Module by clicking the icon with your initials in the bottom-left corner. 3) In the User Profile, locate the Connectors section and toggle the Dropbox connector to enable it. 4) Authenticate with Dropbox when redirected to the Dropbox authentication page. After successful authentication, a confirmation screen appears. Additionally, to access shared folders, check your email for an invitation to join the Dnext Team on Dropbox (email comes from no-reply@dropbox.com). Click 'Join Team' and follow the instructions. If the invitation email is not received, verify with your IT department that Dropbox emails are not being filtered or blocked.",
+      "keywords": [
+        "Dnext Platform",
+        "Dropbox integration",
+        "link Dropbox",
+        "connectors",
+        "user profile",
+        "authentication",
+        "shared folders",
+        "Dropbox invitation",
+        "email filtering",
+        "no-reply@dropbox.com"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "3BB864DD_RE_ [EXTERNAL] RE_ by class wheat on platform",
+      "problem": "User wants to access US Wheat balance sheets by class on the platform's graphical user interface (GUI).",
+      "solution": "The US Wheat balance sheets by class dataset is available on the platform and has been added as a dedicated tab. To access it, navigate to the Supply and Demand section, then to DNEXR, and finally to the Wheat dashboard where the 'wheat by class' tab is located. Additionally, the dataset can be referenced by its code 'zimb-1a841727-e30f-11ef-b5ba-0a72732f38e5' for direct access or API use.",
+      "keywords": [
+        "US Wheat",
+        "balance sheets",
+        "by class",
+        "dataset",
+        "platform GUI",
+        "Supply and Demand",
+        "DNEXR",
+        "Wheat dashboard",
+        "data access",
+        "dataset code"
+      ],
+      "category": "Platform Navigation"
+    },
+    {
+      "id": "3DF2B991_DNEXT Platform - Update on data sharing",
+      "problem": "Users need to adapt to updated dataset and tradeflow unique identifiers (UIDs) due to platform automation changes affecting data sharing and access.",
+      "solution": "Starting from May 5, 2025, dataset and tradeflow UIDs on the platform will be updated to new formats to support automated access and dynamic updates based on user subscriptions. Users should replace old resource codes (e.g., 'dnexr-structured-dnexr-oilseeds-world-snd_item-weekly') with new UUID-based codes (e.g., 'zimb-4c8d416c-7f52-4f39-8643-a386e4c3a443') in their API calls and integrations to ensure continued access to subscribed datasets and tradeflows. This change enables automatic sharing and real-time updates of resources without manual intervention.",
+      "keywords": [
+        "dataset UID update",
+        "tradeflow UID change",
+        "automated data sharing",
+        "dynamic updates",
+        "subscription-based access",
+        "API integration",
+        "resource code migration",
+        "platform update"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "3ECED638_RE_ new table format not ok",
+      "problem": "The new table format for Brazil crop progress has excessive spacing between states, causing the full table not to fit in one view and resulting in some states being missing.",
+      "solution": "Adjust the table layout to reduce the space between states so that all states are visible without scrolling. Apply this adjusted format consistently across other crop dashboards to improve readability and ensure full data visibility in a single view.",
+      "keywords": [
+        "table format",
+        "crop progress",
+        "Brazil",
+        "spacing issue",
+        "dashboard layout",
+        "data visibility",
+        "scrolling",
+        "crop dashboards",
+        "UI adjustment"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "40F4EB78_RE_ Unable to download historical Cash prices and",
+      "problem": "User is unable to download historical cash prices and premiums data from the portal despite being able to view the data and price charts.",
+      "solution": "To download the historical cash prices and premiums data from the portal, hover over the line chart visual, click on the three dots menu, then select 'Export data'. Choose the 'xlsx (Excel 150,000-row max)' format and click on Export. Additionally, the dataset including CNF, FOB, and Freight historical data can be accessed and downloaded from the provided platform link which is regularly updated.",
+      "keywords": [
+        "historical data download",
+        "cash prices",
+        "premiums data",
+        "export data",
+        "line chart",
+        "xlsx export",
+        "CNF",
+        "FOB",
+        "Freight",
+        "data portal",
+        "data export"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "4187E9C0_RE_ DCS-1273 RE_ [EXTERNAL] DNEXT Platform - Updat",
+      "problem": "Users experience issues downloading TradeMatrix aggregated data due to changing download URLs.",
+      "solution": "Use the provided Python script to authenticate and download TradeMatrix aggregated data via the API. Steps include: 1) Log in to the API using email, password, and environment name to obtain an authentication token. 2) Use the token to request the download task for tradeflows with specified parameters (e.g., excluding intraflow strategies, CSV format). 3) Poll the task status until it succeeds or times out. 4) Once ready, retrieve the download URL from the task result and download the CSV data into a pandas DataFrame. Replace placeholders with actual credentials and environment name. This method handles dynamic URLs and automates data retrieval.",
+      "keywords": [
+        "TradeMatrix",
+        "API",
+        "download",
+        "aggregated data",
+        "dynamic URL",
+        "authentication token",
+        "Python script",
+        "requests",
+        "pandas",
+        "CSV",
+        "task polling",
+        "data retrieval"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "44A49330_RE_ Some unclear fields in Corn Dnext SnD dataset",
+      "problem": "Users are unclear about the meaning of certain fields in the Corn Supply and Demand (SnD) dataset, specifically the fields labeled 'Protein Use', 'use_flour', and 'Not_Available' linked to Ukraine data.",
+      "solution": "The 'use_flour' field represents official statistics for corn usage in flour production in Ukraine, indicating minimal volumes used for food. The 'Protein Use' field corresponds to what is called 'use_groat' in the SnD dataset, also representing minimal usage. The 'Not_Available' rows are due to a technical issue on the data provider's side but also represent 'use_groat' values. These clarifications help interpret these fields correctly in the dataset.",
+      "keywords": [
+        "Corn SnD dataset",
+        "use_flour",
+        "Protein Use",
+        "use_groat",
+        "Not_Available field",
+        "Ukraine statistics",
+        "dataset field clarification",
+        "technical issue",
+        "data interpretation"
+      ],
+      "category": "Feature Explanation"
+    },
+    {
+      "id": "4AA5DC47_RE_ Weekly Dnext fundamental update",
+      "problem": "Emails sent to a recipient are rejected due to the recipient's mail system having a partner connector configured with security settings RestrictDomainsToIPAddresses or RestrictDomainsToCertificate, causing delivery failure with error code 550 5.7.51 TenantInboundAttribution.",
+      "solution": "The recipient's mail system blocks emails from servers not explicitly allowed by their partner connector settings. To resolve this, the recipient's IT administrator must update their mail system configuration to allow emails from the sender's mail server IP addresses or certificates. This involves modifying the partner connector settings in Exchange Online or the mail system to remove or adjust the RestrictDomainsToIPAddresses or RestrictDomainsToCertificate parameters to permit the sender's domain or IPs.",
+      "keywords": [
+        "email delivery failure",
+        "partner connector",
+        "RestrictDomainsToIPAddresses",
+        "RestrictDomainsToCertificate",
+        "Exchange Online",
+        "error 550 5.7.51",
+        "TenantInboundAttribution",
+        "mail system security",
+        "email rejection",
+        "mail flow configuration"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "4ABF3D9A_RE_ Dnext - Quadra _ Grains",
+      "problem": "User could not access temperature charts for certain origins like Romania on the platform because the filter only showed corn options, which the user was not subscribed to, despite those origins also producing oilseeds included in their subscription.",
+      "solution": "The platform was updated so that users can now see charts in the weather dashboards even when the filter is set to corn, allowing access to relevant data for origins producing oilseeds under the current subscription. Additionally, support is available to guide users through the weather dashboards, including features like snow cover in cropping areas, via scheduled calls.",
+      "keywords": [
+        "weather dashboards",
+        "temperature charts",
+        "corn filter",
+        "oilseeds",
+        "subscription access",
+        "platform filtering",
+        "snow cover",
+        "cropping areas",
+        "data access",
+        "user support"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "4C954C8A_RE_ [EXTERNAL] RE_ MLP Project_ cotton production",
+      "problem": "User needs a bi-weekly cotton production dataset for Pakistan extracted from PDF reports published on a public website, including specific values: Total Arrivals Punjab, Total Arrivals Sindh, and Total Arrivals Pakistan (all in bales). Additionally, the dataset requires regular updates to include new data as it becomes available.",
+      "solution": "A dataset was created and made available on the platform with a specific dataset code. The dataset extracts the required three values from the PDF reports published at https://www.pcga.org/arrival-reports/. Furthermore, the dataset was configured to run as a recurring weekly task to automatically update and add new data when available from the source, ensuring the dataset remains current without manual intervention.",
+      "keywords": [
+        "cotton production",
+        "dataset creation",
+        "Pakistan cotton data",
+        "bi-weekly statistics",
+        "PDF data extraction",
+        "Total Arrivals Punjab",
+        "Total Arrivals Sindh",
+        "Total Arrivals Pakistan",
+        "recurring update",
+        "weekly data refresh",
+        "automated dataset update"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "52F0B268_Re_ Looking for IMEA soybean phenology",
+      "problem": "Users noticed that the IMEA Crop Phenology data on the platform stopped updating after the 2023/24 season and wanted to know if IMEA still provides crop phenology data, specifically for soybean progress.",
+      "solution": "The IMEA Crop Phenology data is no longer published directly by IMEA but is estimated by analysts using IMEA planting and harvest data combined with crop cycle information. This phenology data has been assimilated into the Brazil Crop Progress dashboard along with updates for the latest season. Users can now view the IMEA crop phenology by navigating to the platform section: Grains & Oilseeds (GnO Crop) > Brazil > Crop Progress Dashboard.",
+      "keywords": [
+        "IMEA",
+        "crop phenology",
+        "soybean progress",
+        "Brazil Crop Progress dashboard",
+        "planting data",
+        "harvest data",
+        "crop cycle",
+        "data assimilation",
+        "dashboard navigation"
+      ],
+      "category": "Platform Navigation"
+    },
+    {
+      "id": "53E1D5FC_RE_ [EXTERNAL] RE_ mistake in wasde data",
+      "problem": "In the USDA WASDE data for the date 1998-11-10, cotton data was incorrectly mapped to the soft wheat (SWHT) product category for the crop year 1998/1999.",
+      "solution": "The mapping error was identified and corrected by the support team. Users encountering similar mapping issues in WASDE data should verify the product mapping fields to ensure that commodity data (e.g., cotton) is correctly assigned to its respective product category rather than being misclassified under another product such as soft wheat. If such errors are found, report them with specific data examples to support for correction.",
+      "keywords": [
+        "WASDE",
+        "USDA data",
+        "mapping error",
+        "product mapping",
+        "cotton misclassified",
+        "soft wheat",
+        "SWHT",
+        "crop year",
+        "data correction"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "56C446DA_RE_ Regarding Cash Corn Prices",
+      "problem": "User cannot find the tab for cash corn prices in the platform interface, although tabs for wheat and soybeans are visible.",
+      "solution": "Cash corn prices are available in the Corn CNF Dashboard. Users should navigate to the Corn CNF Dashboard to view cash corn price data instead of looking for a separate tab like for wheat and soybeans.",
+      "keywords": [
+        "cash corn prices",
+        "corn CNF dashboard",
+        "missing tab",
+        "price data location",
+        "platform navigation"
+      ],
+      "category": "Platform Navigation"
+    },
+    {
+      "id": "59B12438_RE_ Weekly report_ Technicals_2025_11_07",
+      "problem": "Email delivery failure with error code 554 5.4.14 indicating a possible mail loop or unknown recipient address in an Office 365 environment.",
+      "solution": "To resolve the 554 5.4.14 'Hop count exceeded - possible mail loop' error and unknown recipient issues in Office 365, follow these steps: 1) Verify the recipient email address is correctly spelled and exists in the destination domain. 2) If using a hybrid environment with directory synchronization, ensure the recipient's email address is properly synchronized between the local directory and Office 365. 3) Check for and correct any misconfigured mail forwarding or inbox rules that might cause mail loops. 4) Review and correct mail flow settings and MX records to ensure they are properly configured for the domain. 5) For mail loops caused by internal relay misconfiguration, change the domain setting from 'Internal Relay' to 'Authoritative' in Office 365. 6) If the recipient mailbox is hosted on-premises and the sender mailbox is in Office 365, ensure an outbound connector is correctly configured in Office 365 to route mail to the on-premises server. 7) Clear the Outlook autocomplete cache for the recipient address and re-enter the full email address manually when resending. These steps help prevent mail loops and ensure proper mail delivery.",
+      "keywords": [
+        "Office 365",
+        "email delivery failure",
+        "554 5.4.14",
+        "mail loop",
+        "hop count exceeded",
+        "unknown recipient",
+        "mail flow configuration",
+        "MX records",
+        "hybrid environment",
+        "directory synchronization",
+        "outbound connector",
+        "internal relay",
+        "authoritative domain",
+        "autocomplete cache",
+        "email forwarding rules"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "5AA947EC_RE_ FOB and CNF data vis API_",
+      "problem": "Users want to access Corn and Soybean FOB and CNF price data via the platform's API but cannot find the relevant datasets in the dataset list.",
+      "solution": "The FOB and CNF price data for Corn and Soybeans are available via the API under specific dataset codes. For World Corn CNF Updates, use the dataset code 'vam-a410fb85-d8ab-11ef-82fc-06cd53a4d901'. For Soybean world CNF daily data, use the dataset code 'vam-b327c07f-efd6-11ef-bba5-0a84c630a3f1'. Users can query these datasets through the API to retrieve the relevant FOB and CNF price information.",
+      "keywords": [
+        "FOB prices",
+        "CNF prices",
+        "API access",
+        "dataset codes",
+        "Corn CNF",
+        "Soybean CNF",
+        "price data",
+        "data retrieval",
+        "API datasets"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "5D2F7809_RE_ [EXTERNAL] Corn SND update 2025_04_23",
+      "problem": "Users experience data mismatches between US corn export values in the Supply and Demand (SnD) module and the TradeMatrix module.",
+      "solution": "The mismatch occurs because users are consulting the Corn TradeMatrix from an old system that is being phased out and no longer updated. To resolve this, users should navigate to the TradeMatrix module, search for 'Corn' in the 'Name' column, and select the TradeMatrix entry with a 'Code' formatted as 'thul-xxxx-xxxx-xxxx-xxxx'. This version is provided by the new system and contains up-to-date data, ensuring consistency with the SnD module.",
+      "keywords": [
+        "TradeMatrix",
+        "Corn exports",
+        "data mismatch",
+        "old system",
+        "new system",
+        "code format",
+        "thul-xxxx",
+        "SnD module",
+        "data update",
+        "forecast visibility"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "5F008B4A_RE_ FW_ China G&O Daily Commentary 2025.09.02",
+      "problem": "Email delivery failure with error code 550 5.1.10 indicating the recipient address does not exist or is incorrect in an Office 365 environment.",
+      "solution": "To resolve the 550 5.1.10 RecipientNotFound error in Office 365: 1) Verify the recipient email address is correctly spelled and exists. 2) Resend the message by opening the non-delivery report in Outlook or Outlook on the web, retyping the full recipient address without using autocomplete suggestions, and sending again. 3) Contact the recipient to confirm the address and check for any incorrect mail forwarding rules. 4) Clear the autocomplete cache for recipients in Outlook or Outlook on the web as described in the Microsoft article for error 5.1.10. 5) If you are an administrator, ensure the recipient has a valid Office 365 license, the email address is synchronized correctly in hybrid environments, and mail flow and MX records are properly configured. For detailed guidance, refer to the Microsoft support article: https://go.microsoft.com/fwlink/?LinkId=532972",
+      "keywords": [
+        "Office 365",
+        "email delivery failure",
+        "550 5.1.10",
+        "RecipientNotFound",
+        "SMTP error",
+        "non-delivery report",
+        "NDR",
+        "mail forwarding",
+        "autocomplete cache",
+        "mail flow configuration",
+        "MX records",
+        "license assignment",
+        "hybrid synchronization"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "61670DF2_Small Insight",
+      "problem": "Users may be confused when trying to reference the 'Consumption' field in the dataset because the actual key to use is different.",
+      "solution": "When accessing the dataset, do not use the label 'Consumption' as the key. Instead, use the key 'COMPT' to correctly reference the consumption data. This avoids confusion caused by the mismatch between the displayed label and the actual key name.",
+      "keywords": [
+        "dataset",
+        "key",
+        "Consumption",
+        "COMPT",
+        "data access",
+        "field naming",
+        "data reference"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "626DF9CD_RE_ (External)RE_ monthly Argentina soybean farmer",
+      "problem": "User wants to download monthly Argentina soybean farmer selling data and understand how to filter and interpret the dataset correctly.",
+      "solution": "To download Argentina soybean farmer selling data, visit the provided dataset URLs for Weekly Farmer Selling and Daily Farmer Selling on the platform. Click the Download button at the top right corner of the dataset page to export the data. For monthly priced farmer selling data sourced from MinAgri, use the dataset at https://etg.dnext.io/datasets/etg-c5711f29-ceee-44db-8548-52bb4f64e6c0. When filtering the data, use the 'operation date' field for accurate monthly aggregation and apply a filter where 'Is_Final' is set to 'SI'. Additionally, filter by 'Pricing=PRICED' and 'Crop_MappedName=Soybean' to get the relevant priced soybean farmer selling data.",
+      "keywords": [
+        "Argentina soybean farmer selling",
+        "monthly data download",
+        "dataset download",
+        "operation date",
+        "Is_Final filter",
+        "Pricing=PRICED",
+        "Crop_MappedName=Soybean",
+        "MinAgri data source",
+        "farmer selling data",
+        "data filtering"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "698D0566_Re_ Argentina farmer selling Discrepancy between m",
+      "problem": "Users observed discrepancies between the daily Argentina farmer selling figures sent by email and the numbers displayed on the platform, causing confusion about which data to trust.",
+      "solution": "The discrepancy issue was fixed by aligning the daily Argentina Farmer Selling email report with the platform data. Starting from the fix date, the daily farmer selling figures are included in the Dnext News email, ensuring consistency between email reports and platform statistics. Users should refer to the platform numbers as the trusted source and can now rely on the updated daily email report for accurate data.",
+      "keywords": [
+        "Argentina farmer selling",
+        "discrepancy",
+        "email report",
+        "platform data",
+        "data alignment",
+        "daily report",
+        "Dnext News",
+        "farmer selling figures"
+      ],
+      "category": "Data Consistency"
+    },
+    {
+      "id": "6D3F78D2_RE_ Dropbox issue",
+      "problem": "Users experience issues with Dropbox files showing formatting errors and strikethrough numbers due to Excel calculation settings after an Excel upgrade.",
+      "solution": "In Excel, go to the 'Formulas' tab, then to the 'Calculation Options' section. Locate the 'Format stale values' option, which formats numbers not recalculated with a strikethrough. Uncheck this option to remove the formatting errors and resolve the issue.",
+      "keywords": [
+        "Excel",
+        "Dropbox",
+        "formatting error",
+        "strikethrough",
+        "calculation options",
+        "manual calculation",
+        "automatic calculation",
+        "format stale values",
+        "Excel upgrade"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "70988D87_RE_ Downloading Tradematrix issue",
+      "problem": "User is able to view the Tradematrix on the portal but cannot find or use the download button to download data.",
+      "solution": "To resolve the issue where the download button is not visible or functional, log out of the platform completely and then log back in. After re-login, the download button will be accessible via the three dots menu in the Tradematrix interface, enabling the user to download the data as usual.",
+      "keywords": [
+        "Tradematrix",
+        "download issue",
+        "download button missing",
+        "log out",
+        "log in",
+        "three dots menu",
+        "portal",
+        "data download"
+      ],
+      "category": "Download Problem"
+    },
+    {
+      "id": "7204F8DD_RE_ DNEXT Platform _ sugar lineups access",
+      "problem": "Users need to access and download sugar lineup datasets for various regions from the DNEXT platform, and there is confusion about why some downloaded zip files contain two separate CSV files for the same origin.",
+      "solution": "To access sugar lineup datasets, users should navigate to the dataset page on the DNEXT platform and click the 'Download' button located at the top right of the page. When downloading datasets for regions like Central America and Thailand, the zip files may contain two separate CSV files. These files are split chunks of the same dataset, each containing half of the data, to facilitate easier management of larger files. This splitting is intentional and not indicative of different data. For smaller datasets, the platform team is working on enabling downloads as a single file. Users can combine these split files as needed for analysis.",
+      "keywords": [
+        "DNEXT platform",
+        "dataset download",
+        "sugar lineups",
+        "split CSV files",
+        "zip files",
+        "large dataset management",
+        "data access",
+        "download button",
+        "file chunks"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "720A90EF_Re_ Updates following platform Demo",
+      "problem": "Users encounter an error in the Sugar Production > India dashboard when there is insufficient browser memory, causing visualization issues.",
+      "solution": "If the dashboard visualization error occurs due to insufficient memory, close some browser tabs to free up memory and then refresh the dashboard page. This will resolve the visualization issue.",
+      "keywords": [
+        "dashboard error",
+        "Sugar Production",
+        "India dashboard",
+        "visualization issue",
+        "insufficient memory",
+        "browser memory",
+        "refresh",
+        "close tabs"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "763FE018_RE_ [EXTERNAL] RE_ Server errors",
+      "problem": "Users encounter a 500 server error when trying to access datasets via a web browser or API.",
+      "solution": "If the 500 server error occurs while accessing datasets through a web browser, clear the browser cache and try accessing the datasets again. If the error occurs while using the API, re-authenticate the API session and retry the request.",
+      "keywords": [
+        "500 server error",
+        "dataset access error",
+        "browser cache clearing",
+        "API re-authentication",
+        "server error resolution"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "791DDFB3_RE_ Issue in Dnext portal Login",
+      "problem": "User receives 'Access Denied' error when trying to log in to the Dnext portal.",
+      "solution": "Ensure that the user is logging in using the correct URL: https://alghurair.dnext.io/login. If login issues persist, clear the browser cache and try again. Additionally, check if any VPN is active; if so, close the VPN and retry logging in.",
+      "keywords": [
+        "Dnext portal",
+        "login error",
+        "access denied",
+        "correct URL",
+        "clear browser cache",
+        "VPN",
+        "login troubleshooting"
+      ],
+      "category": "Access Issue"
+    },
+    {
+      "id": "7C6845D3_RE_ Share DNEXT Wheat FOB prices with CFG environm",
+      "problem": "User needs to access DNEXT Wheat FOB prices data and dashboard within the CFG environment but is unsure how to locate or view the data.",
+      "solution": "To access the DNEXT Wheat FOB prices dashboard in the CFG environment: 1) Click on the 'Dashboard' module in the left menu, 2) Select the 'Economics' tab, 3) Expand the 'Wheat' section and click on 'Wheat CNF'. Alternatively, access it directly via the URL: https://cfg.dnext.io/dashboard/*/Economics/Wheat/2d0ef212-eac0-4b5e-aaba-2838fc610ec2. To view the wheat cash dataset, use the direct link: https://cfg.dnext.io/datasets/cfg-3fc888db-22d4-4cc8-be0b-4cf2792c6fa6. If the data is not visible, navigate to the 'Data Exploration' tab and use the download button at the top right corner to download the dataset.",
+      "keywords": [
+        "DNEXT",
+        "Wheat FOB prices",
+        "CFG environment",
+        "dashboard access",
+        "Economics tab",
+        "Wheat CNF",
+        "data exploration",
+        "dataset download",
+        "wheat cash dataset"
+      ],
+      "category": "Platform Navigation"
+    },
+    {
+      "id": "7CCEC2CD_RE_ Black Sea - Precipitation - Panel View",
+      "problem": "When filtering the weather dashboard on Ukraine using the 'latest' ECMWF data, the top right panel incorrectly displays the whole region and shows no data.",
+      "solution": "The ECMWF dataset publishes complete data only at 00Z and 12Z timestamps; data at 06Z and 18Z may have missing values. In the dashboard (Power BI), selecting the '00' timestamp instead of 'latest' ECMWF data resolves the display issue by showing complete data. The system automatically detects and displays the latest available data timestamp, which may be 06Z or 18Z with incomplete data. To avoid missing data display, users should select the 00Z or 12Z timestamps explicitly. Removing 06Z and 18Z data from the dataset is possible but requires team agreement.",
+      "keywords": [
+        "ECMWF",
+        "weather dashboard",
+        "data timestamps",
+        "00Z",
+        "06Z",
+        "12Z",
+        "18Z",
+        "missing data",
+        "Power BI",
+        "data filtering",
+        "latest data",
+        "display issue",
+        "region filter",
+        "zoom"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "80501BFE_RE_ DNEXT - Login Credential",
+      "problem": "User changed password but cannot find fertilizer-related dashboards or data on the platform.",
+      "solution": "Fertilizer dashboards are located within the GnO Economics section of the platform. Fertilizer data can also be found in the LineUps dashboards (where WAF lineups are), in Customs, and in the urea balance section in SND. Additionally, there are tradematrix dashboards available for urea, DAP, and ammonia. Users can request a guided tour or demo session to learn how to navigate and use these features effectively.",
+      "keywords": [
+        "fertilizer dashboards",
+        "GnO Economics",
+        "LineUps",
+        "Customs",
+        "urea balance",
+        "SND",
+        "tradematrix",
+        "urea",
+        "DAP",
+        "ammonia",
+        "dashboard navigation",
+        "platform demo",
+        "password change"
+      ],
+      "category": "Platform Navigation"
+    },
+    {
+      "id": "813A10FD_RE_ [EXTERNAL] RE_ US cotton production dataset",
+      "problem": "User needs to create a daily updated dataset for US cotton production from a website where the data table is replaced daily without historical access.",
+      "solution": "Set up a recurring task to scrape the daily updated table from the specified URL (https://www.ewrinc.com/cotton/contentPublic/reports/stateReceipts.aspx). Since the table is replaced daily and no history is available on the source site, the solution involves capturing the data each day and appending it to a dataset with a publication date field to track data history over time. The dataset is then made available on the platform with a unique access code, and it updates daily with new data and corresponding publication dates.",
+      "keywords": [
+        "dataset creation",
+        "daily update",
+        "web scraping",
+        "US cotton production",
+        "data history tracking",
+        "recurring task",
+        "data ingestion",
+        "publication date",
+        "data scraping automation"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "81BFE039_RE_ USTR _ vessel tariff _ Thoughts - part 2",
+      "problem": "Email delivery failure with error code 554 5.4.14 indicating a possible mail loop or hop count exceeded when sending to a recipient address that does not exist or is misconfigured.",
+      "solution": "To resolve the 554 5.4.14 mail loop or hop count exceeded error: 1) Verify that the recipient email address is correct and exists on the destination domain. 2) If using a hybrid environment with directory synchronization, ensure the recipient's email address is properly synchronized between Office 365 and the local directory. 3) Check for and correct any misconfigured mail forwarding or inbox rules that may cause loops. 4) Verify mail flow settings and MX records for the domain to ensure they are correctly configured. 5) For organizations with mailboxes split between Office 365 and on-premises, ensure that outbound connectors are properly configured to route mail to local mailboxes to avoid loops. 6) Clear the Outlook autocomplete cache for the recipient address and re-enter the full email address manually when resending. 7) Consult Microsoft documentation for error code 5.4.14 for additional troubleshooting steps.",
+      "keywords": [
+        "email delivery failure",
+        "554 5.4.14",
+        "mail loop",
+        "hop count exceeded",
+        "Office 365",
+        "hybrid environment",
+        "directory synchronization",
+        "mail forwarding rules",
+        "MX records",
+        "outbound connector",
+        "autocomplete cache",
+        "email address verification",
+        "mail flow configuration"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "840C50DF_Re_ LINE UP GRAINS 07_03_2025",
+      "problem": "Emails sent to a bot email address are rejected with error '550 5.7.520 Access denied, Your organization does not allow external forwarding.'",
+      "solution": "This issue is caused by the sender's Outlook outbound spam policy blocking external email forwarding. To resolve it, the sender's IT administrator must update the outbound spam policies in Microsoft Defender for Office 365 to allow external forwarding. Refer to the official Microsoft documentation on outbound spam policies and external email forwarding at https://learn.microsoft.com/en-us/defender-office-365/outbound-spam-policies-external-email-forwarding to configure the policy correctly and enable forwarding to the bot email address.",
+      "keywords": [
+        "email forwarding blocked",
+        "550 5.7.520",
+        "access denied",
+        "external forwarding",
+        "outlook outbound spam policy",
+        "Microsoft Defender for Office 365",
+        "email delivery failure",
+        "email rejected",
+        "antispam policy",
+        "external email forwarding"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "857234D0_RE_ Add in for Trafigura",
+      "problem": "User wants to access a specific dataset in Excel using an add-in and replicate an SQL power query output within Excel.",
+      "solution": "To access the dataset \"dnexr-structured-uscensus-gno-usa-tf_customs-monthly\" in Excel, install the Excel add-in by downloading and running the installer from https://excel-addin.dnext.io/prod/setup.exe. After installation, use the add-in to connect to the dataset and replicate the SQL power query by applying the provided SQL code logic within the add-in's query interface or Power Query editor. The SQL query filters products by specific codes and maps product codes to product names, selecting relevant columns such as Country Partner, Trade Direction, Product, Quantity, and Date Reporter.",
+      "keywords": [
+        "Excel add-in",
+        "dataset access",
+        "SQL power query",
+        "dnexr-structured-uscensus-gno-usa-tf_customs-monthly",
+        "data extraction",
+        "product code mapping",
+        "query replication",
+        "installer download",
+        "Excel data integration"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "85F95FD6_RE_ Login Credentials",
+      "problem": "User logs into the platform but cannot see any dashboards or data after changing the password.",
+      "solution": "After logging in to the platform at https://squarepoint.dnext.io/, users should navigate to the dashboards by clicking the 'Dashboards' button on the left menu. To access the Tradematrix module, go to the 'Fundamentals' button on the left menu, then select 'Tradematrix'. Users will see a list of available tradematrixes and can view any by clicking the 'eye' icon on the right side of each row. Note that some tradematrixes are duplicates from an old system; users should prefer those with codes in the format 'squarepoint-xxxxx-xxxxx-xxxxx' as older ones will be removed soon.",
+      "keywords": [
+        "platform login",
+        "dashboard access",
+        "Tradematrix module",
+        "navigation",
+        "left menu",
+        "squarepoint code format",
+        "data visibility",
+        "user interface"
+      ],
+      "category": "Platform Navigation"
+    },
+    {
+      "id": "874EDF5A_RE_ [EXTERNAL] DNEXT Platform - Update on data sha",
+      "problem": "Users experienced issues accessing aggregated trade flow data via API using new resource codes after a platform update changed dataset and trade flow UIDs.",
+      "solution": "To correctly access aggregated TradeMatrix data via the DNEXT API after the update, use the provided Python script which: 1) Authenticates with the API using email, password, and environment name to obtain a token; 2) Submits a POST request to the aggregation download endpoint with the new trade flow code; 3) Polls the task status until the data is ready; 4) Downloads the CSV data from the returned URL; 5) Loads the data into a pandas DataFrame. Replace placeholders for email, password, and environment in the script accordingly. This method handles the changed URL structure for aggregated data downloads and ensures successful data retrieval.",
+      "keywords": [
+        "DNEXT",
+        "API",
+        "TradeMatrix",
+        "trade flow",
+        "aggregation",
+        "download",
+        "Python script",
+        "authentication",
+        "token",
+        "task polling",
+        "CSV",
+        "data retrieval",
+        "resource code update",
+        "UID change"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "8958FED4_RE_ Issue in dowloading safrinha corn planting",
+      "problem": "User cannot download crop progress data (safrinha corn planting for all available years) from the platform.",
+      "solution": "To download the crop progress data: 1) Navigate to the Dashboards Module. 2) Go to the Crop Tab, locate Brazil, expand it, and select Crop Progress. 3) Choose the IMEA report. 4) Hover over the matrix, click the three dots menu, and select Export Data. 5) Choose the 'Underlying Data' option and click Export. Additionally, raw data can be downloaded from the Datasets Module using provided dataset links for Corn Harvesting, Corn Planting, Soybean Harvesting, and Soybean Planting.",
+      "keywords": [
+        "crop progress data",
+        "safrinha corn planting",
+        "download data",
+        "Dashboards Module",
+        "Crop Tab",
+        "IMEA report",
+        "export data",
+        "underlying data",
+        "datasets module",
+        "corn planting dataset",
+        "raw data download"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "8AD53107_RE_ Platform Access for Freepoint_",
+      "problem": "User cannot access the platform and receives a 'User not found' message, possibly due to using the wrong login URL or forgotten password.",
+      "solution": "To resolve platform access issues: 1) Ensure the user logs in using the correct URL specific to their organization, for example, https://freepoint.dnext.io/. 2) If the user does not remember their password, instruct them to use the 'reset password' feature on the login page and follow the instructions to set a new password. This approach resolves common access problems related to incorrect URLs and forgotten passwords.",
+      "keywords": [
+        "platform access",
+        "login issue",
+        "user not found",
+        "wrong URL",
+        "reset password",
+        "forgot password",
+        "login troubleshooting"
+      ],
+      "category": "Access Issue"
+    },
+    {
+      "id": "8CD00D9E_RE_ Access to arg prms data for Shell",
+      "problem": "User wants to access and download full historical data for specific commodities (e.g., soybean meal exports by month from the US) from the platform.",
+      "solution": "To find and download monthly export data for commodities such as soybean meal from the US: 1) Navigate to the 'TradeMatrixes' module in the platform. 2) Locate the row labeled 'Soybean and Soybean Meal'. 3) Click the eye icon on the right side of that row to view the TradeMatrix. 4) Use filters to select origin (e.g., USA) and product (e.g., Soybean Meal) to display the monthly export data. 5) To download the data, click the download button at the top right of the screen for a detailed Excel table. Alternatively, right-click on the bottom half of the table, hover over 'Export', and choose to download the data as a CSV or Excel file. This allows users to obtain full historical data in spreadsheet format.",
+      "keywords": [
+        "TradeMatrix",
+        "download data",
+        "historical data",
+        "soybean meal exports",
+        "monthly export data",
+        "filter data",
+        "export to Excel",
+        "export to CSV",
+        "commodity data",
+        "platform navigation"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "8DD4694C_RE_ Trial for Wilmar",
+      "problem": "How to set up a trial demo account with restricted access to specific dashboards and data for a client team.",
+      "solution": "To provide a trial demo account with controlled access, follow these steps: 1) Identify the specific dashboards and tradeflows to be accessible during the trial, focusing on relevant data such as palm oil statistics and related industry information. 2) Configure the demo environment URL (e.g., https://demo4.dnext.io) and prepare credentials for the trial users. 3) Assign access to the selected dashboards, including but not limited to: GnO Crop (Indonesia and Malaysia palm oil stats), GnO Economics (Futures, Margin Analysis, Palm Oil Export Levy & Duty), Customs (Southeast Asia), Lineups (Asia South East), SND (Vegoils, Biodiesel Stats, Palm Oil Stocks), Weather (Malindo), and Trade Matrix (DNEXR-vegoils). 4) Add trial users to relevant distribution lists for updates (e.g., vegoils distribution list). 5) Verify and update the demo environment to ensure all requested dashboards are present and correctly configured, addressing any missing pages or incorrect regional data. 6) Provide reports via email for the trial duration (e.g., two weeks). 7) Communicate the demo environment URL and credentials securely to the trial users. This approach ensures clients have focused access to relevant data without overwhelming them, facilitating an effective trial experience.",
+      "keywords": [
+        "demo account",
+        "trial setup",
+        "dashboard access",
+        "palm oil data",
+        "GnO Crop",
+        "GnO Economics",
+        "SND",
+        "Trade Matrix",
+        "distribution list",
+        "demo environment",
+        "restricted access",
+        "trial configuration"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "8F396730_RE_ county level weather data",
+      "problem": "User queries the 'usa-weather' dataset expecting county-level weather data for US states but only receives state-level data.",
+      "solution": "County-level weather data is not available in the 'usa-weather' dataset. Instead, a 'district' column has been added to the dataset view, which contains district codes representing subdivisions within each state (e.g., 'AL.10' for a district in Alabama). Users can reference district maps for each state at https://data.nass.usda.gov/Charts_and_Maps/Crops_County/boundary_maps/indexgif.php by clicking on a state to see district numbers and boundaries. To get more granular data, query the 'district' column in the dataset rather than expecting county-level data.",
+      "keywords": [
+        "county-level data",
+        "district codes",
+        "usa-weather dataset",
+        "weather data granularity",
+        "district maps",
+        "state subdivisions",
+        "query district column"
+      ],
+      "category": "Feature Explanation"
+    },
+    {
+      "id": "90F97488_RE_ RSM Trade Matrix",
+      "problem": "Users cannot view or edit data beyond a certain date in the TradeMatrix platform, and data updates are not reflected properly, causing forecast refresh failures.",
+      "solution": "The issue was caused by a forecast dataset that had not been updated since May and was missing a required 'unit' column, which prevented the data refresh from working correctly. To resolve this, ensure all forecast datasets used in TradeMatrix are up-to-date and contain all necessary columns, including the 'unit' column. Additionally, verify that the dataset linked to TradeMatrix is the correct one, as some datasets may only contain data up to a certain date (e.g., December 2024). Renaming datasets to reflect their frequency (e.g., monthly, weekly) can help avoid confusion between similarly named datasets.",
+      "keywords": [
+        "TradeMatrix",
+        "data not updating",
+        "forecast refresh failure",
+        "missing unit column",
+        "dataset update",
+        "data visualization limit",
+        "edit data limit",
+        "dataset frequency naming",
+        "forecast dataset",
+        "data refresh issue"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "9183A5C4_RE_ [EXTERNAL] Corn TradeMatrix adjustement",
+      "problem": "Confusion about the regional grouping of Sudan in the corn TradeMatrix dataset, specifically whether Sudan is grouped under 'NAFRICA' or 'MEAST'.",
+      "solution": "Sudan was initially grouped under 'MEAST' in the corn TradeMatrix. It was later changed to 'NAFRICA' but has now been reverted back to the original grouping under 'MEAST'. This adjustment clarifies the current regional classification of Sudan in the TradeMatrix data.",
+      "keywords": [
+        "TradeMatrix",
+        "corn",
+        "regional grouping",
+        "Sudan",
+        "NAFRICA",
+        "MEAST",
+        "data classification",
+        "dataset adjustment"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "9222BB44_RE_ Corn CNF Data Export",
+      "problem": "User wants to export Corn CNF data from the dashboard to Excel and analyze it, including expressing specific values as spreads (e.g., Aug vs Nov Santos value).",
+      "solution": "To export data from the Corn CNF dashboard to Excel: 1) Hover over the dashboard line chart and click the three horizontal dots at the top right corner. 2) Select 'Export Data' from the menu. 3) Choose 'Summarized Data' and select the file format '.xlsx (Excel 150,000-row max)'. 4) Click 'Export' to download the data in Excel format. For advanced analysis such as expressing values as spreads, a 'Spread' tab was added to the Corn CNF dashboard, accessible via Dashboards > Economics > CNF. Additionally, a dataset containing Corn Freight, Cash, and FOB historical data is available with a unique dataset code and URL for direct access. An Excel add-in is also available to fetch datasets directly into Excel, and support can assist with its setup.",
+      "keywords": [
+        "Corn CNF",
+        "data export",
+        "dashboard",
+        "Excel export",
+        "export data",
+        "summarized data",
+        "xlsx",
+        "spread analysis",
+        "spread tab",
+        "Corn Freight dataset",
+        "historical data",
+        "Excel add-in",
+        "data download",
+        "data analysis"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "9B900246_DNEXT Platform - Update on data sharing",
+      "problem": "Users need to update their dataset and tradeflow UIDs due to platform changes affecting API access and resource identification.",
+      "solution": "Starting from 5 May 2025, users must replace old resource codes (UIDs) with new ones to maintain access to datasets, tradeflows, and dashboards. The platform automates access and dynamically updates resources based on subscriptions. For example, dataset codes like 'dnexr-structured-dnexr-oilseeds-world-snd_item-weekly' are replaced by 'etg-4c8d416c-7f52-4f39-8643-a386e4c3a443'. Users should update their API calls and integrations to use the new 'etg-' prefixed UIDs to ensure continued access and dynamic updates.",
+      "keywords": [
+        "DNEXT",
+        "dataset UID update",
+        "tradeflow UID change",
+        "API resource codes",
+        "dynamic updates",
+        "subscription access",
+        "resource automation",
+        "data platform"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "9CA4814C_RE_ cumulative data in trade matrix",
+      "problem": "User wants to display cumulative numbers over the year directly on the screen and in a graph within the trade matrix view to save time instead of downloading data.",
+      "solution": "To view cumulative numbers and related graphs in the trade matrix, use the 'analysis' tab within the platform. This tab provides quick graphs including cumulative data visualization directly on screen without needing to download the data.",
+      "keywords": [
+        "trade matrix",
+        "cumulative data",
+        "yearly cumulative",
+        "graph",
+        "analysis tab",
+        "data visualization",
+        "on-screen display"
+      ],
+      "category": "Feature Explanation"
+    },
+    {
+      "id": "A03E4E4F_DNEXT Platform - Update on data sharing",
+      "problem": "Users need to update their dataset and tradeflow UIDs due to platform changes affecting API access and resource identification.",
+      "solution": "Starting from May 5, 2025, the platform automates access to subscribed datasets, tradeflows, and dashboards with dynamic updates reflecting any changes. Users must update their API integrations to use the new resource UIDs instead of the old codes. For example, the old TradeMatrix code 'dnexr-crn' for Corn Tradeflow is replaced by 'viserion-6739954d-a4f8-4436-a7bc-f57bf3b79f20'. Similar mappings apply to other tradeflows. This ensures continuous and automated access to the most relevant data without manual intervention.",
+      "keywords": [
+        "DNEXT",
+        "TradeMatrix",
+        "tradeflow",
+        "dataset",
+        "UID update",
+        "API integration",
+        "resource codes",
+        "dynamic updates",
+        "data sharing",
+        "subscription access"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "A49C2E75_Re_ Weekly report_ Technicals_2025_10_03",
+      "problem": "Email delivery failure with error code 550 5.1.10 indicating recipient address not found in Office 365 domain",
+      "solution": "To resolve the 550 5.1.10 RESOLVER.ADR.RecipientNotFound error in Office 365: 1) Verify the recipient email address is correctly spelled and exists. 2) Resend the message by opening the non-delivery report in Outlook or Outlook on the web, retyping the full recipient address manually without selecting autocomplete suggestions, then send again. 3) Contact the recipient to confirm the address and check if any mail forwarding rules are misconfigured. 4) Clear the autocomplete cache for recipients in Outlook or Outlook on the web as described in the Microsoft article for error 5.1.10. 5) If you are an administrator, ensure the recipient has a valid Office 365 license, the email address is properly synchronized in hybrid environments, and mail flow and MX records are correctly configured. Refer to the Microsoft support article https://go.microsoft.com/fwlink/?LinkId=532972 for detailed guidance.",
+      "keywords": [
+        "Office 365",
+        "email delivery failure",
+        "550 5.1.10",
+        "recipient not found",
+        "RESOLVER.ADR.RecipientNotFound",
+        "SMTP address lookup",
+        "non-delivery report",
+        "NDR",
+        "mail forwarding",
+        "autocomplete cache",
+        "mail flow configuration",
+        "MX records",
+        "license assignment",
+        "hybrid synchronization"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "A56F84ED_RE_ [EXTERNAL] Argentina farmer selling",
+      "problem": "Users want to download Argentina farmer selling data directly from the platform.",
+      "solution": "Users can access and download Argentina farmer selling data via provided dataset URLs. There are two datasets available: one for daily data and one for weekly data. To download the data, users can visit the dataset links and click the Download button located at the top right corner of the page. Additionally, an API is available to access this data programmatically, and documentation can be provided upon request.",
+      "keywords": [
+        "Argentina farmer selling",
+        "data download",
+        "dataset access",
+        "daily data",
+        "weekly data",
+        "download button",
+        "API access",
+        "data retrieval",
+        "platform download"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "A602B92B_RE_ Rice Exports from india by destination",
+      "problem": "User wants to view country-wise details of rice exports from India in a dataset on the platform.",
+      "solution": "Access the India export dataset via the provided platform link. To view country-wise details, use the filter option within the same report to filter data by country. This allows visualization of rice exports broken down by destination country. Refer to the platform's filtering tools to apply the country filter and analyze the data accordingly.",
+      "keywords": [
+        "dataset",
+        "rice exports",
+        "India",
+        "country-wise details",
+        "filter",
+        "data visualization",
+        "platform",
+        "export data",
+        "report filtering"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "A7AB366B_RE_ US wheat planting progress",
+      "problem": "User cannot find published data for US wheat planting progress for the current autumn season in the graph.",
+      "solution": "To view the published data for the current autumn season, select the year filter value '20236' in the data interface. This will display the relevant data that was published before the system shutdown.",
+      "keywords": [
+        "US wheat planting progress",
+        "data not visible",
+        "year filter",
+        "20236",
+        "published data",
+        "graph",
+        "seasonal data selection"
+      ],
+      "category": "Platform Navigation"
+    },
+    {
+      "id": "A81F8685_RE_ DCS-1100 Issue on Dashboard",
+      "problem": "Dashboard in Microsoft Power BI shows an issue or does not display data correctly",
+      "solution": "Refresh the dashboard twice in Microsoft Power BI to resolve display or loading issues. This can fix temporary glitches possibly caused by Power BI server delays or caching.",
+      "keywords": [
+        "Power BI",
+        "dashboard",
+        "refresh",
+        "loading issue",
+        "display problem",
+        "temporary glitch",
+        "Microsoft Power BI"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "A90B4D48_RE_ create workflow using data sent by email to CF",
+      "problem": "User wants to create a custom dataset triggered by receiving data files sent via email to a specific bot email address in the CFG environment.",
+      "solution": "To create a workflow that automatically triggers dataset creation from files sent by email, send the data files to the designated bot email address (e.g., bot+cfg@data.dnext.io). The system will then process the incoming emails, extract the data, and create the custom dataset in the CFG environment. The workflow is set up to listen to this email address and trigger dataset creation upon receiving files. Users can access the created dataset via a provided URL in the CFG environment.",
+      "keywords": [
+        "workflow",
+        "email trigger",
+        "custom dataset",
+        "CFG environment",
+        "bot email",
+        "data ingestion",
+        "automated dataset creation",
+        "email scraping"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "AC1D1D67_RE_ [EXTERNAL] Weather Datasets",
+      "problem": "Users need to download and access various large weather datasets via API but encounter issues such as no data display or download failures due to dataset size.",
+      "solution": "Use the provided Python script to authenticate and download weather datasets from the API. The script includes: 1) a 'connect' function to obtain an authentication token using email, password, and environment name; 2) a '_get_task_status' function that polls the task status endpoint until the download task succeeds or times out (with wait times increasing up to 30 seconds); 3) a 'download_dataset' function that initiates the dataset download request, waits for task completion, retrieves the download URL, fetches the CSV data, and loads it into a pandas DataFrame. Replace placeholder credentials and dataset codes as needed. Note that large datasets (e.g., Brazil weather) may take longer to download depending on internet speed. Additionally, region mapping datasets are available to interpret the 'nuts' region codes in weather datasets, with a provided list of dataset codes and their corresponding regions for reference.",
+      "keywords": [
+        "weather datasets",
+        "API download",
+        "Python script",
+        "authentication token",
+        "task status polling",
+        "pandas DataFrame",
+        "large dataset download",
+        "region mapping",
+        "nuts codes",
+        "dataset codes",
+        "download failure",
+        "data access",
+        "csv download",
+        "dnext API"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "AC85B5D6_RE_ [EXTERNAL] DCS-894 combined feed grain trade f",
+      "problem": "User needs access to a combined feed grain trade flow dataset for China including commodities such as grain sorghum, oats, maize, rye, barley, and DDGs.",
+      "solution": "The China feed grains TradeMatrix is available on the platform. Users can access it by using the TradeMatrix code \"zimb-77299e24-d469-47fd-b7fb-f7f2d4abaa9a\" or by navigating to the TradeMatrix Module on the platform and selecting the TradeMatrix named \"China Feed Grain\". The direct URL to access it is https://zimb.dnext.io/fundamentals/tradematrix/zimb-77299e24-d469-47fd-b7fb-f7f2d4abaa9a.",
+      "keywords": [
+        "TradeMatrix",
+        "feed grain",
+        "China",
+        "grain sorghum",
+        "oats",
+        "maize",
+        "rye",
+        "barley",
+        "DDGs",
+        "trade flow",
+        "dataset access",
+        "platform navigation"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "ADE7E37D_RE_ Access to US customs data",
+      "problem": "User does not have access to the US customs dataset and needs to obtain it.",
+      "solution": "Access the US customs dataset via the provided direct URL: https://resound.dnext.io/datasets/resound-ec179477-6e21-4475-9bb9-a818415db41b/general. Alternatively, fetch the dataset programmatically using the API with the dataset code 'resound-ec179477-6e21-4475-9bb9-a818415db41b'.",
+      "keywords": [
+        "US customs dataset",
+        "data access",
+        "dataset URL",
+        "API access",
+        "dataset code",
+        "fetch data",
+        "resound dataset"
+      ],
+      "category": "Access Issue"
+    },
+    {
+      "id": "AE368CDC_RE_ Demo account",
+      "problem": "How to set up a demo account with restricted access for trial users, specifically disabling download capabilities while sharing other resources like Dashboards, TradeMatrix, Datasets, and Freights.",
+      "solution": "When creating a demo account for trial users, provide access to all resources including Dashboards, TradeMatrix, Datasets, and Freights, but disable the download functionality by default. The demo environment URL is https://demo.dnext.io. Ensure the demo account is created for the actual user (not an internal user) and communicate credentials securely. The download feature is deactivated by default in all demo environments to prevent data extraction during trials.",
+      "keywords": [
+        "demo account",
+        "trial account",
+        "download disabled",
+        "resource sharing",
+        "Dashboards",
+        "TradeMatrix",
+        "Datasets",
+        "Freights",
+        "demo environment",
+        "access control",
+        "trial setup"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "AFCDBD62_Re_ EU customs = there is no way to select reporte",
+      "problem": "User cannot find a way to select the reporter country in the EU customs data to see export volumes from specific countries like France.",
+      "solution": "Use the dedicated page for reporter countries in the platform, which includes a slicer control allowing users to select the desired reporter country. This enables filtering and viewing export data specific to that country.",
+      "keywords": [
+        "EU customs",
+        "reporter country",
+        "export data",
+        "data filtering",
+        "slicer",
+        "country selection",
+        "trade data"
+      ],
+      "category": "Platform Navigation"
+    },
+    {
+      "id": "B37212E4_RE_ Cannot Select Year Without Deselecting Region",
+      "problem": "Users are unable to select multiple Canadian regions and a specific year simultaneously on the weather dashboard graph.",
+      "solution": "To select multiple regions and a specific year on the graph, hold down the 'Ctrl' key while selecting the desired year and regions. Alternatively, use the State filter directly to refine selections. This allows multi-selection without deselecting previously chosen options.",
+      "keywords": [
+        "dashboard",
+        "multi-selection",
+        "Ctrl key",
+        "region selection",
+        "year selection",
+        "weather graph",
+        "filter",
+        "State filter"
+      ],
+      "category": "Platform Navigation"
+    },
+    {
+      "id": "B5EF3791_RE_ Dnext Platform Credentials",
+      "problem": "Dashboards and data categories on the Dnext platform disappeared, with only the 'Sugar' button visible but non-functional, affecting access to trade flow and price information.",
+      "solution": "The issue was caused by a technical bug that was fixed by the support team. After the fix, users should be able to navigate all dashboard categories normally again on both the React app and the website. If problems persist, users are advised to contact support.",
+      "keywords": [
+        "Dnext platform",
+        "dashboard disappearance",
+        "data access issue",
+        "technical bug",
+        "dashboard navigation",
+        "React app",
+        "website",
+        "trade flow data",
+        "price information"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "B5F477BE_RE_ Addition of Monthly Column to Dataset",
+      "problem": "A client requested to have monthly data included in a dataset either by adding a monthly data column or by creating a new dataset with monthly data. The existing dataset contains weekly data, and there was confusion about whether to aggregate weekly data into monthly or to provide actual monthly data.",
+      "solution": "If monthly data is available, create a new dataset specifically for the monthly data rather than aggregating weekly data into monthly. Do not estimate or sum weekly data to produce monthly data. The easiest and recommended approach is to create a new dataset with the monthly data source. For example, use official monthly data sources such as the EIA monthly data (https://www.eia.gov/totalenergy/data/monthly/) to build the monthly dataset. Once the monthly dataset is created, share the dataset link for verification before distribution to clients.",
+      "keywords": [
+        "monthly data",
+        "dataset creation",
+        "weekly data",
+        "data aggregation",
+        "data frequency",
+        "new dataset",
+        "EIA monthly data",
+        "data source",
+        "data mapping",
+        "period mapping"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "BB37285C_RE_ Brazil stat conab Wheat",
+      "problem": "Wheat data for Brazil appears to be missing in the report or data view.",
+      "solution": "The wheat data for Brazil is available but requires adjusting the filter settings. Specifically, for wheat data, users need to filter by the harvest year to view the relevant information. Changing the filter to harvest year will display the missing wheat data for Brazil.",
+      "keywords": [
+        "Brazil wheat data",
+        "missing data",
+        "filter settings",
+        "harvest year filter",
+        "data visibility",
+        "report filtering"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "BCAD1659_Re_ Crop rating usa a bit high",
+      "problem": "Crop rating data for the USA showed unexpectedly high values due to duplicated state reported conditions in the dataset.",
+      "solution": "The issue was caused by updating crop condition values for winter wheat in two datasets, leading to duplicated data points. To fix this, discard all previous updates for the 2025 crop and keep only one dataset update. Additionally, remove duplicated entries such as specific state data (e.g., Kansas) from the dataset to correct the crop rating values. This approach prevents duplication and ensures accurate crop condition reporting.",
+      "keywords": [
+        "crop rating",
+        "USA",
+        "high values",
+        "duplicated data",
+        "winter wheat",
+        "dataset update",
+        "crop condition values",
+        "data correction",
+        "state reported conditions"
+      ],
+      "category": "Data Correction"
+    },
+    {
+      "id": "BCE2EA47_Re_ River level Amazon",
+      "problem": "User inquires about availability of daily water level data for the Amazon River, expecting daily frequency instead of less frequent updates.",
+      "solution": "Daily water level data for the Amazon River is available internally under the path: Weather > Brazil > Amazon River Level (Internal). It can be accessed via the dashboard URL pattern: https://dnexr.dnext.io/dashboard/*/Weather/Brazil/[unique-identifier]. This dataset provides daily measurements for internal use.",
+      "keywords": [
+        "Amazon River",
+        "river level",
+        "daily data",
+        "water levels",
+        "weather data",
+        "dashboard",
+        "internal data"
+      ],
+      "category": "Feature Explanation"
+    },
+    {
+      "id": "BDD72BDC_RE_ Dnext introduction to Nikhil from Axxela",
+      "problem": "User needs to set up a demo account with restricted product access and no download capability, and requires onboarding to navigate the portal and find specific information such as palm oil economics dashboards.",
+      "solution": "To set up a demo account with restricted access (all products except fertilizers, no download capability) for a limited trial period: 1) Create the demo account with specified product restrictions and disable download functionality. 2) Schedule an onboarding session to guide the user on portal navigation and how to find relevant information. 3) Provide user credentials to the user and a support contact for specific questions. 4) Inform the user that some sections (e.g., Economics for vegoils) may not yet have dashboards published, but related dashboards (e.g., Palm oil under crop) are available and can be added to the demo. 5) Share direct URLs to existing dashboards to facilitate access during the demo. This approach ensures users can explore the portal effectively within the trial constraints.",
+      "keywords": [
+        "demo account",
+        "portal trial",
+        "restricted access",
+        "no download",
+        "onboarding",
+        "portal navigation",
+        "palm oil",
+        "economics dashboards",
+        "vegoils",
+        "dashboard URLs",
+        "user credentials",
+        "trial setup"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "BF269812_RE_ [EXTERNAL] RE_ Ukr lineups + SAf + China impor",
+      "problem": "The China import margins tab was missing from the Economics dashboards, preventing users from consulting corn import margin updates.",
+      "solution": "The China Import Margins Dashboard was restored and made available again on the platform. Users can now access the China import margin data within the Economics dashboards as before.",
+      "keywords": [
+        "China import margins",
+        "Economics dashboard",
+        "missing tab",
+        "corn import margin",
+        "dashboard restoration",
+        "platform access"
+      ],
+      "category": "Platform Navigation"
+    },
+    {
+      "id": "C2D02E19_RE_ Weather Plot Average Issue",
+      "problem": "The weather plot average line incorrectly includes the current year's actual data in its average calculation, which is misleading.",
+      "solution": "Exclude the current crop year data from the average calculation in the weather plot. This adjustment ensures that the average line reflects only past years' data, providing a more accurate and meaningful average without the influence of the ongoing year's actual values.",
+      "keywords": [
+        "weather plot",
+        "average calculation",
+        "exclude current year",
+        "crop year",
+        "data visualization",
+        "time series average",
+        "data filtering"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "C39130E1_RE_ PDQ Spread 2026",
+      "problem": "The drop-down list for selecting years in a dashboard does not include the year 2026, showing data only up to December 2025.",
+      "solution": "The year selection is based on the 'delivery_period_start' field. Although the source data provides information beyond December 2025, the data extraction script was statically configured to a fixed period ending in 2025. To resolve this, adjust the script to dynamically include the latest available data periods and refresh the dashboard. This will update the drop-down list to include 2026 and future years as data becomes available.",
+      "keywords": [
+        "drop-down list",
+        "year selection",
+        "delivery_period_start",
+        "data extraction script",
+        "static period",
+        "dashboard refresh",
+        "data update",
+        "dynamic data range"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "C54EB2AE_RE_ Question about the sunflower tradeflow",
+      "problem": "Users are unclear about the absence of 2024/25 data for sunflower and sunflower seeds tradeflow and the meaning of the 'dark grey' and 'purple' legends which are not explained in the legends tab.",
+      "solution": "The 'dark grey' color in the summary table represents the total exports across all origins and destinations and includes a portion of forecasted data. The 'purple' color indicates fully forecasted data, which are values not officially published yet. Regarding the 2024/25 sunflower and sunflower seeds tradeflow data, confirmation about updates and publication of additional data requires internal verification with the team.",
+      "keywords": [
+        "sunflower tradeflow",
+        "sunflower seeds",
+        "tradeflow data update",
+        "forecasted data",
+        "legend colors",
+        "dark grey",
+        "purple",
+        "data visualization",
+        "forecast indication"
+      ],
+      "category": "Feature Explanation"
+    },
+    {
+      "id": "C76A5D96_RE_ Corn SND update 2025_02_12",
+      "problem": "User wants to extract corn parity data from a report interface easily.",
+      "solution": "To download corn parity data from the report: 1) Hover the mouse over the desired Matrix; a small horizontal menu appears on the right side. 2) Click the three dots on the right to open options. 3) Select 'Export data'. 4) Choose the 'Underlying Data' option and click 'Export'. Additionally, users can download datasets containing current and historical data by clicking the 'Download' button located at the top right of the screen. This method allows direct export of data from the report interface without needing additional tools.",
+      "keywords": [
+        "corn parity",
+        "data extraction",
+        "export data",
+        "underlying data",
+        "report interface",
+        "download dataset",
+        "matrix menu",
+        "export options"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "D0061F32_RE_ Questions on the weather databse",
+      "problem": "Users need to identify which NUTS region corresponds to each weather region code in the weather database and understand the meaning of the 'RUN' and 'DATE' columns in the weather dataset.",
+      "solution": "To find the NUTS region mapping for each weather region, use the provided datasets that contain NUTS mappings per region. Each dataset corresponds to a specific geographic area (e.g., Australia, Middle East, South America, USA, Europe, Thailand, India, Canada, BSEA, North Africa, Mexico, Malindo, South Africa) and is identified by a unique dataset code. For the 'RUN' and 'DATE' columns: 'RUN' indicates the timestamp when the forecast model (such as ECMWFENS or ECMWFOP) was executed, and 'DATE' represents the forecasted date for the weather variable (e.g., temperature, precipitation). This means the 'RUN' date is when the forecast was generated, and the 'DATE' is the target date the forecast applies to.",
+      "keywords": [
+        "NUTS region mapping",
+        "weather database",
+        "region codes",
+        "RUN column",
+        "DATE column",
+        "forecast model run date",
+        "forecasted date",
+        "ECMWFENS",
+        "ECMWFOP",
+        "weather dataset",
+        "region mapping datasets"
+      ],
+      "category": "Feature Explanation"
+    },
+    {
+      "id": "D1730D57_RE_ Trade flow matrix",
+      "problem": "Users experience confusion due to duplicate TradeMatrix files appearing with different code formats.",
+      "solution": "To identify the correct and up-to-date TradeMatrix files, use those with the new code format 'ameropa-xxxx-xxxx-xxxx-xxxx'. These files are part of a new sharing system that dynamically updates access and content, ensuring the latest versions are always available. Avoid using the old format 'dnexr-xxxx-xxxx' files, as they are being phased out and will be removed soon. Transitioning to the new format prevents confusion and guarantees access to the most current TradeMatrix data.",
+      "keywords": [
+        "TradeMatrix",
+        "duplicate files",
+        "code format",
+        "ameropa",
+        "dnexr",
+        "dynamic updates",
+        "sharing system",
+        "file versioning",
+        "resource access"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "D64B7C85_RE_ Arg official farmer selling is not updated. La",
+      "problem": "Users notice that the official farmer selling data for Argentina is not updated in the dashboard, with the last available data dated January 30th.",
+      "solution": "There is a known delay of one week in the official farmer selling data updates. To prevent confusion, a note has been added to the dashboard explicitly stating that the data is updated with a one-week delay. This informs users about the update frequency and sets correct expectations regarding data freshness.",
+      "keywords": [
+        "data delay",
+        "official farmer selling",
+        "Argentina",
+        "dashboard note",
+        "data update frequency",
+        "data freshness",
+        "data latency"
+      ],
+      "category": "Feature Explanation"
+    },
+    {
+      "id": "D754607B_RE_ brazil farmer selling",
+      "problem": "User wants to know if Brazil farmer selling data is available on the platform or API.",
+      "solution": "The Brazil farmer selling data is available via the API under specific dataset codes. The datasets include: 'SBS BRA FARMER SELLING PERCENT' (code: zimb-72e34d6d-960f-11ef-87d0-0a944433a9a1), 'CRN BRA FARMER SELLING PERCENT' (code: zimb-3bf600ca-9604-11ef-bcd6-0604d9ebb2ed), 'CRN BRA FARMER SELLING VOLUME' (code: zimb-524ca7de-960b-11ef-87d0-0a944433a9a1), and 'SBS BRA FARMER SELLING VOLUME' (code: zimb-b64e7909-9624-11ef-87d0-0a944433a9a1). Users can access these datasets through the API using the provided codes.",
+      "keywords": [
+        "Brazil farmer selling",
+        "API",
+        "dataset codes",
+        "farmer selling percent",
+        "farmer selling volume",
+        "data access",
+        "SBS",
+        "CRN"
+      ],
+      "category": "Feature Explanation"
+    },
+    {
+      "id": "D7AB73FD_RE_ Corn SND update 2025_08_06 - better copy -",
+      "problem": "Email messages sent to a recipient address hosted on Office 365 are rejected with error 550 5.1.10 because the recipient address is unknown or does not exist on the destination domain.",
+      "solution": "To resolve the 550 5.1.10 RESOLVER.ADR.RecipientNotFound error in Office 365, follow these steps: 1) Verify that the recipient email address is correctly spelled and exists. 2) Resend the message by opening the non-delivery report in Outlook or Outlook on the web, delete and retype the full recipient address without selecting autocomplete suggestions, then send again. 3) Contact the recipient by other means to confirm the address and check if mail forwarding rules are correctly configured. 4) Clear the autocomplete cache for recipients in Outlook or Outlook on the web as described in the Microsoft article for error 5.1.10. 5) If you are the administrator of the recipient domain, ensure the recipient mailbox exists, has a valid Office 365 license, and that directory synchronization is working properly if using a hybrid environment. 6) Check mail flow rules and forwarding settings for any misconfigurations. 7) Verify that mail flow connectors and MX DNS records are correctly configured for the domain. For detailed guidance, consult the Microsoft support article at https://go.microsoft.com/fwlink/?LinkId=532972.",
+      "keywords": [
+        "Office 365",
+        "email delivery error",
+        "550 5.1.10",
+        "RESOLVER.ADR.RecipientNotFound",
+        "recipient address unknown",
+        "non-delivery report",
+        "NDR",
+        "mail flow",
+        "mailbox license",
+        "directory synchronization",
+        "mail forwarding",
+        "autocomplete cache",
+        "MX records",
+        "mail flow connectors",
+        "email troubleshooting"
+      ],
+      "category": "Error Resolution"
+    },
+    {
+      "id": "D86E25D8_RE_ Lauric section issues in Platform",
+      "problem": "Discrepancy in official coconut export data for Philippines and Indonesia in the Lauric section of the Trade Matrix platform compared to official sources, including differences in historic years and greyed-out official declared numbers.",
+      "solution": "The discrepancy arises because the platform maps only two specific HS codes ('151319' and '151311') for coconut exports, whereas the official sources include all HS codes starting with '1513'. To resolve this, ensure that the platform's data mapping includes all relevant HS codes starting with '1513' to match the official data sources and avoid discrepancies.",
+      "keywords": [
+        "Trade Matrix",
+        "Lauric section",
+        "coconut exports",
+        "Philippines",
+        "Indonesia",
+        "HS codes",
+        "data discrepancy",
+        "official numbers",
+        "PSA",
+        "BPS",
+        "data mapping"
+      ],
+      "category": "Data Mapping Issue"
+    },
+    {
+      "id": "DB45E7FD_RE_ [EXTERNAL] RE_ SND datasets",
+      "problem": "Users are unable to see the latest updates in specific SND datasets, with data values not refreshed beyond a certain date.",
+      "solution": "If the latest updates are not visible in SND datasets, verify that the data update process has been executed. In this case, the issue was resolved by manually running the data update process that had been forgotten. After running the process, the datasets will reflect the latest estimates and updates.",
+      "keywords": [
+        "SND datasets",
+        "data update",
+        "dataset refresh",
+        "missing latest data",
+        "manual process run",
+        "data synchronization",
+        "dataset update process"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "DB7DA183_RE_ Canada lineups looks off",
+      "problem": "Lineup data for Canadian shipments shows no destination information, causing confusion about whether the data represents inspection lineups or actual shipment lineups.",
+      "solution": "The missing destination data occurs because the corn shipment data comes from CGC inspections, which do not include destination information, while the D-lineup data covers only West coast ports with vessel tracking. To avoid confusion, it is recommended to clearly indicate in the Canadian lineups that the data is a mix of West coast-only vessel lineups and CGC inspection data without destinations. This clarification helps users understand why some lineups lack destination details and prevents future questions.",
+      "keywords": [
+        "lineups",
+        "Canada",
+        "destination missing",
+        "corn data",
+        "CGC inspections",
+        "D-lineup",
+        "vessel tracking",
+        "West coast ports",
+        "data clarification"
+      ],
+      "category": "Feature Explanation"
+    },
+    {
+      "id": "DEB3BE3B_RE_ [EXTERNAL] [News - Argentina] Argentina Crop C",
+      "problem": "User is unable to access or visualize data on a specific dashboard related to Argentina Crop Condition and Progress.",
+      "solution": "The dashboard issue was fixed by support. Users should be aware that the dashboard loads a heavy amount of data, which may cause some delay in loading times. After the fix, users should be able to visualize the data normally. If difficulties persist, users are advised to report them for further assistance.",
+      "keywords": [
+        "dashboard",
+        "data visualization",
+        "loading issue",
+        "Argentina crop progress",
+        "heavy data load",
+        "dashboard fix",
+        "data access"
+      ],
+      "category": "Platform Navigation"
+    },
+    {
+      "id": "E26364BF_RE_ WASDE file _ new zipped file",
+      "problem": "Users receive a zipped WASDE file containing 4 separate CSV files instead of a single CSV file and are unsure how to handle this new format.",
+      "solution": "The zipped WASDE file now contains four CSV files, each representing a quarter of the dataset. This chunking is designed to make managing larger files easier. Users should merge these four CSV files to reconstruct the full dataset. For smaller datasets, a single file download option may be available in the future.",
+      "keywords": [
+        "WASDE file",
+        "zipped file",
+        "multiple CSV files",
+        "split dataset",
+        "chunked files",
+        "merge CSV",
+        "large file management"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "E97C2D31_RE_ Trade Matrix Cannot Filter Dates",
+      "problem": "Users cannot filter or remove certain crop years (e.g., 26/27 and 27/28) in the TradeMatrix date filter view.",
+      "solution": "To adjust the visible crop years in TradeMatrix, go to the 'Configuration' menu, then select 'View' settings where you can change which crop years are displayed. This allows filtering out unwanted crop years. Note that currently these settings are not saved in the URL, so configuration changes may need to be reapplied if the page is refreshed or revisited.",
+      "keywords": [
+        "TradeMatrix",
+        "date filter",
+        "crop year filter",
+        "configuration",
+        "view settings",
+        "filter dates",
+        "remove crop years"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "E97CD069_RE_ duplicate fob quotes from API",
+      "problem": "Users receive duplicate FOB quotes for the same day, origin, and product combination from the API, causing confusion on how to interpret these values.",
+      "solution": "To interpret duplicate FOB quotes for the same day/origin/product, use the 'reference' column provided in the dataset. This column distinguishes between different Futures Contract References, such as 'H2025' for the March 2025 contract and 'K2025' for the May 2025 contract. This allows users to differentiate quotes that correspond to different futures contracts even if other attributes are identical. Additionally, the Soybean CNF, FOB, and Freight dataset is now available via the API using the code 'zimb-b327c07f-efd6-11ef-bba5-0a84c630a3f1'.",
+      "keywords": [
+        "FOB quotes",
+        "duplicate quotes",
+        "API data",
+        "reference column",
+        "Futures Contract Reference",
+        "H2025",
+        "K2025",
+        "Soybean CNF",
+        "Freight dataset",
+        "data interpretation"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "EA341D1A_RE_ Problème pour DL freight database",
+      "problem": "User is unable to download a large freight dataset from the API using R; the script runs indefinitely without returning the dataframe.",
+      "solution": "Use the provided R script that authenticates via API to obtain a token, requests the dataset download task, polls the task status with exponential backoff until completion, and then downloads and reads the CSV dataset. Note that large datasets (e.g., around 5GB) may take significant time to process and download, so allow sufficient time for the script to complete. The script includes functions: 1) connect(email, pwd, env) to authenticate and get a token; 2) get_task_status(task_id, token) to poll task status with exponential backoff up to a max wait time; 3) download_dataset(code, token) to initiate download, wait for task completion, and retrieve the dataset as a dataframe. Ensure the dataset code is correctly specified. The script uses libraries httr, jsonlite, and readr.",
+      "keywords": [
+        "R",
+        "API",
+        "dataset download",
+        "freight dataset",
+        "large dataset",
+        "token authentication",
+        "exponential backoff",
+        "task polling",
+        "read_csv",
+        "httr",
+        "jsonlite",
+        "readr",
+        "download script",
+        "dataframe retrieval"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "EF6304E0_Re_ ABARES historical dataset",
+      "problem": "User requests access to ABARES historical data including estimate evolution dataset and official SND and production data.",
+      "solution": "The ABARES datasets can be accessed on the platform using the dataset identifiers sucden-27ba62ab-8a80-4184-a1bd-836daa59ae8a and sucden-d95185b7-1e44-457a-895c-e05793f27f84. Users should look for these dataset codes within the platform to find the estimate evolution dataset and official SND and production data.",
+      "keywords": [
+        "ABARES",
+        "historical data",
+        "estimate evolution dataset",
+        "SND data",
+        "production data",
+        "dataset identifiers",
+        "data access",
+        "platform datasets"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "F013EF70_Re_ DCS-1531 Why is this dashboard not upodate_ Do",
+      "problem": "A dashboard used to monitor data recency was not updating correctly due to a mapping problem, causing the issue to go undetected.",
+      "solution": "The issue was resolved by correcting the mapping problem in the dashboard configuration. Additionally, a specific team member was assigned responsibility to monitor the dashboard regularly to ensure it remains up to date and that data recency issues are detected promptly.",
+      "keywords": [
+        "dashboard",
+        "data recency",
+        "mapping problem",
+        "monitoring",
+        "dashboard update",
+        "data freshness",
+        "issue detection"
+      ],
+      "category": "Configuration"
+    },
+    {
+      "id": "F3F68B55_RE_ Detailed DNEXR CHN SBS SnD on platform_",
+      "problem": "Users want to view detailed line items such as 'Carry Out Import' for China's Soybeans Supply and Demand (SND) data on the Oilseeds Dashboard within the platform, similar to what is available via the API.",
+      "solution": "The platform has been updated to include the 'Carry Out Import' line item on the Oilseeds SND Dashboard for China. Users can now directly view this detailed monthly data on the dashboard without needing to access the API. For additional line items to be added, users can request them to be included on the dashboard.",
+      "keywords": [
+        "Oilseeds Dashboard",
+        "China Soybeans SND",
+        "Carry Out Import",
+        "detailed line items",
+        "monthly data",
+        "platform update",
+        "API data visibility"
+      ],
+      "category": "Feature Explanation"
+    },
+    {
+      "id": "F4873C7F_RE_ [EXTERNAL] RE_ Canada's weekly data",
+      "problem": "The weekly data for Canadian producer deliveries displayed in the dashboard (SND section) was missing the most recent weeks.",
+      "solution": "The dashboard data was updated to include the missing weeks. Additionally, the dataset feeding the dashboard is accessible via an API using the dataset code 'thul-c8f165f1-b946-4f05-ac7e-7ee88a902cd1'. Users can run API queries on this dataset using the provided code to retrieve the relevant data programmatically.",
+      "keywords": [
+        "dashboard update",
+        "Canadian producer deliveries",
+        "weekly data missing",
+        "dataset code",
+        "API query",
+        "SND section",
+        "data update",
+        "dataset access"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "F4AFD4AC_Re_ [EXTERNAL] RE_ Trade flows version",
+      "problem": "The user wants to compare current and previous versions of corn trade flows using a script, but the old script no longer works due to changes in tradeflow and forecast code formats.",
+      "solution": "Use the updated Python script provided to authenticate and retrieve trade flow data. Key steps include: 1) Authenticate via POST to https://api.dnext.io/dev/auth/custom-login with email, password, and organization to get a Bearer token. 2) Use the updated tradeflow and forecast codes in the format 'thul-xxxx-xxxx-xxxx-xxxx'. 3) Retrieve the list of tradeflows from https://api.dnext.io/v1.0/fundamentals/tradeflows?old_sharing=true and find the tradeflow_id matching the updated code. 4) List snapshots for the tradeflow using GET https://api.dnext.io/v1.0/fundamentals/tradeflows/{tradeflow_id}/snapshots with parameters. 5) Choose a snapshot from the list. 6) Download and compare tradeflow data by POSTing to https://api.dnext.io/fundamentals/tradeflow/compare with JSON payload specifying code, from snapshot, forecasts, and startMonth. 7) Load the returned URL data into a pandas DataFrame and filter relevant columns. This updated script replaces deprecated code formats and endpoints, ensuring successful retrieval of historical trade flow data.",
+      "keywords": [
+        "trade flows",
+        "tradeflow code",
+        "forecast code",
+        "API authentication",
+        "Bearer token",
+        "tradeflow snapshots",
+        "data retrieval",
+        "Python script",
+        "pandas",
+        "API endpoint",
+        "historical data",
+        "tradeflow comparison",
+        "updated code format",
+        "thul-xxxx-xxxx-xxxx-xxxx"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "F658613C_RE_ [EXTERNAL] RE_ split by product",
+      "problem": "User wants to view data split by product in a TradeMatrix aggregation view, specifically to see product data by month combined across all origins and destinations.",
+      "solution": "To split data by product in the TradeMatrix aggregation view: 1) Click on the “Columns” button in the interface. 2) Uncheck the boxes for “Destination Group” and “Destination” to remove those splits. 3) Drag and drop the “Product” field into the Row field area, placing it above the “Crop Year” field to achieve the desired layout showing product by month with totals. This configuration allows viewing product data aggregated across all origins and destinations.",
+      "keywords": [
+        "TradeMatrix",
+        "split by product",
+        "aggregation view",
+        "columns button",
+        "product field",
+        "row field",
+        "data layout",
+        "product by month",
+        "remove destination",
+        "data visualization"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "F7E054BD_RE_ [EXTERNAL] RE_ US planted and harvested estima",
+      "problem": "User needs historical USDA acreage estimates (planted and harvested) for US corn, soybeans, wheat, and cotton from 2000 to 2024, including state and national level estimates from March, June, and final USDA surveys. Existing datasets only include corn, soybeans, and wheat, lacking cotton data.",
+      "solution": "A dataset with historical data from 1995 is available including corn, soybeans, and wheat (Dataset Code: thul-7431afe6-5b54-11ef-891d-026031473607). Upon request, cotton data was collected and added to the same dataset, covering June, March, and final acreage estimates from 2000 to the latest report. The dataset also expanded corn, wheat, and soybean June acreage data back to 2000. Once cotton data is added, it will be included in future updates and reports automatically. Users can access all this data using the same dataset code.",
+      "keywords": [
+        "USDA acreage estimates",
+        "planted and harvested acreage",
+        "corn",
+        "soybeans",
+        "wheat",
+        "cotton",
+        "historical data",
+        "March survey",
+        "June survey",
+        "final estimates",
+        "dataset update",
+        "data expansion",
+        "dataset code",
+        "agricultural data",
+        "state and national level"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "FB310854_RE_ Unable to download customs data",
+      "problem": "Users are unable to download historical customs data because the export button/tab is disabled across various dashboards and countries.",
+      "solution": "The export button can be enabled by the platform administrators for specific dashboards and regions. Once enabled, users can download data by following these steps: 1) Navigate to the relevant dashboard (e.g., Argentina dashboard), 2) Click on 'Summarized Data', 3) Select the desired file format, such as '.xlsx (Excel 150,000-row max)', 4) Download the data. Note that not all dashboards may have downloadable data due to copyright restrictions. Administrators should ensure the export feature is enabled for all required regions and countries to allow data export.",
+      "keywords": [
+        "customs data",
+        "download disabled",
+        "export button",
+        "export tab disabled",
+        "historical data download",
+        "dashboard export",
+        "xlsx export",
+        "data export enablement",
+        "copyright restrictions"
+      ],
+      "category": "How-to Guide"
+    },
+    {
+      "id": "FEAC08B3_RE_ [EXTERNAL] Dashboard Access Update",
+      "problem": "Users are unable to access certain dashboards due to deprecated links and experience changes in dataset download formats where downloads now provide zipped folders containing split dataset chunks instead of single files.",
+      "solution": "For dashboard access issues caused by deprecated links, users should use the updated dashboard URLs provided by support, which reflect the current environment and resource identifiers. Regarding dataset downloads, large datasets are now split into multiple CSV files within a zipped folder to facilitate management of large files. To use the dataset, users must download the zipped folder and merge all CSV files together to reconstruct the full dataset. This approach is a permanent change to handle large datasets, and users should be informed to merge files after download. For smaller datasets, improvements are planned to allow single-file downloads.",
+      "keywords": [
+        "dashboard access",
+        "deprecated link",
+        "updated URL",
+        "dataset download",
+        "zipped folder",
+        "split CSV files",
+        "merge CSV files",
+        "large dataset management",
+        "DNEXR",
+        "data download format"
+      ],
+      "category": "How-to Guide"
+    }
+  ]
+}
