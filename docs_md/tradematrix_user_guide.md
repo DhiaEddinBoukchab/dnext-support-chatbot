@@ -229,6 +229,7 @@ How to Use: Click any tab to view that perspective's data
 Options: Click + button to create custom tabs (saved in your browser)
 
 💡 Best Practice: Create custom tabs for frequently accessed combinations of filters and settings
+********
 
 
 4.1.2 Data Filters
@@ -257,9 +258,10 @@ Options: Multi-select enabled (hold Ctrl/Cmd to select multiple)
 Access: Click on the "Filters" icon to open the dropdown selection menu for each category. The filter options are presented as checkboxes, allowing users to select multiple values at once from a predefined list. This enables efficient filtering by combinations of origin, product, and crop year.
 
 temp_images/tradematrix_user_guide/img3.png
+********
 
 4.1.3 Settings Buttons
-
+SETTINGS BUTTONS (PARTIE 1)
 Legends Button 🎨
 
 temp_images/tradematrix_user_guide/img4.png
@@ -304,6 +306,8 @@ When data appears outdated
 ✅ Success Check: A success message appears on the top right of the screen
 
 temp_images/tradematrix_user_guide/img7.png
+********
+SETTINGS BUTTONS (PARTIE 2)
 View Settings Button ⚙️
 
 Function: Opens configuration panel with three tabs
@@ -345,7 +349,8 @@ Intraflows: Toggle to include/exclude intra-continental trade flows
 Unreported: Toggle to include/exclude reporters with estimated data
 
 💡 Best Practice: Set view type and conversions once, then save as a custom tab
-
+********
+ SETTINGS BUTTONS (PARTIE 3)
 Columns Button 
 temp_images/tradematrix_user_guide/img8.png
   
@@ -392,6 +397,8 @@ Aggregates data across all crop years
 Use Case: Get big-picture trade trend view
 
 temp_images/tradematrix_user_guide/img11.png
+******
+SETTINGS BUTTONS (PARTIE 4)
 Forecasts Button 
 temp_images/tradematrix_user_guide/img12.png
  
@@ -482,6 +489,8 @@ Example:
 
 Crop Year  | Total   | Jan  | Feb  | Mar  | ...
 2024/25    | 150,000 | 12k  | 13k  | 15k  | ...
+******
+PIVOT TABLE (SUITE)
 3.Region Divider
 
 Location: Throughout the row list
@@ -589,6 +598,7 @@ Assign multiple datasets to single Reporter for different time periods (non-over
 *******
 
 5. Creating Your First Trade Matrix
+SECTION 5.1-CREATION ÉTAPES 1-2
 Goal: Create a trade matrix to track wheat exports across multiple countries
 
 Time: 15-20 minutes
@@ -682,7 +692,8 @@ Export: Shows quantities shipped OUT from reporters to partners
 Import: Shows quantities received IN by reporters from partners
 
 Click Next to proceed to Content
-
+*******
+SECTION 5.2 - CONTENT & SOURCES
 Step 3: Select Content & Sources
 The Content step has four sections: Content (datasets), Reporters, Partners, and Products
 
@@ -736,7 +747,8 @@ Create "Europe" folder and add European Union
 ✅ Checkpoint: Your selected reporters should be organized in regional folders
 
 💡 Best Practice: Create regional groups first, then select reporters to place them directly into the right folders
-
+*******
+SECTION 5.2 - SUITE (PARTNERS & PRODUCTS)
 3.3 Choose Partners (Destinations)
 temp_images/tradematrix_user_guide/img22.png
 Left Panel: Available partners
@@ -788,7 +800,8 @@ If tracking multiple wheat varieties:
 ☐ Soft White Wheat
 
 Click Next to proceed to Settings
-
+*******
+SECTION 5.3 - CONFIGURATION DES PARAMÈTRES
 Step 4: Configure Settings
 The Settings step has two sections: Unreported and Intraflows
 
@@ -840,7 +853,8 @@ Common Intraflow Groups:
 EU countries trading with each other
 
 Click Next to proceed to Forecasts
-
+*******
+SECTION 5.4 - FORECASTS ET RÈGLES DE PRIORITÉ
 Step 5: Choose Default Forecasts
 temp_images/tradematrix_user_guide/img25.png
 Purpose: Determines which forecasts load automatically when you open this trade matrix
@@ -886,7 +900,8 @@ Different configurations for different time ranges
 More flexible - useful when data sources change over time
 
 Periods must not overlap
-
+********
+SECTION 5.4 - RÈGLES DE PRIORITÉ (SUITE)
 For Each Reporter (e.g., "United States"):
 temp_images/tradematrix_user_guide/img28.png
 Each period configuration has four sections:
@@ -946,7 +961,8 @@ Current year vs previous year
 Preliminary data vs revised data
 
 Official customs vs Lineups estimates
-
+*******
+SECTION 5.4 - RÈGLES DE PRIORITÉ (FIN)
 4. Finalization Settings
 
 Purpose: Define when values are finalized (cannot be forecasted or changed)
@@ -1036,6 +1052,8 @@ Argentina
 
 ⚠️ Important: If you don't configure a reporter, it won't show data in the trade matrix
 
+********
+SECTION 5.5 - FINALISATION ET DÉPANNAGE
 Step 7: Finalize and Save
 Review all configurations in the Priority Rules page
 
@@ -1218,7 +1236,8 @@ Hover over Legends button to see color guide
 Only color-coded cells can be forecasted
 
 White cells with official data cannot be forecasted unless finalization rules allow it
-
+*******
+SECTION 6 - DÉPANNAGE (SUITE)
 Issue 3: Reference Columns Showing Empty Cells
 Symptoms: Yellow-highlighted reference columns exist but contain no data
 
@@ -1306,7 +1325,8 @@ Ensure Reporter → Partner combination matches your Mode
 If Mode is "Export," USA → Canada means USA exports to Canada
 
 If Mode is "Import," USA → Canada means USA imports from Canada
-
+*********
+SECTION 6 - DÉPANNAGE (FIN)
 Issue 5: Unreported Data Affecting Totals
 Symptoms: Summary totals seem inflated or include estimated data
 
@@ -1364,3 +1384,4 @@ Go to General Settings tab
 Check that the Summary Button is toggled
 
 Still Encountering issues or want more assistance? Please  Contact support@dnext.io 
+*********

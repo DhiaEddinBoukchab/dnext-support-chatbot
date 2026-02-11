@@ -1,3 +1,4 @@
+*******
 1. How to Download a Dataset from the Platform {#1-download-dataset-platform}
 
 Steps:
@@ -27,7 +28,7 @@ Step 4: Click the "Download" button at the top right of your screen.
 
 
 Additional Note: The visualization interface displays comprehensive dataset information, including the dataset code, description, and other relevant metadata.
-
+********
 2. How to Download a TradeMatrix from the Platform {#2-download-tradematrix-platform}
 
 Steps:
@@ -46,7 +47,7 @@ Step 3: Once you locate the TradeMatrix, click the "Visualize Record" button.
 
 Step 4: Click the "Download" button at the top right of your screen.
 
-
+*******
 
 3. How to Download a Dataset Using the Dnext API {#3-download-dataset-api}
 
@@ -117,7 +118,7 @@ Option 1: In the datasets list, under the "Code" column.
 Option 2: On the dataset summary page.
 
 
-
+******
 4. How to Download a TradeMatrix Using the Dnext API {#4-download-tradematrix-api}
 
 Code Example:
@@ -207,7 +208,7 @@ Click "Load".
 Copy the code shown in parentheses after the forecast name in the right panel where loaded forecasts are displayed.
 
 
-
+********
 5. How to Find a Dataset Code {#5-find-dataset-code}
 
 Steps:
@@ -232,7 +233,7 @@ Option 2: Click the "Visualize" button.
 
 Then view the dataset code on the summary interface.
 
-
+*******
 
 6. Login Authentication Failure {#6-login-authentication-failure}
 
@@ -287,7 +288,7 @@ Check for recent authentication system updates if the problem continues.
 Related Articles
 
 Password Reset, Expired Credentials
-
+********
 7. Password Reset Required {#7-password-reset-required}
 
 Summary
@@ -327,7 +328,7 @@ Ensure the password meets complexity requirements to prevent future login issues
 Related Articles
 
 Password Best Practices
-
+***********
 8. Expired Credentials {#8-expired-credentials}
 
 Summary
@@ -369,7 +370,7 @@ Review the account expiration policy to prevent recurrence.
 Related Articles
 
 Password Reset
-
+********
 9. Visualization Issues {#9-visualization-issues}
 
 Dashboard Data Not Displaying
@@ -415,25 +416,7 @@ Try different filter values and combinations. If all attempts fail, contact supp
 Additional Notes
 
 Clear browser cache to resolve potential display issues.
-
-10. How to Navigate Dashboards {#10-navigate-dashboards}
-
-(Content to be added)
-
-11. How to Download Data from a Dashboard {#11-download-dashboard-data}
-
-(Content to be added)
-
-❓ Frequently Asked Questions (FAQs)
-
-Q1: What should I do if I forget my password?
-
-Use the "Forgot Password" option. A verification code will be sent to your email address from no-reply@dnext.io. Enter the code and follow the instructions to reset your password.
-
-Q2: What if I can't access the platform even with correct credentials?
-
-Verify the platform URL is correct. If the URL is correct and you still cannot access the platform, contact support with the error details.
-
+*******
 🔧 Troubleshooting Guide
 
 Diagnostic Steps
@@ -463,7 +446,7 @@ Logs to Capture
 Login attempt logs
 
 Authentication error messages
-
+********
 ✅ Best Practices
 
 Use strong, unique passwords and change them regularly.
@@ -475,3 +458,4 @@ If using a VPN, ensure it is not blocking the platform. If it is, contact your I
 Report unauthorized credential changes immediately.
 
 Keep data filters updated for accurate reporting.
+*********

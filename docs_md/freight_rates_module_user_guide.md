@@ -1,5 +1,5 @@
+*********
 Freight Rates Module User Guide
-*******
 
 Table of Content : 
  
@@ -205,7 +205,7 @@ temp_images/freight_rates_module_user_guide/img5.png
 
 3. Key Concepts
 Understanding these fundamental elements will help you navigate the Freight Rates module efficiently.
-
+ CONCEPTS CLÉS (PARTIE 1)
 3.1 Dataset
 What it is:
 A dataset represents the source of your freight data. Each dataset includes multiple routes, vessel types, and date-based rate records.
@@ -236,6 +236,9 @@ Choose the desired batch name from the dropdown
 The table automatically updates to show only records from that batch
 
 temp_images/freight_rates_module_user_guide/img7.png
+
+
+
 3.3 Spot Date
 What it is:
 The Spot Date defines the market date for freight rate display.
@@ -258,6 +261,8 @@ Tip:
 Use routing filters to focus on specific corridors (e.g., all routes via Suez)
 
 temp_images/freight_rates_module_user_guide/img9.png
+*******
+ CONCEPTS CLÉS (PARTIE 2)
 3.5 Freight Terms
 What it is:
 Freight terms define contract conditions such as SHEX, FHEX, SHINC, and specify operational details like loading and discharge rates.
@@ -302,6 +307,7 @@ Determines laytime for discharge. Example: 8,000 MT/day for 40,000 MT cargo = 5 
 Why it matters:
 Understanding these terms ensures accurate voyage planning, fair cost comparison, and clear responsibility allocation between shipowner and charterer—especially when ports have different rest days or working schedules.
 
+
 3.6 Rate Columns
 What they are:
 Rate columns display freight prices per metric ton for each available month.
@@ -327,9 +333,11 @@ Compare Spot vs. Forward months to assess market direction.
 
 Example:
 If Spot = $38.25 and Nov (25) = $40.25 → a decrease is expected in November
-*******
 
 temp_images/freight_rates_module_user_guide/img10.png
+
+*******
+
 4. Understanding the Interface
 The Net Freight Rates interface consists of three main areas:
 
@@ -376,7 +384,8 @@ Click the Spot Date calendar icon
 Choose a specific date (e.g., 2025-11-03)
 
 Displayed rates update automatically
-
+******
+Understanding the Interface(SUITE)
 4.1.4 Search Bar
 Purpose: Quickly locate specific records by keyword
 
@@ -415,6 +424,8 @@ temp_images/freight_rates_module_user_guide/img15.png
 The Freight Configuration page opens with two main sections:
 
 temp_images/freight_rates_module_user_guide/img16.png
+*******
+CONFIGURATION FREIGHT (PARTIE 1)
 Input Datasets
 Control the underlying data used in freight rate calculations:
 
@@ -523,6 +534,8 @@ Output Datasets
 Define datasets used for output data (final freight rates, results, reports).
 
 temp_images/freight_rates_module_user_guide/img18.png
+******
+CONFIGURATION FREIGHT (PARTIE 2)
 Month Factor & Spot Day
 Setting
 
@@ -545,7 +558,7 @@ temp_images/freight_rates_module_user_guide/img19.png
 
 Saving Changes:
 Click the Save button at the bottom-right of the page to apply your configuration.
-
+*******
 4.1.7 Batches Button 
 temp_images/freight_rates_module_user_guide/img20.png
  
@@ -674,7 +687,6 @@ Click Select Batch on the top bar
 Choose a batch name
 
 The table updates to show only records from that batch
-*******
 
 5.2 Managing Estimates (Edit or Create)
 When you create or edit an estimate, you'll work with several interconnected sections that define the complete freight calculation.
@@ -732,6 +744,7 @@ Add Com (%)
 Additional commission paid to brokers/agents
 
 temp_images/freight_rates_module_user_guide/img28.png
+********
 Vessel & Voyage Details
 Trade & Timing
 Field
@@ -906,6 +919,7 @@ Total Duration
 Complete voyage time from loading start to final unloading
 
 temp_images/freight_rates_module_user_guide/img31.png
+*********
 Itinerary Section
 The Itinerary defines each stop along the voyage route.
 
@@ -977,7 +991,7 @@ Select appropriate Port Status for each row
 Specify Port Name and additional parameters
 
 Mark special conditions (Geared, Warzone) as needed
-
+*********
 Sea Passage
 The Sea Passage panel models sailing leg-by-leg with two main sections, each containing multiple tabs.
 
@@ -1191,7 +1205,7 @@ Itinerary drives rows: Add/remove/rename stops in Itinerary; Port Stay mirrors t
 Upstream changes: Modify Itinerary, Terms, or Sea Passage to influence Derived values; Output cells refresh automatically
 
 Terms and zones matter: Port Terms and ECA/NECA selections can materially change Rate, Factor, Time, and Bunker Cons results
-
+********
 Bunkers
 The Bunkers panel sets fuel quotation points and displays per-leg bunker pricing and totals across three rows:
 
@@ -1337,7 +1351,7 @@ Upstream drivers: Change Itinerary risk flags, product, or season to affect Deri
 Auto-recalculation: Outputs (EU ETS, FuelEU, EWRI) recalculate automatically from fuel consumption, zones (ECA/NECA), and configuration
 
 User discretion: Input fields allow manual adjustments for specific voyage requirements
-
+*********
 Voyage Expenses & TC In Summary
 This panel aggregates voyage costs and time-charter (TC) elements into a comprehensive summary.
 
@@ -1799,7 +1813,8 @@ Browser Session: Log out and log back in, then try again
 Network Interruption: Ensure stable connection during save operation
 
 Prevention: Only authorized users should modify configuration; coordinate with team before making changes
-
+*******
+troublshouting (suite)
 6.2 Data Quality Issues
 Identifying Data Quality Problems
 Common indicators:
@@ -1898,3 +1913,4 @@ SHINC
 Sundays and Holidays Included
 
 For additional assistance, please don't hesitate to contact our support team at support@dnext.io.*******
+******

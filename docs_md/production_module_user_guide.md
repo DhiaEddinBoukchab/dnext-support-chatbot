@@ -201,8 +201,8 @@ Options: Multi-select enabled (hold Ctrl/Cmd to select multiple)
 Access: Click on the "Filters" icon to open the dropdown selection menu for each category. The filter options are presented as checkboxes, allowing users to select multiple values at once from a predefined list. This enables efficient filtering by combinations of origin, product, and crop year.
 
 temp_images/production_module_user_guide/img3.png
- 
-
+ ******
+SETTINGS BUTTONS (PARTIE 1)
 4.1.3 Settings Buttons
 Legends Button 🎨
 
@@ -231,7 +231,8 @@ File Contents: Includes all visible data plus hidden rows if regions are collaps
  Refresh Data Button  
 temp_images/production_module_user_guide/img6.png
  
- 
+ ******
+ SETTINGS BUTTONS (PARTIE 2)
 
 Function: Updates production with latest data from source datasets
 
@@ -306,6 +307,8 @@ Values: Metrics to display (SND items)
 Changes apply immediately
 
 temp_images/production_module_user_guide/img10.png
+********
+SETTINGS BUTTONS (PARTIE 3)
 Analysis Button 📈
 
 Function: Opens comparison charts
@@ -348,6 +351,8 @@ Choose Color for identification
 Manage: Edit or delete forecasts
 
 temp_images/production_module_user_guide/img12.png
+********
+ SETTINGS BUTTONS (PARTIE 4)
 Changes Button 📝
 
 Function: Shows audit log of modifications
@@ -507,6 +512,7 @@ Takes You To: Priority Rules page organized by reporter
 
 
 5. Creating Your First Production
+CRÉATION ÉTAPES 1-2
 Goal: Create a production to track corn area and yield across multiple countries
 Time: 15-20 minutes Difficulty: ⭐⭐⭐☆☆
 
@@ -985,3 +991,4 @@ Causes:
 Incorrect formula in Configuration
 
 Still Encountering issues or want more assistance? Please  Contact support@dnext.io *******
+********
