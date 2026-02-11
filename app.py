@@ -16,6 +16,7 @@ from src.embeddings import EmbeddingManager
 from src.vector_store import VectorStore
 from src.llm_handler import LLMHandler
 from src.vlm_handler import VLMHandler
+from src.chunker import Chunker
 from database import DatabaseRepository
 from auth_service import AuthenticationService
 from models import Conversation, UserStatus
@@ -29,18 +30,19 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class DocumentProcessor:
-    """Handles document processing and chunking"""
+    """Handles document processing and chunking using smart chunker"""
+    
+    def __init__(self):
+        """Initialize with Chunker instance"""
+        self.chunker = Chunker()  # AJOUTER CETTE LIGNE si elle n'existe pas
     
     @staticmethod
-    def chunk_text(text: str, chunk_size: int = 400, overlap: int = 50) -> List[str]:
-        """Split text into overlapping chunks"""
-        words = text.split()
-        chunks = []
-        for i in range(0, len(words), chunk_size - overlap):
-            chunk = ' '.join(words[i:i + chunk_size])
-            if len(chunk.strip()) > 50:
-                chunks.append(chunk)
-        return chunks
+    def chunk_text(text: str, chunk_size: int = None, overlap: int = None) -> List[str]:
+        """
+        Split text using separator-based chunking ONLY.
+        chunk_size and overlap are IGNORED (kept for compatibility).
+        """
+        return Chunker.chunk_text(text, chunk_size, overlap)
     
     @staticmethod
     def extract_sections(text: str) -> List[Dict[str, str]]:
@@ -132,7 +134,7 @@ class ChatbotApp:
     
     @traceable(name="load_and_index_documents")
     def load_documents(self) -> Tuple[bool, str]:
-        """Load and index all documents with tracing"""
+        """Load and index all documents with separator-based chunking."""
         try:
             logger.info(f"Loading documents from {Config.DOCS_FOLDER}...")
             self.collection = self.vector_store.create_collection(reset=True)
@@ -147,43 +149,87 @@ class ChatbotApp:
             total_chunks = 0
             all_chunks = []
             all_metadatas = []
+            skipped_docs = []
             
             for doc_file in md_files:
+                logger.info(f"\n{'='*60}")
                 logger.info(f"Processing: {doc_file.name}")
+                logger.info(f"{'='*60}")
+                
                 with open(doc_file, 'r', encoding='utf-8') as f:
                     content = f.read()
                 
-                sections = self.doc_processor.extract_sections(content)
-                for section in sections:
-                    chunks = self.doc_processor.chunk_text(
-                        section["content"],
-                        Config.CHUNK_SIZE,
-                        Config.CHUNK_OVERLAP
+                logger.info(f"Content length: {len(content)} characters")
+                
+                # Validate document format
+                validation = self.doc_processor.chunker.validate_document_format(content)
+                logger.info(f"Validation: {validation['message']}")
+                
+                if not validation['valid']:
+                    logger.error(
+                        f"❌ Skipping {doc_file.name}: {validation['message']}\n"
+                        f"Please ensure your document contains separator patterns (****)"
                     )
+                    skipped_docs.append(doc_file.name)
+                    continue
+                
+                # Extract sections
+                sections = self.doc_processor.extract_sections(content)
+                logger.info(f"Found {len(sections)} section(s)")
+                
+                for section in sections:
+                    section_title = section["title"]
+                    section_content = section["content"]
+                    
+                    if not section_content.strip():
+                        logger.warning(f"Section '{section_title}' is empty, skipping")
+                        continue
+                    
+                    # Chunk using separator-based chunking
+                    chunks = self.doc_processor.chunk_text(section_content)
+                    
+                    if not chunks:
+                        logger.error(f"❌ No chunks created for section '{section_title}'")
+                        continue
+                    
+                    logger.info(f"Section '{section_title}': {len(chunks)} chunks created")
                     
                     for i, chunk in enumerate(chunks):
+                        if not chunk.strip():
+                            continue
+                        
                         all_chunks.append(chunk)
-                        all_metadatas.append({
-                            "document": doc_file.stem,
-                            "section": section["title"],
-                            "chunk_index": i,
-                            "source_file": doc_file.name
-                        })
+                        metadata = Chunker.extract_metadata_from_chunk(
+                            chunk, doc_file.stem, section_title, i
+                        )
+                        all_metadatas.append(metadata)
                         total_chunks += 1
             
+            if not all_chunks:
+                error_msg = (
+                    f"❌ No chunks created!\n"
+                    f"Processed {len(md_files)} files, skipped {len(skipped_docs)}.\n"
+                    f"Please ensure documents contain separator patterns (****)."
+                )
+                logger.error(error_msg)
+                return False, error_msg
+            
+            logger.info(f"✅ Created {total_chunks} total chunks")
             logger.info("Generating embeddings...")
             embeddings = self.embedding_manager.encode_batch(all_chunks)
             
             logger.info("Adding to vector store...")
             self.vector_store.add_documents(all_chunks, all_metadatas, embeddings)
             
-            message = f"✅ Successfully indexed {total_chunks} chunks from {len(md_files)} documents!"
+            final_count = self.collection.count()
+            message = f"✅ Successfully indexed {final_count} chunks from {len(md_files)} documents!"
             logger.info(message)
+            
             return True, message
             
         except Exception as e:
             error_msg = f"❌ Error loading documents: {str(e)}"
-            logger.error(error_msg)
+            logger.error(error_msg, exc_info=True)
             return False, error_msg
     
     @traceable(name="retrieve_relevant_chunks", run_type="retriever")
@@ -292,7 +338,13 @@ class ChatbotApp:
     
     @traceable(name="process_multimodal_message", run_type="chain")
     def process_message_stream(self, message: str, files: List, session: ConversationSession, user_id: int):
-        """Process message with streaming response"""
+        """
+        Process message with streaming response
+        Handles 3 scenarios:
+        1. Text only: Standard RAG pipeline
+        2. Text + Image: Extract image info → combine with text → RAG with combined query
+        3. Image only: Extract image info → use as query for RAG
+        """
         start_time = time.time()
         
         try:
@@ -307,8 +359,9 @@ class ChatbotApp:
                 yield "Please provide a question or upload an image."
                 return
             
+            # ========== SCENARIO 1: Text only (standard RAG) ==========
             if not has_images:
-                # Text-only handling with streaming
+                logger.info("📝 SCENARIO 1: Text-only query")
                 conversation_type = self.llm_handler.classify_conversation(message)
                 
                 if conversation_type == "CASUAL":
@@ -325,7 +378,7 @@ class ChatbotApp:
                     chunks_retrieved = len(results['documents'][0]) if results['documents'] else 0
                     
                     if not context:
-                        response = "I couldn't find relevant information in our documentation about this. For specific assistance, please contact our support team at support@dnext.io 📧"
+                        response = "I couldn't find relevant information about this. For specific assistance, please contact our support team at support@dnext.io 📧"
                         yield response
                         full_response = response
                     else:
@@ -341,80 +394,98 @@ class ChatbotApp:
                 response_time_ms = int((time.time() - start_time) * 1000)
                 logger.info(f"Query processed in {response_time_ms}ms | Type: {conversation_type} | Chunks: {chunks_retrieved}")
             
+            # ========== SCENARIO 2 & 3: Image handling ==========
             else:
-                # Multimodal handling (non-streaming for now)
                 if not self.vlm_handler:
                     yield "❌ Image analysis feature is not configured. Please ensure GROQ_API_KEY is set."
                     return
                 
-                if not has_text:
-                    message = "Analyze this image and help me understand what I'm seeing."
-                
-                logger.info(f"Processing multimodal message with {len(files)} file(s)")
-                results = self.retrieve_relevant_chunks(message, top_k=3)
-                context = self._format_context(results)
-                
                 file_path = files[0] if isinstance(files[0], str) else files[0].name
                 logger.info(f"Processing file: {file_path}")
-                
                 file_ext = Path(file_path).suffix.lower()
                 
-                if file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']:
-                    result = self.vlm_handler.analyze_image(
-                        image_path=file_path,
-                        prompt=message,
-                        context=context
-                    )
-                # In your requirements.txt, add:
-# PyMuPDF==1.23.8
-
-# Then update the PDF handling code:
-                elif file_ext == '.pdf':
+                # Handle PDF conversion to image
+                if file_ext == '.pdf':
                     try:
                         import fitz  # PyMuPDF
-                        
                         doc = fitz.open(file_path)
-                        page = doc[0]  # Get first page
-                        
-                        # Convert to image
+                        page = doc[0]
                         pix = page.get_pixmap()
                         img_bytes = pix.tobytes("png")
-                        
-                        result = self.vlm_handler.analyze_image(
-                            image_bytes=img_bytes,
-                            prompt=message,
-                            context=context
-                        )
-                        
                         doc.close()
                         
+                        # Extract image information using STAGE 1 only
+                        extraction_result = self.vlm_handler.extract_image_info(
+                            image_bytes=img_bytes,
+                            user_prompt=f"Extract all visible information from this image{' related to: ' + message if has_text else ''}."
+                        )
                     except ImportError:
-                        return "❌ PDF support requires PyMuPDF. Install with: `pip install PyMuPDF`"
-                    except Exception as e:
-                        return f"❌ Error processing PDF: {str(e)}"
+                        yield "❌ PDF support requires PyMuPDF. Install with: `pip install PyMuPDF`"
                         return
+                    except Exception as e:
+                        yield f"❌ Error processing PDF: {str(e)}"
+                        return
+                        
+                elif file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']:
+                    # Extract image information using STAGE 1 only
+                    extraction_result = self.vlm_handler.extract_image_info(
+                        image_path=file_path,
+                        user_prompt=f"Extract all visible information from this image{' related to: ' + message if has_text else ''}."
+                    )
                 else:
                     yield f"❌ Unsupported file type: {file_ext}. Supported: images (jpg, png, gif, webp) and PDF."
                     return
                 
-                response_time_ms = int((time.time() - start_time) * 1000)
+                if not extraction_result["success"]:
+                    yield f"❌ Error analyzing image: {extraction_result['error']}"
+                    return
                 
-                if result["success"]:
-                    answer = result["response"]
-                    yield answer
+                image_description = extraction_result["extracted_info"]
+                logger.info(f"Extracted image info: {image_description[:200]}...")
+                
+                # SCENARIO 3: Image only (no text)
+                if not has_text:
+                    logger.info("📸 SCENARIO 3: Image-only query")
+                    # Use extracted image info as the main query
+                    retrieval_query = f"Analyze this information and help me understand it: {image_description}"
+                    user_display_msg = "[IMAGE] (No text provided)"
                     
-                    # Add to session
-                    session.add_message("user", f"[IMAGE] {message}")
-                    session.add_message("assistant", answer)
-                    
-                    logger.info(f"Multimodal query processed in {response_time_ms}ms")
+                # SCENARIO 2: Text + Image
                 else:
-                    error_msg = f"❌ Error analyzing image: {result['error']}"
-                    logger.error(error_msg)
-                    yield error_msg
+                    logger.info("📸📝 SCENARIO 2: Text + Image query")
+                    # Combine user text with image description for better retrieval
+                    retrieval_query = f"{message}\n\nImage content: {image_description}"
+                    user_display_msg = f"[IMAGE + TEXT] {message}"
+                
+                logger.info(f"Retrieval query: {retrieval_query[:200]}...")
+                
+                # Retrieve relevant chunks using the enhanced query
+                results = self.retrieve_relevant_chunks(retrieval_query, top_k=5)
+                context = self._format_context(results)
+                chunks_retrieved = len(results['documents'][0]) if results['documents'] else 0
+                
+                logger.info(f"Retrieved {chunks_retrieved} chunks based on {'combined' if has_text else 'image'} context")
+                
+                if not context:
+                    response = "I couldn't find relevant information about this. For specific assistance, please contact our support team at support@dnext.io 📧"
+                    yield response
+                    full_response = response
+                else:
+                    # Generate response with streaming
+                    full_response = ""
+                    for chunk in self.llm_handler.generate_response_stream(context, retrieval_query):
+                        full_response += chunk
+                        yield full_response
+                
+                # Add to session
+                session.add_message("user", user_display_msg)
+                session.add_message("assistant", full_response)
+                
+                response_time_ms = int((time.time() - start_time) * 1000)
+                logger.info(f"Multimodal query processed in {response_time_ms}ms | Chunks: {chunks_retrieved}")
                     
         except Exception as e:
-            logger.error(f"Error processing message: {e}")
+            logger.error(f"Error processing message: {e}", exc_info=True)
             yield f"❌ Error: {str(e)}"
     
     def get_logo_base64(self):
@@ -778,7 +849,7 @@ class ChatbotApp:
         
         logo_data = self.get_logo_base64()
         
-        with gr.Blocks(title="Customer Support Agent", css=custom_css) as demo:
+        with gr.Blocks(title="Customer AI Assistant", css=custom_css) as demo:
             user_state = gr.State(None)
             current_session_id = gr.State(None)
             
@@ -789,11 +860,11 @@ class ChatbotApp:
                     gr.HTML(f"""
                         <div style="text-align: center; margin-bottom: 1.5rem;">
                             <img src="{logo_data}" style="width: 80px; height: 80px; margin: 0 auto 1rem auto; display: block; object-fit: contain; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
-                            <h1 style="margin: 0; font-size: 1.5rem; font-weight: 600; color: #1f2937;">Dnext Support</h1>
+                            <h1 style="margin: 0; font-size: 1.5rem; font-weight: 600; color: #1f2937;">Customer AI Assistant</h1>
                         </div>
                     """)
                 else:
-                    gr.Markdown("# 🤖Customer Support Agent")
+                    gr.Markdown("# 🤖 Customer AI Assistant")
                 
                 gr.Markdown("**Sign in to start chatting**")
                 email_input = gr.Textbox(
@@ -841,7 +912,7 @@ class ChatbotApp:
                         <div class="app-header">
                             <div class="logo-container">
                                 <img src="{logo_data}" class="logo-img" alt="Dnext Logo">
-                                <h1>Dnext Support Assistant</h1>
+                                <h1> Customer AI Assistant</h1>
                             </div>
                         </div>
                     """)
@@ -1098,7 +1169,7 @@ class ChatbotApp:
 def main():
     """Main entry point"""
     print("=" * 60)
-    print("🚀 Starting Dnext Customer Support Chatbot")
+    print("🚀 Starting Customer AI Assistant")
     print("=" * 60)
     
     try:
@@ -1119,6 +1190,10 @@ def main():
         print("🎨 Modern ChatGPT-style interface")
         print("⚡ Dynamic session management")
         print("💾 Auto-save conversations")
+        print("📸 Enhanced multimodal support:")
+        print("   1️⃣ Text only → Standard RAG")
+        print("   2️⃣ Text + Image → Extract image → Combine → RAG")
+        print("   3️⃣ Image only → Extract image → RAG")
         print("=" * 60)
         
         # Get custom CSS from the create_interface method
