@@ -4,6 +4,7 @@ from typing import List, Dict, Tuple
 import logging
 import shutil
 from langsmith import traceable
+
 logger = logging.getLogger(__name__)
 
 class VectorStore:
@@ -15,33 +16,43 @@ class VectorStore:
         self.client = chromadb.PersistentClient(path=db_path)
         self.collection = None
     
-    def create_collection(self, name: str = "support_docs", reset: bool = False):
-        """Create or get collection"""
+    def create_collection(self, name: str = "support_docs", collection_name: str = None, reset: bool = False):
+        """
+        Create or get collection
+        
+        Args:
+            name: Collection name (legacy parameter for compatibility)
+            collection_name: Collection name (new parameter)
+            reset: Whether to delete existing collection
+        """
+        # Use collection_name if provided, otherwise use name
+        collection_name = collection_name or name
+        
         try:
             if reset:
                 try:
-                    self.client.delete_collection(name)
-                    logger.info(f"Deleted existing collection: {name}")
+                    self.client.delete_collection(collection_name)
+                    logger.info(f"Deleted existing collection: {collection_name}")
                 except:
                     pass
             
             self.collection = self.client.create_collection(
-                name=name,
+                name=collection_name,
                 metadata={"description": "Dnext customer support documentation"}
             )
-            logger.info(f"✅ Collection '{name}' created")
+            logger.info(f"✅ Collection '{collection_name}' created")
         except Exception as e:
             try:
-                self.collection = self.client.get_collection(name)
-                logger.info(f"✅ Loaded existing collection: {name}")
+                self.collection = self.client.get_collection(collection_name)
+                logger.info(f"✅ Loaded existing collection: {collection_name}")
             except Exception as collection_error:
                 logger.warning(f"Could not load collection: {collection_error}. Attempting to reset database...")
                 self._reset_database()
                 self.collection = self.client.create_collection(
-                    name=name,
+                    name=collection_name,
                     metadata={"description": "Dnext customer support documentation"}
                 )
-                logger.info(f"✅ Collection '{name}' created after reset")
+                logger.info(f"✅ Collection '{collection_name}' created after reset")
         
         return self.collection
     
@@ -70,8 +81,20 @@ class VectorStore:
     
     @traceable(name="add_documents_to_vectorstore")
     def add_documents(self, chunks: List[str], metadatas: List[Dict], 
-                     embeddings: List[List[float]]):
-        """Add documents to collection"""
+                     embeddings: List[List[float]], collection_name: str = None):
+        """
+        Add documents to collection
+        
+        Args:
+            chunks: List of text chunks to add
+            metadatas: List of metadata dicts for each chunk
+            embeddings: List of embedding vectors
+            collection_name: Optional collection name to use (if different from current)
+        """
+        # If collection_name is provided, switch to that collection
+        if collection_name:
+            self.get_collection(collection_name)
+        
         if not self.collection:
             raise ValueError("Collection not initialized")
         
@@ -91,16 +114,25 @@ class VectorStore:
         run_type="retriever",
         metadata={"retriever_type": "chromadb"}
     )
-    
-    def query(self, query_embedding: List[float], top_k: int = 3):
-        """Query similar documents with detailed tracing"""
+    def query(self, query_embedding: List[float], top_k: int = 3, n_results: int = None):
+        """
+        Query similar documents with detailed tracing
+        
+        Args:
+            query_embedding: Query embedding vector
+            top_k: Number of results to return (legacy parameter)
+            n_results: Number of results to return (new parameter)
+        """
         if not self.collection:
             raise ValueError("Collection not initialized")
+        
+        # Use n_results if provided, otherwise use top_k
+        num_results = n_results if n_results is not None else top_k
         
         try:
             results = self.collection.query(
                 query_embeddings=[query_embedding],
-                n_results=top_k
+                n_results=num_results
             )
             
             # Log retrieval details

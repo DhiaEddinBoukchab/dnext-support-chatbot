@@ -166,41 +166,45 @@ Now provide the best possible answer:"""
     # =========================
     # IMAGE ANALYSIS
     # =========================
-    def analyze_image(self, 
-                      image_path: Optional[str] = None,
-                      image_bytes: Optional[bytes] = None,
-                      prompt: str = "Analyze this image and provide a detailed description.",
-                      context: str = "") -> Dict[str, Any]:
+    def _encode_image(
+        self,
+        image_path: Optional[str] = None,
+        image_bytes: Optional[bytes] = None,
+    ) -> tuple[str, str]:
         """
-        Process image with two-stage analysis:
-        1. Extract all information from image
-        2. Provide contextual answer using documentation
-        
-        Args:
-            image_path: Path to image file
-            image_bytes: Image bytes (alternative to path)
-            prompt: User's question/request
-            context: Technical documentation context
-            
+        Internal helper to encode image and determine media type.
+
         Returns:
-            Dictionary with response and metadata
+            Tuple of (base64_image_data, media_type)
+        """
+        if not image_path and not image_bytes:
+            raise ValueError("Either image_path or image_bytes must be provided")
+
+        if image_path:
+            image_data = self._encode_image_to_base64(image_path)
+            media_type = self._get_image_media_type(image_path=image_path)
+        else:
+            image_data = self._encode_image_from_bytes(image_bytes)
+            media_type = self._get_image_media_type(image_bytes=image_bytes)
+
+        return image_data, media_type
+
+    def _run_extraction_stage(
+        self,
+        image_data: str,
+        media_type: str,
+        user_prompt: str,
+    ) -> Dict[str, Any]:
+        """
+        Internal helper for Stage 1: vision extraction only.
+
+        Returns:
+            dict with keys: success, extracted_info, raw, usage, error
         """
         try:
-            if not image_path and not image_bytes:
-                raise ValueError("Either image_path or image_bytes must be provided")
-
-            # Encode image
-            if image_path:
-                image_data = self._encode_image_to_base64(image_path)
-                media_type = self._get_image_media_type(image_path=image_path)
-            else:
-                image_data = self._encode_image_from_bytes(image_bytes)
-                media_type = self._get_image_media_type(image_bytes=image_bytes)
-
-            # STAGE 1: Extract information from image
             logger.info("Stage 1: Extracting information from image...")
-            extraction_prompt = self._create_extraction_prompt(prompt)
-            
+            extraction_prompt = self._create_extraction_prompt(user_prompt)
+
             extraction_payload = {
                 "model": self.model,
                 "messages": [
@@ -209,87 +213,202 @@ Now provide the best possible answer:"""
                         "content": [
                             {
                                 "type": "text",
-                                "text": extraction_prompt
+                                "text": extraction_prompt,
                             },
                             {
                                 "type": "image_url",
                                 "image_url": {
                                     "url": f"data:{media_type};base64,{image_data}"
-                                }
-                            }
-                        ]
+                                },
+                            },
+                        ],
                     }
                 ],
                 "temperature": 0.3,
-                "max_tokens": 800
+                "max_tokens": 800,
             }
 
             extraction_response = requests.post(
                 f"{self.base_url}/chat/completions",
                 headers=self.headers,
                 json=extraction_payload,
-                timeout=30
+                timeout=30,
             )
 
             if extraction_response.status_code != 200:
-                error_msg = f"Groq API error (extraction): {extraction_response.status_code} - {extraction_response.text}"
+                error_msg = (
+                    f"Groq API error (extraction): "
+                    f"{extraction_response.status_code} - {extraction_response.text}"
+                )
                 logger.error(error_msg)
                 return {
                     "success": False,
                     "error": error_msg,
-                    "response": None
+                    "extracted_info": None,
+                    "raw": None,
+                    "usage": {},
                 }
 
             extraction_result = extraction_response.json()
-            extracted_info = extraction_result['choices'][0]['message']['content']
-            
+            extracted_info = extraction_result["choices"][0]["message"]["content"]
+
             logger.info(f"Extracted info preview: {extracted_info[:200]}...")
 
-            # STAGE 2: Generate contextual response
+            return {
+                "success": True,
+                "error": None,
+                "extracted_info": extracted_info,
+                "raw": extraction_result,
+                "usage": extraction_result.get("usage", {}),
+            }
+        except Exception as e:
+            logger.error(f"Error during extraction stage: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "extracted_info": None,
+                "raw": None,
+                "usage": {},
+            }
+
+    def _run_contextual_stage(
+        self,
+        extracted_info: str,
+        user_prompt: str,
+        context: str = "",
+    ) -> Dict[str, Any]:
+        """
+        Internal helper for Stage 2: contextual answer only.
+
+        Returns:
+            dict with keys: success, response, raw, usage, error
+        """
+        try:
             logger.info("Stage 2: Generating contextual response...")
-            contextual_prompt = self._create_contextual_prompt(extracted_info, prompt, context)
-            
+            contextual_prompt = self._create_contextual_prompt(
+                extracted_info, user_prompt, context
+            )
+
             # For stage 2, we only need text (no image)
             contextual_payload = {
                 "model": self.model,
                 "messages": [
                     {
                         "role": "user",
-                        "content": contextual_prompt
+                        "content": contextual_prompt,
                     }
                 ],
                 "temperature": 0.2,
-                "max_tokens": 1200
+                "max_tokens": 1200,
             }
 
             contextual_response = requests.post(
                 f"{self.base_url}/chat/completions",
                 headers=self.headers,
                 json=contextual_payload,
-                timeout=30
+                timeout=30,
             )
 
             if contextual_response.status_code != 200:
-                error_msg = f"Groq API error (contextual): {contextual_response.status_code} - {contextual_response.text}"
+                error_msg = (
+                    f"Groq API error (contextual): "
+                    f"{contextual_response.status_code} - {contextual_response.text}"
+                )
                 logger.error(error_msg)
                 return {
                     "success": False,
                     "error": error_msg,
-                    "response": None
+                    "response": None,
+                    "raw": None,
+                    "usage": {},
                 }
 
             final_result = contextual_response.json()
-            
+            response_text = final_result["choices"][0]["message"]["content"]
+
             return {
                 "success": True,
-                "response": final_result['choices'][0]['message']['content'],
+                "error": None,
+                "response": response_text,
+                "raw": final_result,
+                "usage": final_result.get("usage", {}),
+            }
+        except Exception as e:
+            logger.error(f"Error during contextual stage: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "response": None,
+                "raw": None,
+                "usage": {},
+            }
+
+    def analyze_image(
+        self,
+        image_path: Optional[str] = None,
+        image_bytes: Optional[bytes] = None,
+        prompt: str = "Analyze this image and provide a detailed description.",
+        context: str = "",
+    ) -> Dict[str, Any]:
+        """
+        Process image with two-stage analysis:
+        1. Extract all information from image
+        2. Provide contextual answer using documentation
+
+        Args:
+            image_path: Path to image file
+            image_bytes: Image bytes (alternative to path)
+            prompt: User's question/request
+            context: Technical documentation context
+
+        Returns:
+            Dictionary with response and metadata
+        """
+        try:
+            # Encode image once
+            image_data, media_type = self._encode_image(
+                image_path=image_path,
+                image_bytes=image_bytes,
+            )
+
+            # STAGE 1: Extract information from image
+            extraction = self._run_extraction_stage(
+                image_data=image_data,
+                media_type=media_type,
+                user_prompt=prompt,
+            )
+            if not extraction["success"]:
+                return {
+                    "success": False,
+                    "error": extraction["error"],
+                    "response": None,
+                }
+
+            extracted_info = extraction["extracted_info"]
+
+            # STAGE 2: Generate contextual response
+            contextual = self._run_contextual_stage(
+                extracted_info=extracted_info,
+                user_prompt=prompt,
+                context=context,
+            )
+            if not contextual["success"]:
+                return {
+                    "success": False,
+                    "error": contextual["error"],
+                    "response": None,
+                }
+
+            return {
+                "success": True,
+                "response": contextual["response"],
                 "extracted_info": extracted_info,  # For debugging
                 "model": self.model,
                 "usage": {
-                    "extraction": extraction_result.get('usage', {}),
-                    "contextual": final_result.get('usage', {})
+                    "extraction": extraction.get("usage", {}),
+                    "contextual": contextual.get("usage", {}),
                 },
-                "error": None
+                "error": None,
             }
 
         except Exception as e:
@@ -297,7 +416,57 @@ Now provide the best possible answer:"""
             return {
                 "success": False,
                 "error": str(e),
-                "response": None
+                "response": None,
+            }
+
+    def extract_image_info(
+        self,
+        image_path: Optional[str] = None,
+        image_bytes: Optional[bytes] = None,
+        user_prompt: str = "Extract all visible information from this image.",
+    ) -> Dict[str, Any]:
+        """
+        Public helper to run ONLY the extraction stage and return
+        a detailed textual description of the image.
+
+        This is intended for:
+        - Building a better retrieval query (RAG)
+        - Handling image-only queries by turning them into text
+        """
+        try:
+            image_data, media_type = self._encode_image(
+                image_path=image_path,
+                image_bytes=image_bytes,
+            )
+
+            extraction = self._run_extraction_stage(
+                image_data=image_data,
+                media_type=media_type,
+                user_prompt=user_prompt,
+            )
+
+            if not extraction["success"]:
+                return {
+                    "success": False,
+                    "error": extraction["error"],
+                    "extracted_info": None,
+                    "usage": extraction.get("usage", {}),
+                }
+
+            return {
+                "success": True,
+                "error": None,
+                "extracted_info": extraction["extracted_info"],
+                "usage": extraction.get("usage", {}),
+            }
+
+        except Exception as e:
+            logger.error(f"Error extracting image info: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "extracted_info": None,
+                "usage": {},
             }
 
     # =========================
