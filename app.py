@@ -4,6 +4,8 @@ from datetime import datetime
 import logging
 from typing import List, Dict, Tuple, Optional
 import time
+import json
+import shutil
 from langsmith import traceable
 from PIL import Image
 import io
@@ -314,27 +316,12 @@ class ChatbotApp:
         return []
     
     def save_session_to_db(self, user_id: int, session_id: str):
-        """Save all messages from a session to database"""
-        if user_id not in self.active_sessions or session_id not in self.active_sessions[user_id]:
-            return
-        
-        session = self.active_sessions[user_id][session_id]
-        
-        # Save each message pair (user + assistant) as a conversation
-        messages = session.messages
-        for i in range(0, len(messages) - 1, 2):
-            if i + 1 < len(messages) and messages[i]["role"] == "user" and messages[i+1]["role"] == "assistant":
-                conversation = Conversation(
-                    user_id=user_id,
-                    message=messages[i]["content"],
-                    response=messages[i+1]["content"],
-                    timestamp=session.last_updated,
-                    conversation_type="CHAT",
-                    response_time_ms=0
-                )
-                self.db.save_conversation(conversation)
-        
-        logger.info(f"Saved session {session_id} to database")
+        """
+        Legacy helper for session-based persistence.
+        Kept for backward compatibility but no longer used now that
+        each exchange is written to the database in real time.
+        """
+        logger.info(f"Ignoring save_session_to_db for session {session_id} (real-time persistence enabled)")
     
     @traceable(name="process_multimodal_message", run_type="chain")
     def process_message_stream(self, message: str, files: List, session: ConversationSession, user_id: int):
@@ -391,7 +378,18 @@ class ChatbotApp:
                 session.add_message("user", message)
                 session.add_message("assistant", full_response)
                 
+                # Persist this exchange immediately for real-time admin monitoring
                 response_time_ms = int((time.time() - start_time) * 1000)
+                conversation = Conversation(
+                    user_id=user_id,
+                    message=message,
+                    response=full_response,
+                    timestamp=datetime.now(),
+                    conversation_type=conversation_type,
+                    response_time_ms=response_time_ms
+                )
+                self.db.save_conversation(conversation)
+                
                 logger.info(f"Query processed in {response_time_ms}ms | Type: {conversation_type} | Chunks: {chunks_retrieved}")
             
             # ========== SCENARIO 2 & 3: Image handling ==========
@@ -481,7 +479,49 @@ class ChatbotApp:
                 session.add_message("user", user_display_msg)
                 session.add_message("assistant", full_response)
                 
+                # Persist this exchange immediately for real-time admin monitoring,
+                # including basic attachment metadata for any uploaded files.
                 response_time_ms = int((time.time() - start_time) * 1000)
+
+                attachments_meta: List[Dict[str, str]] = []
+                if files:
+                    uploads_dir = Path("uploads")
+                    uploads_dir.mkdir(parents=True, exist_ok=True)
+                    image_exts = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
+
+                    for f in files:
+                        src_path = Path(f) if isinstance(f, str) else Path(f.name)
+                        if not src_path.exists():
+                            continue
+                        ext = src_path.suffix.lower()
+                        dest_name = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex}{ext}"
+                        dest_path = uploads_dir / dest_name
+                        try:
+                            shutil.copy2(src_path, dest_path)
+                        except Exception as copy_err:
+                            logger.warning(f"Failed to copy attachment {src_path} -> {dest_path}: {copy_err}")
+                            continue
+
+                        file_type = "image" if ext in image_exts else "file"
+                        attachments_meta.append(
+                            {
+                                "type": file_type,
+                                "path": str(dest_path),
+                                "original_name": src_path.name,
+                            }
+                        )
+
+                conversation = Conversation(
+                    user_id=user_id,
+                    message=user_display_msg,
+                    response=full_response,
+                    timestamp=datetime.now(),
+                    conversation_type="TECHNICAL",
+                    response_time_ms=response_time_ms,
+                    attachments=json.dumps(attachments_meta) if attachments_meta else None,
+                )
+                self.db.save_conversation(conversation)
+                
                 logger.info(f"Multimodal query processed in {response_time_ms}ms | Chunks: {chunks_retrieved}")
                     
         except Exception as e:
@@ -992,10 +1032,6 @@ class ChatbotApp:
                 if not user:
                     return {}, None, gr.update(visible=True), gr.update(visible=False, value=[]), gr.update(choices=[]), gr.update(visible=False), gr.update(visible=True)
                 
-                # Save current session to database if it has messages
-                if current_session:
-                    self.save_session_to_db(user.user_id, current_session)
-                
                 # Create new session
                 new_session = self.get_or_create_session(user.user_id)
                 
@@ -1051,12 +1087,6 @@ class ChatbotApp:
                 if not user or not session_id:
                     return [], gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)
                 
-                # Save current active session first
-                if user.user_id in self.active_sessions:
-                    for sid in self.active_sessions[user.user_id].keys():
-                        if sid != session_id:
-                            self.save_session_to_db(user.user_id, sid)
-                
                 # Load selected session
                 history = self.load_session_history(user.user_id, session_id)
                 
@@ -1077,11 +1107,9 @@ class ChatbotApp:
             def logout_handler(user, current_session):
                 """Handle logout and save all sessions"""
                 if user and current_session:
-                    # Save all active sessions to database
+                    # Clear active sessions for this user (conversations are now
+                    # saved in real time, so we only need to drop in-memory state)
                     if user.user_id in self.active_sessions:
-                        for session_id in list(self.active_sessions[user.user_id].keys()):
-                            self.save_session_to_db(user.user_id, session_id)
-                        # Clear active sessions for this user
                         del self.active_sessions[user.user_id]
                 
                 return {

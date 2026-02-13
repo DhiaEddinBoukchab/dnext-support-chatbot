@@ -61,6 +61,7 @@ class DatabaseRepository:
                     timestamp TIMESTAMP NOT NULL,
                     conversation_type TEXT DEFAULT 'TECHNICAL',
                     response_time_ms INTEGER,
+                    attachments TEXT,
                     FOREIGN KEY (user_id) REFERENCES users (user_id)
                 )
             ''')
@@ -85,7 +86,13 @@ class DatabaseRepository:
                 CREATE INDEX IF NOT EXISTS idx_conversations_timestamp 
                 ON conversations(timestamp)
             ''')
-            
+
+            # Lightweight migration for older databases: ensure attachments column exists
+            cursor.execute("PRAGMA table_info(conversations)")
+            existing_cols = {row["name"] for row in cursor.fetchall()}
+            if "attachments" not in existing_cols:
+                cursor.execute("ALTER TABLE conversations ADD COLUMN attachments TEXT")
+
             conn.commit()
             logger.info("✅ Database initialized successfully")
     
@@ -234,15 +241,16 @@ class DatabaseRepository:
                 cursor = conn.cursor()
                 cursor.execute('''
                     INSERT INTO conversations 
-                    (user_id, message, response, timestamp, conversation_type, response_time_ms)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    (user_id, message, response, timestamp, conversation_type, response_time_ms, attachments)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     conversation.user_id,
                     conversation.message,
                     conversation.response,
                     conversation.timestamp,
                     conversation.conversation_type,
-                    conversation.response_time_ms
+                    conversation.response_time_ms,
+                    conversation.attachments,
                 ))
                 conn.commit()
                 
@@ -275,7 +283,8 @@ class DatabaseRepository:
                         response=row['response'],
                         timestamp=datetime.fromisoformat(row['timestamp']),
                         conversation_type=row['conversation_type'],
-                        response_time_ms=row['response_time_ms']
+                        response_time_ms=row['response_time_ms'],
+                        attachments=row['attachments'],
                     )
                     for row in rows
                 ]
@@ -306,7 +315,8 @@ class DatabaseRepository:
                         response=row['response'],
                         timestamp=datetime.fromisoformat(row['timestamp']),
                         conversation_type=row['conversation_type'],
-                        response_time_ms=row['response_time_ms']
+                        response_time_ms=row['response_time_ms'],
+                        attachments=row['attachments'],
                     )
                     user = User(
                         user_id=row['user_id'],
@@ -392,7 +402,7 @@ class DatabaseRepository:
             return False
 
     def get_statistics(self) -> dict:
-        """Get overall statistics"""
+        """Get overall statistics aggregated over the whole dataset."""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -439,3 +449,103 @@ class DatabaseRepository:
         except Exception as e:
             logger.error(f"Error getting statistics: {e}")
             return {}
+
+    def get_conversations_filtered(
+        self,
+        user_email: Optional[str] = None,
+        date_from: Optional[datetime] = None,
+        date_to: Optional[datetime] = None,
+        conversation_type: Optional[str] = None,
+        limit: int = 200,
+    ) -> List[Tuple[Conversation, User]]:
+        """
+        Get conversations with optional filters for user email, date range and type.
+        Returns a list of (Conversation, User) tuples ordered by most recent first.
+        """
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                
+                query = '''
+                    SELECT c.*, u.email, u.full_name 
+                    FROM conversations c
+                    JOIN users u ON c.user_id = u.user_id
+                    WHERE 1 = 1
+                '''
+                params: list = []
+                
+                if user_email:
+                    query += ' AND u.email LIKE ?'
+                    params.append(f"%{user_email}%")
+                
+                if date_from:
+                    query += ' AND c.timestamp >= ?'
+                    params.append(date_from)
+                
+                if date_to:
+                    query += ' AND c.timestamp <= ?'
+                    params.append(date_to)
+                
+                if conversation_type:
+                    query += ' AND c.conversation_type = ?'
+                    params.append(conversation_type)
+                
+                query += ' ORDER BY c.timestamp DESC LIMIT ?'
+                params.append(limit)
+                
+                cursor.execute(query, tuple(params))
+                rows = cursor.fetchall()
+                
+                results: List[Tuple[Conversation, User]] = []
+                for row in rows:
+                    conversation = Conversation(
+                        conversation_id=row['conversation_id'],
+                        user_id=row['user_id'],
+                        message=row['message'],
+                        response=row['response'],
+                        timestamp=datetime.fromisoformat(row['timestamp']),
+                        conversation_type=row['conversation_type'],
+                        response_time_ms=row['response_time_ms'],
+                        attachments=row['attachments'],
+                    )
+                    user = User(
+                        user_id=row['user_id'],
+                        email=row['email'],
+                        full_name=row['full_name'],
+                        created_at=datetime.now(),
+                        status=UserStatus.ACTIVE,
+                    )
+                    results.append((conversation, user))
+                
+                return results
+        except Exception as e:
+            logger.error(f"Error getting filtered conversations: {e}")
+            return []
+
+    def get_conversations_timeseries(self, days: int = 14) -> List[Tuple[str, int]]:
+        """
+        Get conversation counts aggregated per day for the last `days` days.
+        Returns a list of (date_str, count) tuples ordered chronologically.
+        """
+        try:
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=days - 1)
+            
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    '''
+                    SELECT DATE(timestamp) as day, COUNT(*) as count 
+                    FROM conversations 
+                    WHERE DATE(timestamp) BETWEEN ? AND ?
+                    GROUP BY DATE(timestamp)
+                    ORDER BY DATE(timestamp) ASC
+                    ''',
+                    (start_date, end_date),
+                )
+                rows = cursor.fetchall()
+                
+                return [(row['day'], row['count']) for row in rows]
+        except Exception as e:
+            logger.error(f"Error getting conversations timeseries: {e}")
+            return []

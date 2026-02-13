@@ -65,6 +65,9 @@ class Conversation:
     conversation_id: Optional[int] = None
     conversation_type: str = "TECHNICAL"  # TECHNICAL or CASUAL
     response_time_ms: Optional[int] = None
+    # JSON-encoded list of attachment metadata dictionaries, e.g.
+    # [{"type": "image", "path": "uploads/...", "original_name": "file.png"}, ...]
+    attachments: Optional[str] = None
     
     def to_dict(self) -> dict:
         """Convert conversation to dictionary"""
@@ -75,7 +78,8 @@ class Conversation:
             'response': self.response,
             'timestamp': self.timestamp.isoformat(),
             'conversation_type': self.conversation_type,
-            'response_time_ms': self.response_time_ms
+            'response_time_ms': self.response_time_ms,
+            'attachments': self.attachments,
         }
     
     @classmethod
@@ -88,7 +92,8 @@ class Conversation:
             timestamp=datetime.fromisoformat(data['timestamp']),
             conversation_id=data.get('conversation_id'),
             conversation_type=data.get('conversation_type', 'TECHNICAL'),
-            response_time_ms=data.get('response_time_ms')
+            response_time_ms=data.get('response_time_ms'),
+            attachments=data.get('attachments'),
         )
 
 
