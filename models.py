@@ -67,7 +67,7 @@ class Conversation:
     conversation_type: str = "TECHNICAL"  # TECHNICAL or CASUAL
     response_time_ms: Optional[int] = None
     # JSON-encoded list of attachment metadata dictionaries, e.g.
-    # [{"type": "image", "path": "uploads/...", "original_name": "file.png"}, ...]
+    # [{"type": "image", "path": "uploads/...", "original_name": "file.png"}, ....]
     attachments: Optional[str] = None
     
     def to_dict(self) -> dict:

@@ -38,7 +38,7 @@ class DatabaseRepository:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             
-            # Users table
+            # Users table:
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS users (
                     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
