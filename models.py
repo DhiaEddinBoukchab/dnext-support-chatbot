@@ -63,6 +63,7 @@ class Conversation:
     response: str
     timestamp: datetime = field(default_factory=datetime.now)
     conversation_id: Optional[int] = None
+    session_id: Optional[str] = None
     conversation_type: str = "TECHNICAL"  # TECHNICAL or CASUAL
     response_time_ms: Optional[int] = None
     # JSON-encoded list of attachment metadata dictionaries, e.g.

@@ -51,11 +51,12 @@ class DatabaseRepository:
                 )
             ''')
             
-            # Conversations table
+            # Conversations table (session_id included from the start for new DBs)
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS conversations (
                     conversation_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER NOT NULL,
+                    session_id TEXT,
                     message TEXT NOT NULL,
                     response TEXT NOT NULL,
                     timestamp TIMESTAMP NOT NULL,
@@ -76,7 +77,7 @@ class DatabaseRepository:
                 )
             ''')
             
-            # Create indexes for better query performance
+            # Indexes for better query performance
             cursor.execute('''
                 CREATE INDEX IF NOT EXISTS idx_conversations_user_id 
                 ON conversations(user_id)
@@ -87,11 +88,24 @@ class DatabaseRepository:
                 ON conversations(timestamp)
             ''')
 
-            # Lightweight migration for older databases: ensure attachments column exists
+            # ── Lightweight migrations for older databases ──────────────────
+            # Must run BEFORE any index that references the new columns
             cursor.execute("PRAGMA table_info(conversations)")
             existing_cols = {row["name"] for row in cursor.fetchall()}
+
             if "attachments" not in existing_cols:
                 cursor.execute("ALTER TABLE conversations ADD COLUMN attachments TEXT")
+                logger.info("Migration: added 'attachments' column")
+
+            if "session_id" not in existing_cols:
+                cursor.execute("ALTER TABLE conversations ADD COLUMN session_id TEXT")
+                logger.info("Migration: added 'session_id' column")
+
+            # Index on session_id created AFTER migration so the column is guaranteed to exist
+            cursor.execute('''
+                CREATE INDEX IF NOT EXISTS idx_conversations_session_id
+                ON conversations(session_id)
+            ''')
 
             conn.commit()
             logger.info("✅ Database initialized successfully")
@@ -235,16 +249,18 @@ class DatabaseRepository:
     # ==================== CONVERSATION OPERATIONS ====================
     
     def save_conversation(self, conversation: Conversation) -> Optional[int]:
-        """Save a conversation - returns conversation_id"""
+        """Save a conversation to the database - returns conversation_id"""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
                     INSERT INTO conversations 
-                    (user_id, message, response, timestamp, conversation_type, response_time_ms, attachments)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (user_id, session_id, message, response, timestamp,
+                     conversation_type, response_time_ms, attachments)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     conversation.user_id,
+                    getattr(conversation, 'session_id', None),
                     conversation.message,
                     conversation.response,
                     conversation.timestamp,
@@ -261,9 +277,98 @@ class DatabaseRepository:
         except Exception as e:
             logger.error(f"Error saving conversation: {e}")
             return None
-    
+
+    # ── NEW: return one summary row per session for the sidebar ────────────
+    def get_session_summaries(self, user_id: int) -> List[dict]:
+        """
+        Return one entry per distinct session_id for a user.
+        Each entry contains the first user message (sidebar title) and
+        the timestamp of the most recent message in that session.
+
+        Returns: [{"session_id": str, "first_message": str, "last_updated": str}, ...]
+        Ordered by last_updated DESC.
+        """
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    '''
+                    SELECT
+                        session_id,
+                        MAX(timestamp) AS last_updated,
+                        (
+                            SELECT c2.message
+                            FROM   conversations c2
+                            WHERE  c2.user_id    = c.user_id
+                              AND  c2.session_id = c.session_id
+                            ORDER  BY c2.timestamp ASC
+                            LIMIT  1
+                        ) AS first_message
+                    FROM conversations c
+                    WHERE user_id   = ?
+                      AND session_id IS NOT NULL
+                      AND session_id != ''
+                    GROUP BY session_id
+                    ORDER BY last_updated DESC
+                    ''',
+                    (user_id,)
+                )
+                rows = cursor.fetchall()
+
+            result = []
+            for row in rows:
+                result.append({
+                    "session_id":    row["session_id"],
+                    "first_message": row["first_message"] or "(empty)",
+                    "last_updated":  row["last_updated"],
+                })
+            return result
+        except Exception as e:
+            logger.error(f"Error getting session summaries: {e}")
+            return []
+
+    # ── NEW: load all exchanges for a session (for memory restoration) ─────
+    def get_conversations_by_session(self, user_id: int, session_id: str) -> List[Conversation]:
+        """
+        Return ALL Conversation rows for a given (user_id, session_id),
+        ordered by timestamp ASC so they can be replayed in chronological order.
+        Used by restore_session_from_db() to rebuild in-memory chat history.
+        """
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    '''
+                    SELECT *
+                    FROM   conversations
+                    WHERE  user_id    = ?
+                      AND  session_id = ?
+                    ORDER  BY timestamp ASC
+                    ''',
+                    (user_id, session_id)
+                )
+                rows = cursor.fetchall()
+
+            return [
+                Conversation(
+                    conversation_id=row['conversation_id'],
+                    user_id=row['user_id'],
+                    session_id=row['session_id'],
+                    message=row['message'],
+                    response=row['response'],
+                    timestamp=datetime.fromisoformat(row['timestamp']),
+                    conversation_type=row['conversation_type'],
+                    response_time_ms=row['response_time_ms'],
+                    attachments=row['attachments'],
+                )
+                for row in rows
+            ]
+        except Exception as e:
+            logger.error(f"Error getting conversations by session: {e}")
+            return []
+
     def get_user_conversations(self, user_id: int, limit: int = 50) -> List[Conversation]:
-        """Get all conversations for a specific user"""
+        """Get all conversations for a specific user (used by admin/analytics)"""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -279,6 +384,7 @@ class DatabaseRepository:
                     Conversation(
                         conversation_id=row['conversation_id'],
                         user_id=row['user_id'],
+                        session_id=row['session_id'],
                         message=row['message'],
                         response=row['response'],
                         timestamp=datetime.fromisoformat(row['timestamp']),
@@ -292,8 +398,33 @@ class DatabaseRepository:
             logger.error(f"Error getting user conversations: {e}")
             return []
     
-    def get_recent_conversations(self, limit: int = 100) -> List[Tuple[Conversation, User]]:
-        """Get recent conversations across all users"""
+    def get_conversation_by_id(self, conversation_id: int) -> Optional[Conversation]:
+        """Get a specific conversation by ID"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT * FROM conversations WHERE conversation_id = ?', (conversation_id,))
+                row = cursor.fetchone()
+                
+                if row:
+                    return Conversation(
+                        conversation_id=row['conversation_id'],
+                        user_id=row['user_id'],
+                        session_id=row['session_id'],
+                        message=row['message'],
+                        response=row['response'],
+                        timestamp=datetime.fromisoformat(row['timestamp']),
+                        conversation_type=row['conversation_type'],
+                        response_time_ms=row['response_time_ms'],
+                        attachments=row['attachments'],
+                    )
+                return None
+        except Exception as e:
+            logger.error(f"Error getting conversation by ID: {e}")
+            return None
+    
+    def get_recent_conversations(self, limit: int = 50) -> List[Tuple[Conversation, User]]:
+        """Get recent conversations (admin dashboard)"""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -311,6 +442,7 @@ class DatabaseRepository:
                     conversation = Conversation(
                         conversation_id=row['conversation_id'],
                         user_id=row['user_id'],
+                        session_id=row['session_id'],
                         message=row['message'],
                         response=row['response'],
                         timestamp=datetime.fromisoformat(row['timestamp']),
@@ -391,9 +523,7 @@ class DatabaseRepository:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                # Delete conversations first (foreign key constraint)
                 cursor.execute('DELETE FROM conversations WHERE user_id = ?', (user_id,))
-                # Then delete the user
                 cursor.execute('DELETE FROM users WHERE user_id = ?', (user_id,))
                 conn.commit()
                 return cursor.rowcount > 0
@@ -407,11 +537,9 @@ class DatabaseRepository:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 
-                # Total users
                 cursor.execute('SELECT COUNT(*) as count FROM users')
                 total_users = cursor.fetchone()['count']
                 
-                # Active users (logged in last 7 days)
                 week_ago = datetime.now() - timedelta(days=7)
                 cursor.execute('''
                     SELECT COUNT(*) as count FROM users 
@@ -419,11 +547,9 @@ class DatabaseRepository:
                 ''', (week_ago,))
                 active_users = cursor.fetchone()['count']
                 
-                # Total conversations
                 cursor.execute('SELECT COUNT(*) as count FROM conversations')
                 total_conversations = cursor.fetchone()['count']
                 
-                # Conversations today
                 today = datetime.now().date()
                 cursor.execute('''
                     SELECT COUNT(*) as count FROM conversations 
@@ -431,7 +557,6 @@ class DatabaseRepository:
                 ''', (today,))
                 conversations_today = cursor.fetchone()['count']
                 
-                # Average response time
                 cursor.execute('''
                     SELECT AVG(response_time_ms) as avg_time 
                     FROM conversations 
@@ -458,10 +583,7 @@ class DatabaseRepository:
         conversation_type: Optional[str] = None,
         limit: int = 200,
     ) -> List[Tuple[Conversation, User]]:
-        """
-        Get conversations with optional filters for user email, date range and type.
-        Returns a list of (Conversation, User) tuples ordered by most recent first.
-        """
+        """Get conversations with optional filters."""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -501,6 +623,7 @@ class DatabaseRepository:
                     conversation = Conversation(
                         conversation_id=row['conversation_id'],
                         user_id=row['user_id'],
+                        session_id=row['session_id'],
                         message=row['message'],
                         response=row['response'],
                         timestamp=datetime.fromisoformat(row['timestamp']),
@@ -523,10 +646,7 @@ class DatabaseRepository:
             return []
 
     def get_conversations_timeseries(self, days: int = 14) -> List[Tuple[str, int]]:
-        """
-        Get conversation counts aggregated per day for the last `days` days.
-        Returns a list of (date_str, count) tuples ordered chronologically.
-        """
+        """Get conversation counts per day for the last `days` days."""
         try:
             end_date = datetime.now().date()
             start_date = end_date - timedelta(days=days - 1)

@@ -1,5 +1,5 @@
 from openai import OpenAI
-from typing import List, Dict, Generator
+from typing import List, Dict, Generator, Optional
 import logging
 import requests
 from bs4 import BeautifulSoup
@@ -71,9 +71,33 @@ CASUAL or ACTIONABLE
             return "ACTIONABLE"  # Safe default
 
     # =========================
+    # HISTORY HELPER  ← NEW
+    # =========================
+    def _build_history_messages(self, conversation_history: Optional[List[Dict]], max_turns: int = 10) -> List[Dict]:
+        """
+        Convert session history into OpenAI messages format.
+        Keeps only the last `max_turns` messages to avoid hitting token limits.
+        Only includes clean role/content pairs — skips anything malformed.
+        """
+        if not conversation_history:
+            return []
+
+        # Keep only last max_turns messages
+        recent = conversation_history[-max_turns:] if len(conversation_history) > max_turns else conversation_history
+
+        history_messages = []
+        for msg in recent:
+            role = msg.get("role")
+            content = msg.get("content", "")
+            if role in ("user", "assistant") and content:
+                history_messages.append({"role": role, "content": content})
+
+        return history_messages
+
+    # =========================
     # RESPONSE GENERATION (NON-STREAMING)
     # =========================
-    def generate_response(self, context: str, query: str) -> str:
+    def generate_response(self, context: str, query: str, conversation_history: Optional[List[Dict]] = None) -> str:
         """Generate response using LLM with website-aware context (non-streaming)"""
         
         conversation_type = self.classify_conversation(query)
@@ -89,10 +113,17 @@ CASUAL or ACTIONABLE
             
             prompt = self._create_technical_prompt(combined_context, query)
 
+        # ── Build messages: system instruction extracted from prompt + history + current ──
+        # We keep the original prompt as the user message for full backward compatibility,
+        # and prepend conversation history so the LLM has memory.
+        messages = []
+        messages += self._build_history_messages(conversation_history)  # ← inject history
+        messages.append({"role": "user", "content": prompt})
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "user", "content": prompt}],
+                messages=messages,
                 temperature=0.3 if conversation_type == "CASUAL" else 0.2,
                 max_tokens=800 if conversation_type == "CASUAL" else 1500
             )
@@ -103,10 +134,10 @@ CASUAL or ACTIONABLE
             return f"❌ Error generating response: {str(e)}"
 
     # =========================
-    # RESPONSE GENERATION (STREAMING) - NEW
+    # RESPONSE GENERATION (STREAMING)
     # =========================
-    def generate_response_stream(self, context: str, query: str) -> Generator[str, None, None]:
-        """Generate streaming response using LLM with website-aware context"""
+    def generate_response_stream(self, context: str, query: str, conversation_history: Optional[List[Dict]] = None) -> Generator[str, None, None]:
+        """Generate streaming response using LLM with website-aware context and conversation memory"""
         
         conversation_type = self.classify_conversation(query)
 
@@ -121,11 +152,18 @@ CASUAL or ACTIONABLE
             
             prompt = self._create_technical_prompt(combined_context, query)
 
+        # ── Build messages: history + current prompt (original prompt templates fully preserved) ──
+        messages = []
+        messages += self._build_history_messages(conversation_history)  # ← inject history
+        messages.append({"role": "user", "content": prompt})
+
+        logger.info(f"Sending {len(messages)} messages to LLM ({len(messages)-1} history + 1 current)")
+
         try:
             # Create streaming response
             stream = self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "user", "content": prompt}],
+                messages=messages,
                 temperature=0.3 if conversation_type == "CASUAL" else 0.2,
                 max_tokens=800 if conversation_type == "CASUAL" else 1500,
                 stream=True  # Enable streaming
@@ -141,7 +179,7 @@ CASUAL or ACTIONABLE
             yield f"❌ Error generating response: {str(e)}"
 
     # =========================
-    # PROMPTS
+    # PROMPTS  (100% unchanged)
     # =========================
     def _create_casual_prompt(self, query: str) -> str:
         """Prompt for casual conversation"""
@@ -217,7 +255,7 @@ You are Dnext Assistant, a technical and product support expert providing precis
 Now provide the best possible answer:"""
 
     # =========================
-    # WEBSITE CONTENT FETCHING
+    # WEBSITE CONTENT FETCHING  (unchanged)
     # =========================
     def fetch_website_content(self, url: str) -> str:
         """Fetch and clean text content from a website."""

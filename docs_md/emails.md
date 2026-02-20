@@ -33,8 +33,22 @@
 
 *******
 
-"problem": "User needs access to the NASS fats and oils monthly report dataset, including production and stocks data for soybean oil, rapeseed oil, corn oil, and other oils, which is not available in the ready-download links on the platform.",
-      "solution": "The platform initially provided access to the soybean oil data from the NASS report via a specific dataset link. Subsequently, the platform updated the dataset to include all oils from the NASS fats and oils report, making the complete dataset accessible through the same link: https://[environment_name].dnext.io/datasets/[dataset_code]/data-exploration. Users can access this link to explore monthly production and stock data for soybean oil, rapeseed oil, corn oil, and other oils as reported in the NASS fats and oils report.",
+"problem": "User is looking for the NASS fats and oils monthly report dataset containing production and stocks data for soybean oil, rapeseed oil, corn oil, etc., which is not available in the ready-download links on the platform.",
+      "solution": "1. The soybean oil data from the NASS fats and oils report has been shared on the platform and can be accessed here:
+
+```https://[env/org].dnext.io/datasets/[env/org]-[uuid]/data-exploration```
+
+2. Initially, data for other oils such as rapeseed oil and corn oil were not processed but were being worked on.
+
+3. Subsequently, all oils from the NASS report, including rapeseed oil and corn oil, have been successfully added to the dataset and are available at the same link:
+
+```https://[env/org].dnext.io/datasets/[env/org]-[uuid]/data-exploration```
+
+4. For reference, the original NASS fats and oils report is available here:
+
+```https://usda.library.cornell.edu/concern/publications/mp48sc77c```
+
+Users can access the updated dataset via the provided link and contact support for any further inquiries or dataset adjustments.",
       "keywords": [
         "NASS fats and oils dataset",
         "soybean oil data",
@@ -43,11 +57,9 @@
         "monthly production",
         "stocks data",
         "dataset access",
-        "data platform",
-        "NASS report",
-        "data exploration"
+        "Dnext platform"
       ],
-      "category": "How-to Guide"
+      "category": "API / Script"
 
 *******
 
@@ -151,23 +163,107 @@
 
 *******
 
-"problem": "Users experience intermittent timeout errors when calling the API to download large datasets, causing scheduled tasks to fail or require multiple attempts.",
-      "solution": "Increase the wait time in the polling loop that checks the task status after initiating a dataset download. Instead of relying on a fixed number of retries with fixed sleep intervals, implement a backoff strategy where the wait time starts at 2 seconds and increments by 1 second after each unsuccessful status check, up to a maximum of 30 seconds. This approach controls the real elapsed time more accurately and prevents premature timeout errors. The provided Python script demonstrates how to implement this logic by polling the task status endpoint until the task status is 'SUCCEEDED' or the wait time exceeds 30 seconds. Adjust the wait_time parameter upwards if larger datasets cause timeouts.",
+"problem": "Users experience intermittent timeout errors when downloading large datasets from the dnext API, causing scheduled tasks to fail or require multiple attempts.",
+      "solution": "To resolve timeout issues when downloading large datasets via the dnext API, increase the wait time in the polling loop that checks the task status. Below is an improved Python script example that implements an exponential backoff wait time up to 30 seconds, ensuring the task has enough time to complete before timing out.
+
+```python
+import pandas as pd
+import requests
+import json
+import time
+from io import BytesIO
+
+def task_status(urlTask, task_id, headers):
+    success = False
+    wait_time = 2
+    while not success and wait_time < 30:
+        time.sleep(wait_time)
+        status_res = requests.get(urlTask + task_id, headers=headers, timeout=30)
+        try:
+            success = status_res.json().get(\"status\") == \"SUCCEEDED\"
+        except:
+            wait_time += 1
+            continue
+        if not success:
+            wait_time += 1
+    return success
+
+def _get_task_status(task_id, headers, urlTask):
+    if task_status(urlTask, task_id, headers):
+        return True
+    return False
+
+def _get_dataset(dataset_code, token):
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+    payload = json.dumps({
+        \"format\": \"csv\"
+    })
+    urlDataset = f'https://api.dnext.io/v1.0/data/datasets/{dataset_code}/download'
+    urlTask = 'https://api.dnext.io/v1.0/tasks/'
+
+    resultdownload = requests.post(urlDataset, headers=headers, data=payload, timeout=30).json()
+
+    if \"task\" not in resultdownload or \"id\" not in resultdownload[\"task\"]:
+        raise ValueError(\"Task ID not found in the response\")
+
+    task_id = resultdownload[\"task\"][\"id\"]
+
+    if _get_task_status(task_id, headers, urlTask):
+        if \"result\" in resultdownload and \"url\" in resultdownload[\"result\"]:
+            file_url = resultdownload[\"result\"][\"url\"]
+            data_response = requests.get(file_url, allow_redirects=True)
+            return pd.read_csv(BytesIO(data_response.content))
+        else:
+            raise ValueError(\"Download URL not found in the response\")
+    else:
+        raise TimeoutError(\"Task did not succeed within the allowed limit\")
+
+def _get_token(email: str, pwd: str, env: str):
+    \"\"\"Retrieve an authentication token.\"\"\"
+    url = f'https://api.dnext.io/v1.0/auth/custom-login?org={env}'
+    payload = json.dumps({
+        'email': email,
+        'password': pwd,
+        'organization': env
+    })
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    response = requests.post(url, headers=headers, data=payload)
+    response.raise_for_status()  # Raise an error for invalid responses
+    return response.json()['token']
+
+
+def _extract_data(dataset_code: str, email: str, pwd: str, env: str) -> pd.DataFrame:
+    \"\"\"Extract data from the API.\"\"\"
+    token = _get_token(email=email, pwd=pwd, env=env)
+    return _get_dataset(dataset_code, token)
+
+# Example usage:
+_extract_data(\"[env/org]-[uuid]\", \"xxx.xxx@org.xx\", \"xxxxx\", \"[env/org]\")
+```
+
+Notes:
+- The key improvement is the `wait_time` variable in the `task_status` function, which starts at 2 seconds and increases by 1 second after each unsuccessful check, up to a maximum of 30 seconds.
+- This approach controls the real elapsed time waiting for the task to complete, rather than relying on a fixed number of retries.
+- If you encounter timeout errors with larger datasets, increase the maximum wait time (currently 30 seconds) accordingly.
+- Replace the placeholder email, password, and environment parameters with your actual credentials.
+",
       "keywords": [
-        "API timeout",
-        "dataset download",
+        "dnext API",
+        "timeout",
+        "wait_time",
         "task status polling",
-        "wait time",
-        "backoff strategy",
-        "timeout error",
         "Python script",
+        "dataset download",
+        "exponential backoff",
         "requests",
-        "incremental wait",
-        "large files",
-        "task polling",
-        "retry logic"
+        "pandas"
       ],
-      "category": "Error Resolution"
+      "category": "API / Script"
 
 *******
 
@@ -258,19 +354,30 @@
 
 *******
 
-"problem": "User is unable to see or use the download button to download datasets from the Datasets tab in the platform.",
-      "solution": "To download a dataset, first click on the 'visualize record' button represented by an eye icon. This opens an interface where a 'Download' button is located at the top right of the screen. Clicking this button will initiate the dataset download in the browser after a short wait. If the download button does not appear, try clearing the browser's cache and cookies, then log out and log back into the platform. This sequence often resolves the issue of the download button not showing up.",
+"problem": "User is unable to download the veg oil SND datasets from the Datasets tab as the download option/button does not appear for them.",
+      "solution": "To download the dataset, follow these steps:
+
+1. Click on the “visualize record” (the eye icon) button next to the dataset.
+
+2. In the interface that opens, locate the “Download” button at the top right of the screen.
+
+3. Click the Download button and wait for the dataset to be downloaded in your browser.
+
+If the Download button does not appear:
+
+- Try clearing your browser’s cache and cookies, then log out and log back into the platform.
+
+- If the issue persists, contact support for further assistance.
+
+Support may also arrange a meeting to investigate the issue from your end.",
       "keywords": [
         "dataset download",
+        "veg oil SND dataset",
         "download button missing",
         "visualize record",
-        "eye icon",
         "clear cache",
-        "clear cookies",
-        "log out",
-        "log in",
-        "browser download",
-        "datasets tab"
+        "logout login",
+        "temporary download link"
       ],
       "category": "How-to Guide"
 
@@ -328,23 +435,33 @@
 
 *******
 
-"problem": "Users experience issues with the download button in the Soft Wheat TradeMatrix and confusion about TradeMatrix code formats.",
-      "solution": "Access the Soft Wheat TradeMatrix via the URL format https://[domain]/fundamentals/tradematrix/[tradematrix_code]. Use TradeMatrix codes in the '[environment_prefix]-xxxx-xxxx' format instead of deprecated formats. The new codes are linked to the updated system, ensuring that any updates or changes to resources are dynamically reflected. The download button in the TradeMatrix interface is now fully functional and available for use.",
+"problem": "Users experience issues with downloading data from the Soft Wheat TradeMatrix using old TradeMatrix codes.",
+      "solution": "Access the Soft Wheat TradeMatrix via the following link:
+
+https://[env].dnext.io/fundamentals/tradematrix/[env]-[uuid]
+
+The download button on this page is now available and fully functional.
+
+Important notes:
+- TradeMatrix codes in the format \"[env]-xxxx-xxxx\" (from the old system) will be removed soon.
+- Use TradeMatrix codes in the \"[env]-xxxx-xxxx\" format, which are from the new system.
+
+Using the new format ensures that updates or changes to resources are dynamically reflected in your access.",
       "keywords": [
         "TradeMatrix",
-        "download button",
-        "code format",
-        "deprecated",
-        "dynamic updates",
+        "download issue",
+        "TradeMatrix codes",
+        "old format",
+        "new format",
         "Soft Wheat",
-        "URL format"
+        "data access"
       ],
-      "category": "Download Problem"
+      "category": "API / Script"
 
 *******
 
 "problem": "User is unsure if the code used to download the corn Supply and Demand (SnD) dataset is correct and notices a mismatch in US FSI use values between the downloaded dataset and the official report.",
-      "solution": "The correct code for the corn SnD dataset can be found in the datasets module. Users should verify they are using the correct dataset code to download the latest corn SnD data. The FSI use values in the dataset for the latest publication date should correspond exactly with the FSI use values reported in the official report. If discrepancies occur, ensure the dataset code is correct and that the dataset is the latest publication version.",
+      "solution": "The correct code for the corn SnD dataset is '[env]-[code_dataset]' so you can find it or contact support to give you it . Users should verify they are using the code to download the latest corn SnD data. The FSI use values in the dataset for the latest publication date should correspond exactly with the FSI use values reported in the official report. If discrepancies occur, ensure the dataset code is correct and that the dataset is the latest publication version.",
       "keywords": [
         "corn SnD dataset",
         "dataset code",
@@ -391,32 +508,78 @@
 
 *******
 
-"problem": "Users need access to Dnext SnD datasets via Dropbox or alternative platforms and require yearly aggregated data instead of only monthly data. Additionally, users seek guidance on technical aspects such as sample SQL queries for data preparation.",
-      "solution": "1. Access to Dnext SnD datasets is provided via a Dropbox folder. Alternative delivery platforms like SharePoint can be used if access is granted.
-2. The datasets are updated monthly by default and do not include yearly aggregated values. However, processed datasets with yearly values can be created upon request for each of the five Dnext SnD datasets (Corn, Oilseeds, Wheat, Veggie Oil, Wheat by Class).
-3. Sample SQL queries for data preparation are provided to assist users in querying the datasets. Examples include selecting specific product codes and filtering data for recent years using SQL syntax.
-4. Training sessions can be arranged to walk users through the technical aspects of the platform.
-5. Oilseeds SnD Excel files were added to the Dropbox upon request.",
+"problem": "Users need access to Dnext's SnD datasets via Dropbox or alternative platforms, clarification on data frequency (monthly vs yearly), and sample SQL queries for data preparation.",
+      "solution": "1. Access to Dnext SnD datasets is provided via a Dropbox folder titled DNEXT_VAM. Users should receive an invite to access it. Alternative platforms like SharePoint can be used if access is granted.
+
+2. The datasets are updated monthly by default and do not include yearly aggregated values. However, processed datasets with yearly values can be created upon request for the five Dnext SnD datasets: Corn, Oilseeds, Wheat, Veggie Oil, and Wheat by Class.
+
+3. Sample SQL queries for data preparation are provided as follows:
+
+Example 1:
+```sql
+SELECT
+\"Data Source\":Code AS \"Source\", 
+\"Country Reporter\":Code AS \"Country Reporter\",
+\"Country Partner\":Code AS \"Country Partner\",
+\"Trade Direction\":Code AS \"Trade Direction\",
+\"Product\":Code AS Product,
+\"Quantity\",
+\"Quantity Unit\":Code AS \"Quantity Unit\",
+\"Quantity Unit multiplier\",
+\"Date Reporter\"
+FROM DATASET.\"[env/org]-[resource-type]\"
+WHERE \"Product\":Code IN ('RSM','RSS','SBM','SBS','SFM')
+```
+
+Example 2:
+```sql
+SELECT *
+FROM DNEXR.DATASET.\"[env/org]-[resource-type]\"
+WHERE ARRAY_MAX([\"Year\"]) >= EXTRACT(YEAR FROM CURRENT_DATE) - 10
+AND \"Product\":\"Code\" = 'CRN'
+UNION ALL 
+SELECT *
+FROM DNEXR.DATASET.\"[env/org]-[resource-type]\"
+WHERE ARRAY_MAX([\"Year\"]) >= EXTRACT(YEAR FROM CURRENT_DATE) - 10 
+AND \"Product\":\"Code\" = 'SWHT'
+UNION ALL 
+SELECT *
+FROM DNEXR.DATASET.\"[env/org]-[resource-type]\"
+WHERE ARRAY_MAX([\"Year\"]) >= EXTRACT(YEAR FROM CURRENT_DATE) - 10 
+AND \"Product\":\"Code\" = 'BLY'
+```
+
+4. The Oilseeds SnD Excel files have been added to the Dropbox folder upon request.
+
+5. For technical assistance or requests, users are encouraged to contact xxx.xxx@org.xx, although some users have experienced issues with request creation via this email and are advised to contact the team directly if needed.
+
+6. Training sessions on the technical aspects of the platform can be arranged upon user availability.",
       "keywords": [
         "Dnext SnD",
         "Dropbox access",
-        "dataset delivery",
         "yearly data aggregation",
         "monthly data",
-        "processed datasets",
         "SQL queries",
         "data preparation",
+        "Oilseeds dataset",
         "training session",
-        "SharePoint",
-        "data platform",
-        "Oilseeds dataset"
+        "support@dnext.io"
       ],
-      "category": "How-to Guide"
+      "category": "API / Script"
 
 *******
 
-"problem": "Scripts for data processing require specific libraries and tools that are missing on the platform, preventing scheduled execution.",
-      "solution": "To enable scheduling of data processing scripts on the platform: 1) Install the Python library 'xmltodict' to support XML parsing required by the AGRIMER Livestock & Meat France CASH weekly script. 2) Install 'mdbtools' and 'pyodbc' to handle Microsoft Access files needed by the Spain Water Level Dashboard script. These installations will allow the scripts to run and be scheduled properly on the platform.",
+"problem": "The platform is missing the python library xmltodict required for the AGRIMER Livestock & Meat France CASH weekly script, and lacks the necessary tools to handle Microsoft Access files for the Spain Water level Dashboard script.",
+      "solution": "1. Install the python library xmltodict on the platform to support the AGRIMER Livestock & Meat France CASH weekly script.
+
+2. Install the following tools to enable handling of Microsoft Access files for the Spain Water level Dashboard (dnexr-mapa-water-reservoir) script:
+
+```bash
+mdbtools
+pyodbc
+```
+
+These installations will allow the scripts to be scheduled and run properly on the platform.",
       "keywords": [
         "xmltodict",
         "python library",
@@ -424,8 +587,7 @@
         "pyodbc",
         "Microsoft Access",
         "script scheduling",
-        "data processing",
-        "platform configuration"
+        "data quality"
       ],
       "category": "Configuration"
 
@@ -451,7 +613,7 @@
 *******
 
 "problem": "Users experience errors when trying to access or create forecasts in the TradeMatrix platform, and confusion exists about locating the correct Excel spreadsheet with macros for managing grids/forecasts and monthly exports.",
-      "solution": "To resolve TradeMatrix forecast creation issues, refresh the page as a temporary workaround. For managing grids and forecasts with VBA functionality, access the Excel file with macros (.xlsm) located in the shared folder. Do not use the similarly named .xlsx file as it lacks macros. To create a forecast in TradeMatrix: 1) Click the Forecast button, 2) Click Create in the Forecast section, 3) Specify Name, Code (use hyphens '-' instead of spaces or underscores), and Color, 4) Click Load, then move the forecast from the left panel to the right. Input data directly into forecastable cells, then either save changes to the current version or publish as a new version. Note that only the latest forecast version can be edited; older versions are read-only.",
+      "solution": "To resolve TradeMatrix forecast creation issues, refresh the page as a temporary workaround. For managing grids and forecasts with VBA functionality, access the Excel file with macros (.xlsm) located in the shared folder path: 'G&O\05- COUNTRY_ANALYSIS\ARGENTINA\SND\CRN_ARG_SND.xlsm'. Do not use the similarly named .xlsx file as it lacks macros. To create a forecast in TradeMatrix: 1) Click the Forecast button, 2) Click Create in the Forecast section, 3) Specify Name, Code (use hyphens '-' instead of spaces or underscores), and Color, 4) Click Load, then move the forecast from the left panel to the right. Input data directly into forecastable cells, then either save changes to the current version or publish as a new version. Note that only the latest forecast version can be edited; older versions are read-only.",
       "keywords": [
         "TradeMatrix",
         "forecast creation",
@@ -468,21 +630,139 @@
 
 *******
 
-"problem": "The adjusted customs lineups data for Argentina incorrectly assigns all quantities to Saudi Arabia and Yemen, which does not reflect the actual data.",
-      "solution": "The issue was identified in the SQL query used to combine customs and lineups data. The fix involves including the 'Country Partner' column in the join condition to correctly match records: specifically, adding the condition a.\"Country Partner\" = b.\"Country Partner\" in the SQL join. An updated SQL query example was provided for Corn product data, demonstrating how to correctly join and aggregate data from customs and lineups datasets by country partner and product hierarchy. This corrected query ensures that quantities are properly allocated to the correct countries rather than being incorrectly grouped into Saudi Arabia and Yemen.",
+"problem": "The adjusted lineups data for Customs Argentina is incorrect, with all quantities incorrectly assigned to Saudi Arabia and Yemen, which does not make sense.",
+      "solution": "The issue was identified in the SQL query used to combine customs and lineups data. The column \"Country Partner\" was missing from the join condition, causing incorrect aggregation of quantities. The corrected SQL query includes the condition a.\"Country Partner\" = b.\"Country Partner\" to properly align data by country partner.
+
+Here is the updated SQL query for Corn product adjustment:
+
+```sql
+WITH \"Indec_raw\" as (
+    SELECT \"Country Partner\" :\"Code\"::string as \"Country Partner\",
+        \"Product\" :\"Code\"::string as \"Product\",
+        \"Quantity\" * \"Quantity Unit multiplier\" as \"Quantity\",
+        \"Date Reporter\",
+        \"Quantity Unit multiplier\"
+    FROM \"DNEXR\".\"DATASET\".\"dnexr-structured-indec-gno-arg-tf_customs-monthly\"
+    WHERE \"Country Reporter\" :\"Code\" = 'ARG'
+        and \"Trade Direction\" :\"Code\" = 'Export'
+        and \"Date Reporter\" >= '2018-03-01'
+),
+\"reference_product\" as (
+    SELECT DISTINCT \"CODE\",
+        \"HIERARCHY\"
+    FROM DNEXR.REFERENCE.\"product\"
+),
+\"Indec_descendant\" as (
+    SELECT \"Indec_raw\".\"Country Partner\",
+        'CRN' as \"Product\",
+        \"Indec_raw\".\"Quantity\",
+        \"Indec_raw\".\"Date Reporter\",
+        \"reference_product\".\"HIERARCHY\"
+    FROM \"Indec_raw\"
+        LEFT JOIN \"reference_product\" on \"Indec_raw\".\"Product\" = \"reference_product\".\"CODE\"
+    WHERE STARTSWITH(
+            \"HIERARCHY\",
+            (
+                SELECT \"HIERARCHY\"
+                FROM \"reference_product\"
+                WHERE \"reference_product\".\"CODE\" = 'CRN'
+            )
+        )
+
+
+),
+\"Fertimport_raw\" as (
+    SELECT \"Product\" :\"Code\"::string as \"Product\",
+        \"Quantity Unit_Multiplicator\",
+        \"Quantity\" * \"Quantity Unit_Multiplicator\" as \"Quantity\",
+        DATE_FROM_PARTS(YEAR(\"ETS Reporter\"), MONTH(\"ETS Reporter\"), 1) as \"Date Reporter\",
+        \"Country Partner\" :\"Code\"::string as \"Country Partner\"
+    FROM \"DNEXR\".\"DATASET\".\"dnexr-structured-fertimport-ags-arg-tf_lineups_vessel-weekly\"
+    WHERE \"Country Reporter\" :\"Code\" = 'ARG'
+        and \"Trade Direction\" :\"Code\" = 'Export'
+        and \"Product Origin\" :\"Code\" = 'ARG'
+        and \"ETS Reporter\" >= '2018-03-01'
+),
+\"Fertimport_descendant\" as (
+    SELECT \"Fertimport_raw\".\"Country Partner\",
+        'CRN' as \"Product\",
+        \"Fertimport_raw\".\"Quantity\",
+        \"Fertimport_raw\".\"Date Reporter\",
+        \"reference_product\".\"HIERARCHY\"
+    FROM \"Fertimport_raw\"
+        LEFT JOIN \"reference_product\" on \"Fertimport_raw\".\"Product\" = \"reference_product\".\"CODE\"
+    WHERE STARTSWITH(
+            \"HIERARCHY\",
+            (
+                SELECT \"HIERARCHY\"
+                FROM \"reference_product\"
+                WHERE \"reference_product\".\"CODE\" = 'CRN'
+            )
+        )
+
+)
+,
+\"Fertimport_ratio\" as (
+    SELECT a.\"Date Reporter\",
+        a.\"Product\",
+        a.\"Country Partner\",
+        a.\"Quantity\" / b.\"Quantity_all\" as \"ratio\"
+    FROM (
+            SELECT \"Country Partner\",
+                \"Product\",
+                \"Date Reporter\",
+                SUM(\"Quantity\") as \"Quantity\"
+            FROM \"Fertimport_descendant\"
+            GROUP BY \"Country Partner\",
+                \"Product\",
+                \"Date Reporter\"
+        ) a
+        LEFT JOIN (
+            SELECT \"Product\",
+                \"Date Reporter\",
+                SUM(\"Quantity\") as \"Quantity_all\",
+                \"Fertimport_descendant\".\"Country Partner\" as \"Country Partner\"
+            FROM \"Fertimport_descendant\"
+            GROUP BY \"Product\",
+                \"Date Reporter\",\"Country Partner\"
+        ) b ON a.\"Date Reporter\" = b.\"Date Reporter\"
+        AND a.\"Product\" = b.\"Product\" and a.\"Country Partner\" = b.\"Country Partner\"
+)
+
+
+
+SELECT a.\"Date Reporter\",
+    a.\"Product\",
+    a.\"Country Partner\",
+    a.\"ratio\" * b.\"Quantity\" as \"Quantity\"
+FROM \"Fertimport_ratio\" a
+    LEFT JOIN (
+        SELECT \"Date Reporter\",
+            \"Product\",
+            SUM(\"Quantity\") as \"Quantity\",
+        \"Indec_descendant\".\"Country Partner\" as \"Country Partner\",
+        FROM \"Indec_descendant\"
+        GROUP BY \"Date Reporter\",
+            \"Product\",\"Country Partner\"
+    ) b ON a.\"Date Reporter\" = b.\"Date Reporter\"
+    AND a.\"Product\" = b.\"Product\" and a.\"Country Partner\" = b.\"Country Partner\"
+
+```
+
+Note: The key fix is adding the condition `a.\"Country Partner\" = b.\"Country Partner\"` in the join clauses to ensure quantities are correctly matched by country partner.
+
+Also, previous years' numbers may be incorrect due to this issue and should be reviewed accordingly.",
       "keywords": [
-        "customs data",
+        "Customs Argentina",
         "adjusted lineups",
         "SQL query",
+        "Country Partner",
         "data prep",
-        "country partner",
-        "join condition",
-        "data aggregation",
-        "Argentina exports",
-        "data correction",
-        "product hierarchy"
+        "quantity allocation",
+        "corn product",
+        "data correction"
       ],
-      "category": "Error Resolution"
+      "category": "API / Script"
 
 *******
 
@@ -505,7 +785,7 @@
 *******
 
 "problem": "User wants to access US Wheat balance sheets by class on the platform's graphical user interface (GUI).",
-      "solution": "The US Wheat balance sheets by class dataset is available on the platform and has been added as a dedicated tab. To access it, navigate to the Supply and Demand section, then to DNEXR, and finally to the Wheat dashboard where the 'wheat by class' tab is located. Additionally, the dataset can be referenced by its code for direct access or API use.",
+      "solution": "The US Wheat balance sheets by class dataset is available on the platform and has been added as a dedicated tab. To access it, navigate to the Supply and Demand section, then to DNEXR, and finally to the Wheat dashboard where the 'wheat by class' tab is located. Additionally, the dataset can be referenced by its code '[env/org]-[uuid]' for direct access or API use.",
       "keywords": [
         "US Wheat",
         "balance sheets",
@@ -523,7 +803,7 @@
 *******
 
 "problem": "Users need to adapt to updated dataset and tradeflow unique identifiers (UIDs) due to platform automation changes affecting data sharing and access.",
-      "solution": "Dataset and tradeflow UIDs on the platform have been updated to new formats to support automated access and dynamic updates based on user subscriptions. Users should replace old resource codes with new UUID-based codes in their API calls and integrations to ensure continued access to subscribed datasets and tradeflows. This change enables automatic sharing and real-time updates of resources without manual intervention.",
+      "solution": "Starting from May 5, 2025, dataset and tradeflow UIDs on the platform will be updated to new formats to support automated access and dynamic updates based on user subscriptions. Users should replace old resource codes (e.g., 'dnexr-structured-dnexr-oilseeds-world-snd_item-weekly') with new UUID-based codes (e.g., 'zimb-4c8d416c-7f52-4f39-8643-a386e4c3a443') in their API calls and integrations to ensure continued access to subscribed datasets and tradeflows. This change enables automatic sharing and real-time updates of resources without manual intervention.",
       "keywords": [
         "dataset UID update",
         "tradeflow UID change",
@@ -555,42 +835,123 @@
 
 *******
 
-"problem": "User is unable to download historical cash prices and premiums data from the portal despite being able to view the data and price charts.",
-      "solution": "To download the historical cash prices and premiums data from the portal, hover over the line chart visual, click on the three dots menu, then select 'Export data'. Choose the 'xlsx (Excel 150,000-row max)' format and click on Export. Additionally, the dataset including CNF, FOB, and Freight historical data can be accessed and downloaded from the platform which is regularly updated.",
+"problem": "User is able to view historical cash prices and premiums data on the portal but is unable to download the data.",
+      "solution": "To download the historical cash prices and premiums data from the portal, follow these steps:
+
+1. Hover over the line chart displaying the data.
+2. Click on the three dots menu that appears on the visual.
+
+3. Select “Export data” from the menu.
+
+4. Choose the format “xlsx(Excel 150,000-row max)”.
+
+5. Click on Export to download the data.
+
+Additionally, you can access and download the dataset containing CNF, FOB & Freight historical data from the following link:
+
+```plaintext
+https://[env/org].dnext.io/datasets/[env/org]-[uuid]
+```
+
+Please contact support if you have further questions.",
       "keywords": [
-        "historical data download",
+        "historical data",
         "cash prices",
-        "premiums data",
+        "premiums",
+        "download data",
         "export data",
+        "xlsx",
         "line chart",
-        "xlsx export",
+        "dataset",
         "CNF",
         "FOB",
-        "Freight",
-        "data portal",
-        "data export"
+        "Freight"
       ],
       "category": "How-to Guide"
 
 *******
 
-"problem": "Users experience issues downloading TradeMatrix aggregated data due to changing download URLs.",
-      "solution": "Use the provided Python script to authenticate and download TradeMatrix aggregated data via the API. Steps include: 1) Log in to the API using email, password, and environment name to obtain an authentication token. 2) Use the token to request the download task for tradeflows with specified parameters (e.g., excluding intraflow strategies, CSV format). 3) Poll the task status until it succeeds or times out. 4) Once ready, retrieve the download URL from the task result and download the CSV data into a pandas DataFrame. Replace placeholders with actual credentials and environment name. This method handles dynamic URLs and automates data retrieval.",
+"problem": "User is unable to download TradeMatrix aggregated data due to changes in the download URL and needs a correct script to authenticate and retrieve the data.",
+      "solution": "Use the following Python script to authenticate with the DNEXT API, check task status, and download TradeMatrix aggregated tradeflow data. Replace \"xxx.xxx@org.xx\", \"xxxxx\", and \"env\" with your actual credentials and environment name.
+
+```python
+import requests
+import pandas as pd
+from io import BytesIO
+import time
+import json
+
+def connect(email, pwd, env):
+    '''
+    email: email used to connect to your dnext environment
+    pwd: password
+    env: name of your enviroment, first part in your dnext URL before the dot
+    ENV.dnext.io -> env = 'ENV'
+    '''
+    url = f'https://api.dnext.io/v1.0/auth/custom-login?org={env}'
+    payload = json.dumps({ 
+        'email': f'{email}', 
+        'password': f'{pwd}', 
+        'organization': f'{env}'
+    })
+    headers = { 'Content-Type': 'application/json' }
+    response = requests.post(url, headers=headers, data=payload)
+    token = response.json()['token']
+    return token
+
+token = connect(\"xxx.xxx@org.xx\",\"xxxxx\",\"env\")
+
+def _get_task_status(task_id, token):
+    my_headers = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+    success = False
+    wait_time = 2
+    while not success and wait_time < 30:
+        time.sleep(wait_time)
+        status_res = requests.get(f'https://api.dnext.io/v1.0/tasks/{task_id}', headers=my_headers)
+        try:
+            success = status_res.json()['status'] == 'SUCCEEDED'
+        except:
+            wait_time += 1
+            continue
+        if not success:
+            wait_time += 1
+    if success:
+        return True
+    else:
+        return False
+
+def download_tradeflow(code, token):
+    my_headers = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+    data = {\"intraflows\": {\"strategy\":\"exclude\"}, \"row\":False,\"refresh\":True,\"format\":\"csv\"}
+    dl_url = f'https://api.dnext.io/v1.0/fundamentals/tradeflows/aggregations//download'
+    res = requests.post(dl_url, headers=my_headers, data=json.dumps(data))
+    print(res.json())
+    task_id = res.json()['task']['id']
+    data_ready = _get_task_status(task_id, token)
+    if data_ready:
+        data_url = res.json()['result']['url']
+        data_resp = requests.get(data_url)
+        df = pd.read_csv(BytesIO(data_resp.content))
+    else:
+        df = None
+    return df
+
+df = download_tradeflow(\"env-[uuid]\", token)
+```
+
+Replace the placeholders with your actual email, password, and environment name. This script logs in, requests the aggregated tradeflow data download, polls the task status until completion, and then downloads the CSV data into a pandas DataFrame.",
       "keywords": [
+        "DNEXT API",
         "TradeMatrix",
-        "API",
-        "download",
         "aggregated data",
-        "dynamic URL",
+        "download script",
         "authentication token",
-        "Python script",
+        "task status polling",
+        "Python",
         "requests",
-        "pandas",
-        "CSV",
-        "task polling",
-        "data retrieval"
+        "pandas"
       ],
-      "category": "How-to Guide"
+      "category": "API / Script"
 
 *******
 
@@ -648,7 +1009,7 @@
 *******
 
 "problem": "User needs a bi-weekly cotton production dataset for Pakistan extracted from PDF reports published on a public website, including specific values: Total Arrivals Punjab, Total Arrivals Sindh, and Total Arrivals Pakistan (all in bales). Additionally, the dataset requires regular updates to include new data as it becomes available.",
-      "solution": "A dataset was created and made available on the platform with a specific dataset code. The dataset extracts the required three values from the PDF reports published at the source website. Furthermore, the dataset was configured to run as a recurring weekly task to automatically update and add new data when available from the source, ensuring the dataset remains current without manual intervention.",
+      "solution": "A dataset was created and made available on the platform with a specific dataset code. The dataset extracts the required three values from the PDF reports published at https://www.pcga.org/arrival-reports/. Furthermore, the dataset was configured to run as a recurring weekly task to automatically update and add new data when available from the source, ensuring the dataset remains current without manual intervention.",
       "keywords": [
         "cotton production",
         "dataset creation",
@@ -737,7 +1098,7 @@
 *******
 
 "problem": "Users want to access Corn and Soybean FOB and CNF price data via the platform's API but cannot find the relevant datasets in the dataset list.",
-      "solution": "The FOB and CNF price data for Corn and Soybeans are available via the API under specific dataset codes. Users can query these datasets through the API to retrieve the relevant FOB and CNF price information.",
+      "solution": "The FOB and CNF price data for Corn and Soybeans are available via the API under specific dataset codes. For World Corn CNF Updates, use the dataset code '[env/org]-[uuid]'. For Soybean world CNF daily data, use the dataset code '[env/org]-[uuid]'. Users can query these datasets through the API to retrieve the relevant FOB and CNF price information.",
       "keywords": [
         "FOB prices",
         "CNF prices",
@@ -754,7 +1115,7 @@
 *******
 
 "problem": "Users experience data mismatches between US corn export values in the Supply and Demand (SnD) module and the TradeMatrix module.",
-      "solution": "The mismatch occurs because users are consulting the TradeMatrix from an old system that is being phased out and no longer updated. To resolve this, users should navigate to the TradeMatrix module, search for 'Corn' in the 'Name' column, and select the TradeMatrix entry with a 'Code' formatted with the new code format. This version is provided by the new system and contains up-to-date data, ensuring consistency with the SnD module.",
+      "solution": "The mismatch occurs because users are consulting the Corn TradeMatrix from an old system that is being phased out and no longer updated. To resolve this, users should navigate to the TradeMatrix module, search for 'Corn' in the 'Name' column, and select the TradeMatrix entry with a 'Code' formatted as 'env/org-xxxx-xxxx-xxxx-xxxx'. This version is provided by the new system and contains up-to-date data, ensuring consistency with the SnD module.",
       "keywords": [
         "TradeMatrix",
         "Corn exports",
@@ -762,6 +1123,7 @@
         "old system",
         "new system",
         "code format",
+        "env/org-xxxx",
         "SnD module",
         "data update",
         "forecast visibility"
@@ -807,7 +1169,7 @@
 *******
 
 "problem": "User wants to download monthly Argentina soybean farmer selling data and understand how to filter and interpret the dataset correctly.",
-      "solution": "To download Argentina soybean farmer selling data, visit the provided dataset URLs for Weekly Farmer Selling and Daily Farmer Selling on the platform. Click the Download button at the top right corner of the dataset page to export the data. For monthly priced farmer selling data sourced from MinAgri, use the dataset at https://[environment_name].dnext.io/datasets/[dataset_code]. When filtering the data, use the 'operation date' field for accurate monthly aggregation and apply a filter where 'Is_Final' is set to 'SI'. Additionally, filter by 'Pricing=PRICED' and 'Crop_MappedName=Soybean' to get the relevant priced soybean farmer selling data.",
+      "solution": "To download Argentina soybean farmer selling data, visit the provided dataset URLs for Weekly Farmer Selling and Daily Farmer Selling on the platform. Click the Download button at the top right corner of the dataset page to export the data. For monthly priced farmer selling data sourced from MinAgri, use the dataset at https://[env/org].dnext.io/datasets/[env/org]-[resource-type]. When filtering the data, use the 'operation date' field for accurate monthly aggregation and apply a filter where 'Is_Final' is set to 'SI'. Additionally, filter by 'Pricing=PRICED' and 'Crop_MappedName=Soybean' to get the relevant priced soybean farmer selling data.",
       "keywords": [
         "Argentina soybean farmer selling",
         "monthly data download",
@@ -873,18 +1235,37 @@
 
 *******
 
-"problem": "Users need to access and download sugar lineup datasets for various regions from the DNEXT platform, and there is confusion about why some downloaded zip files contain two separate CSV files for the same origin.",
-      "solution": "To access sugar lineup datasets, users should navigate to the dataset page on the DNEXT platform and click the 'Download' button located at the top right of the page. When downloading datasets for regions like Central America and Thailand, the zip files may contain two separate CSV files. These files are split chunks of the same dataset, each containing half of the data, to facilitate easier management of larger files. This splitting is intentional and not indicative of different data. For smaller datasets, the platform team is working on enabling downloads as a single file. Users can combine these split files as needed for analysis.",
+"problem": "Users need to access and download sugar lineup datasets for various regions from the DNEXT platform, and have questions about why some downloaded zip files contain two separate CSV files for the same origin.",
+      "solution": "The sugar lineup datasets for the following regions are shared and accessible via these links:
+
+* Thailand: https://[env/org].dnext.io/datasets/[env/org]-[uuid]
+* Central America: https://[env/org].dnext.io/datasets/[env/org]-[uuid]
+* India: https://[env/org].dnext.io/datasets/[env/org]-[uuid]
+* Australia: https://[env/org].dnext.io/datasets/[env/org]-[uuid]
+
+To download the data:
+1. Open the dataset page using the provided URL.
+2. Click on the “Download” button located at the top right of the page.
+
+Regarding the presence of two separate CSV files inside each origin's zip file (e.g., for Thailand and Central America):
+
+The two files inside each zip folder are split chunks of the same dataset, each containing half of the data. This splitting is done to make it easier to manage larger files.
+
+The DNEXT team is working on improving this so that users can download the full dataset in one file for smaller datasets.
+
+Additionally, the Mexico Sugar Vessels Movement dataset is now available at:
+
+https://[env/org].dnext.io/datasets/[env/org]-[uuid]
+
+Please contact DNEXT Customer Support if you need further assistance or a walkthrough for accessing and downloading data from the platform.",
       "keywords": [
         "DNEXT platform",
         "dataset download",
         "sugar lineups",
-        "split CSV files",
-        "zip files",
-        "large dataset management",
+        "CSV files",
+        "split dataset files",
         "data access",
-        "download button",
-        "file chunks"
+        "data download"
       ],
       "category": "How-to Guide"
 
@@ -920,7 +1301,7 @@
 *******
 
 "problem": "User receives 'Access Denied' error when trying to log in to the Dnext portal.",
-      "solution": "Ensure that the user is logging in using the correct URL: https://[environment_name].dnext.io/login. If login issues persist, clear the browser cache and try again. Additionally, check if any VPN is active; if so, close the VPN and retry logging in.",
+      "solution": "Ensure that the user is logging in using the correct URL: https://[env/org].dnext.io/login. If login issues persist, clear the browser cache and try again. Additionally, check if any VPN is active; if so, close the VPN and retry logging in.",
       "keywords": [
         "Dnext portal",
         "login error",
@@ -934,17 +1315,37 @@
 
 *******
 
-"problem": "User needs to access DNEXT Wheat FOB prices data and dashboard within the CFG environment but is unsure how to locate or view the data.",
-      "solution": "To access the DNEXT Wheat FOB prices dashboard in the environment: 1) Click on the 'Dashboard' module in the left menu, 2) Select the 'Economics' tab, 3) Expand the 'Wheat' section and click on 'Wheat CNF'. Alternatively, access it directly via the URL: https://[environment_name].dnext.io/dashboard/*/Economics/Wheat/[dashboard_id]. To view the wheat cash dataset, use the direct link: https://[environment_name].dnext.io/datasets/[dataset_code]. If the data is not visible, navigate to the 'Data Exploration' tab and use the download button at the top right corner to download the dataset.",
+"problem": "User requested access to DNEXT Wheat FOB prices data within the [env/org] environment but was initially unable to locate or view the data.",
+      "solution": "The DNEXT Wheat FOB prices data and dashboard are available in the [env/org] environment as follows:
+
+1. Access the Wheat CNF dashboard:
+
+- Click on the dashboard module in the left menu.
+- Click on the “Economics” tab.
+- Expand the “Wheat” section and click on “Wheat CNF”.
+
+Or directly access the dashboard via this link:
+
+```https://[env/org].dnext.io/dashboard/*/Economics/Wheat/[env/org]-uuid```
+
+2. Access the wheat cash dataset directly via this link:
+
+```https://[env/org].dnext.io/datasets/[env/org]-[resource-type]```
+
+3. To view and download the data:
+
+- Click on the “Data Exploration” tab within the platform.
+- Use the download button located at the top right corner of the screen to download the dataset.
+
+If you still cannot see the data, contact support for further assistance.",
       "keywords": [
         "DNEXT",
         "Wheat FOB prices",
-        "dashboard access",
-        "Economics tab",
-        "Wheat CNF",
+        "[env/org] environment",
+        "dashboard",
+        "dataset",
         "data exploration",
-        "dataset download",
-        "wheat cash dataset"
+        "download data"
       ],
       "category": "Platform Navigation"
 
@@ -972,9 +1373,34 @@
 
 *******
 
-"problem": "User changed password but cannot find fertilizer-related dashboards or data on the platform.",
-      "solution": "Fertilizer dashboards are located within the GnO Economics section of the platform. Fertilizer data can also be found in the LineUps dashboards (where WAF lineups are), in Customs, and in the urea balance section in SND. Additionally, there are tradematrix dashboards available for urea, DAP, and ammonia. Users can request a guided tour or demo session to learn how to navigate and use these features effectively.",
+"problem": "User changed their login password but cannot find fertilizer-related dashboards on the DNEXT platform.",
+      "solution": "1. Access the DNEXT platform at https://[env/org].dnext.io/ using your credentials.
+
+2. After logging in and changing your password via your profile, fertilizer dashboards are located within the 'GnO Economics' section.
+
+3. Fertilizer data can also be found in the following areas:
+- LineUps in dashboards (where WAF lineups are)
+- Customs
+- Urea balance in SND
+- Tradematrix for urea, DAP, and ammonia
+
+4. For assistance, schedule a demo session with customer support to get a guided tour and tips for using the platform effectively.
+
+5. Contact customer support to arrange the demo at a convenient time.
+
+Note: Follow the password change instructions as below:
+
+First, put your credentials to the login page and press Log in.
+
+After that, go to your profile
+
+Press “change my password”:
+
+And follow the instructions:",
       "keywords": [
+        "DNEXT",
+        "login",
+        "password change",
         "fertilizer dashboards",
         "GnO Economics",
         "LineUps",
@@ -982,19 +1408,15 @@
         "urea balance",
         "SND",
         "tradematrix",
-        "urea",
-        "DAP",
-        "ammonia",
-        "dashboard navigation",
-        "platform demo",
-        "password change"
+        "demo session",
+        "customer support"
       ],
       "category": "Platform Navigation"
 
 *******
 
 "problem": "User needs to create a daily updated dataset for US cotton production from a website where the data table is replaced daily without historical access.",
-      "solution": "Set up a recurring task to scrape the daily updated table from the specified URL. Since the table is replaced daily and no history is available on the source site, the solution involves capturing the data each day and appending it to a dataset with a publication date field to track data history over time. The dataset is then made available on the platform with a unique access code, and it updates daily with new data and corresponding publication dates.",
+      "solution": "Set up a recurring task to scrape the daily updated table from the specified URL (https://www.ewrinc.com/cotton/contentPublic/reports/stateReceipts.aspx). Since the table is replaced daily and no history is available on the source site, the solution involves capturing the data each day and appending it to a dataset with a publication date field to track data history over time. The dataset is then made available on the platform with a unique access code, and it updates daily with new data and corresponding publication dates.",
       "keywords": [
         "dataset creation",
         "daily update",
@@ -1049,24 +1471,47 @@
 
 *******
 
-"problem": "User wants to access a specific dataset in Excel using an add-in and replicate an SQL power query output within Excel.",
-      "solution": "To access a dataset in Excel, install the Excel add-in by downloading and running the installer from https://excel-addin.dnext.io/prod/setup.exe. After installation, use the add-in to connect to the dataset and you can use simple filters on the addin interface. If you want advanced filters you can replicate the SQL power query by applying the provided SQL code logic within the Power Query editor. The SQL query filters products by specific codes and maps product codes to product names, selecting relevant columns such as Country Partner, Trade Direction, Product, Quantity, and Date Reporter.",
+"problem": "A user wants to access a specific dataset in Excel using a Dnext add-in and replicate an existing SQL query output, but needs help with installing the add-in and setting up the query.",
+      "solution": "1. Ensure the dataset \"DATASET\".\"[env/org]-[resource-type]\" is shared with the user's environment.
+
+2. Provide the user with the installer for the Excel add-in via the following link:
+
+```bash
+https://[env/org].dnext.io/prod/setup.exe
+```
+
+3. Use the following SQL query in the Power Query within Excel to replicate the desired output:
+
+```sql
+SELECT \"Country Partner\":\"Name\"::string as \"Country Partner\", \"Trade Direction\":\"Code\"::string as \"Trade Direction\",
+CASE 
+    WHEN LEFT(\"Product\":\"Source\",4) = '1501' THEN 'FATPAP' 
+    WHEN LEFT(\"Product\":\"Source\",4) = '1502' THEN 'FATBAS'
+    WHEN LEFT(\"Product\":\"Source\",4) = '1503' THEN 'LARD'
+    WHEN LEFT(\"Product\":\"Source\",4) = '1516' THEN 'UCO1516'
+    WHEN LEFT(\"Product\":\"Source\",4) = '1518' THEN 'UCO1518' 
+    ELSE '' 
+END as \"Product\", \"Quantity\", \"Date Reporter\"
+FROM \"DATASET\".\"[env/org]-[resource-type]\"
+WHERE LEFT(\"Product\":\"Source\",4) IN ('1501','1502','1503','1516','1518')
+```
+
+4. Coordinate a call if needed to assist with installation and query setup.",
       "keywords": [
         "Excel add-in",
+        "SQL query",
+        "Power Query",
         "dataset access",
-        "SQL power query",
-        "data extraction",
-        "product code mapping",
-        "query replication",
-        "installer download",
-        "Excel data integration"
+        "Dnext",
+        "installation",
+        "setup"
       ],
-      "category": "How-to Guide"
+      "category": "API / Script"
 
 *******
 
 "problem": "User logs into the platform but cannot see any dashboards or data after changing the password.",
-      "solution": "After logging in to the platform, users should navigate to the dashboards by clicking the 'Dashboards' button on the left menu. To access the Tradematrix module, go to the 'Fundamentals' button on the left menu, then select 'Tradematrix'. Users will see a list of available tradematrixes and can view any by clicking the 'eye' icon on the right side of each row. Note that some tradematrixes are duplicates from an old system; users should prefer those with codes in the new format as older ones will be removed soon.",
+      "solution": "After logging in to the platform at https://[env/org].dnext.io/, users should navigate to the dashboards by clicking the 'Dashboards' button on the left menu. To access the Tradematrix module, go to the 'Fundamentals' button on the left menu, then select 'Tradematrix'. Users will see a list of available tradematrixes and can view any by clicking the 'eye' icon on the right side of each row. Note that some tradematrixes are duplicates from an old system; users should prefer those with codes in the format '[env/org]-xxxxx-xxxxx-xxxxx' as older ones will be removed soon.",
       "keywords": [
         "platform login",
         "dashboard access",
@@ -1081,49 +1526,154 @@
 
 *******
 
-"problem": "Users experienced issues accessing aggregated trade flow data via API using new resource codes after a platform update changed dataset and trade flow UIDs.",
-      "solution": "To correctly access aggregated TradeMatrix data via the DNEXT API after the update, use the provided Python script which: 1) Authenticates with the API using email, password, and environment name to obtain a token; 2) Submits a POST request to the aggregation download endpoint with the new trade flow code; 3) Polls the task status until the data is ready; 4) Downloads the CSV data from the returned URL; 5) Loads the data into a pandas DataFrame. Replace placeholders for email, password, and environment in the script accordingly. This method handles the changed URL structure for aggregated data downloads and ensures successful data retrieval.",
+"problem": "Users experienced issues retrieving data for the new 'wheat aggregation' trade flow code via the DNEXT API after the update on dataset and trade flow UIDs.",
+      "solution": "To correctly download aggregated TradeMatrix data using the updated trade flow codes, use the following Python script. Replace \"xxx.xxx@org.xx\", \"xxxxx\", and \"[env]\" with your actual DNEXT login credentials and environment name.
+
+```python
+import requests
+import pandas as pd
+from io import BytesIO
+import time
+import json
+
+# Login to API and get token
+def connect(email, pwd, env):
+    '''
+    email: email used to connect to your dnext environment
+    pwd: password 
+    env: name of your enviroment, first part in your dnext URL before the dot
+    ENV.dnext.io -> env = 'ENV'
+    '''
+    # Login to API and get token
+    url = f'https://api.dnext.io/v1.0/auth/custom-login?org={env}'
+    
+    payload = json.dumps({
+        'email': f'{email}',
+        'password': f'{pwd}',
+        'organization': f'{env}'
+    })
+ 
+    headers = {
+        'Content-Type': 'application/json'
+    }
+ 
+    response = requests.post(url, headers=headers, data=payload)
+    token = response.json()['token']
+    return token
+    
+token = connect(\"xxx.xxx@org.xx\",\"xxxxx\",\"[env]\")
+
+def _get_task_status(task_id, token):
+    my_headers = {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+    }
+    success = False
+    wait_time = 2
+    while not success and wait_time < 30:
+        time.sleep(wait_time)
+        status_res = requests.get(f'https://api.dnext.io/v1.0/tasks/{task_id}', headers=my_headers)
+        try:
+            success = status_res.json()['status'] == 'SUCCEEDED'
+        except:
+            wait_time += 1
+            continue
+        if not success:
+            wait_time += 1
+    if success:
+        return True
+    else:
+        return False
+
+def download_tradeflow(code, token):
+    my_headers = {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+    }
+    data = {\"intraflows\":{\"strategy\":\"exclude\"},\"row\":False,\"refresh\":True,\"format\":\"csv\"}
+    dl_url = f'https://api.dnext.io/v1.0/fundamentals/tradeflows/aggregations/{code}/download'
+    res = requests.post(dl_url, headers=my_headers, data=json.dumps(data))
+    print(res.json())
+    task_id = res.json()['task']['id']
+    data_ready = _get_task_status(task_id, token)
+    if data_ready:
+        data_url = res.json()['result']['url']
+        data_resp = requests.get(data_url)
+        df = pd.read_csv(BytesIO(data_resp.content))
+    else:
+        df = None
+    return df
+
+df = download_tradeflow(\"[env]-[uuid]\", token)
+```
+
+This script handles authentication, requests the aggregated trade flow data download task, waits for task completion, and then downloads the CSV data into a pandas DataFrame.",
       "keywords": [
         "DNEXT",
         "API",
-        "TradeMatrix",
         "trade flow",
         "aggregation",
-        "download",
+        "data download",
         "Python script",
-        "authentication",
-        "token",
-        "task polling",
-        "CSV",
-        "data retrieval",
-        "resource code update",
-        "UID change"
+        "token authentication",
+        "task status",
+        "CSV download"
       ],
-      "category": "How-to Guide"
+      "category": "API / Script"
 
 *******
 
-"problem": "User cannot download crop progress data (safrinha corn planting for all available years) from the platform.",
-      "solution": "To download the crop progress data: 1) Navigate to the Dashboards Module. 2) Go to the Crop Tab, locate Brazil, expand it, and select Crop Progress. 3) Choose the IMEA report. 4) Hover over the matrix, click the three dots menu, and select Export Data. 5) Choose the 'Underlying Data' option and click Export. Additionally, raw data can be downloaded from the Datasets Module using provided dataset links for Corn Harvesting, Corn Planting, Soybean Harvesting, and Soybean Planting.",
+"problem": "User is unable to download the crop progress data for safrinha corn planting for all available years from the platform.",
+      "solution": "To download the crop progress data for safrinha corn planting, follow these steps:
+
+1. Navigate to the Dashboards Module.
+
+2. Go to the Crop Tab, look for Brazil, expand the button, and select Crop Progress.
+
+3. In the report, choose IMEA.
+
+4. Hover your mouse over the matrix; a menu will appear. Click on the three dots and select Export Data.
+
+5. Choose the “Underlying Data” option and click Export.
+
+Alternatively, you can download the raw data used to create the report from the Datasets Module using the following direct dataset links for IMEA:
+
+- Corn Harvesting:
+``` 
+https://[env/org].dnext.io/datasets/[env/org]-[uuid]/ 
+```
+
+- Corn Planting:
+``` 
+https://[env/org].dnext.io/datasets/[env/org]-[uuid] 
+```
+
+- Soybean Harvesting:
+``` 
+https://[env/org].dnext.io/datasets/[env/org]-[uuid]/ 
+```
+
+- Soybean Planting:
+``` 
+https://[env/org].dnext.io/datasets/[env/org]-[uuid] 
+```
+
+Please use these steps or links to retrieve the required data.",
       "keywords": [
         "crop progress data",
         "safrinha corn planting",
-        "download data",
+        "data download",
         "Dashboards Module",
-        "Crop Tab",
-        "IMEA report",
-        "export data",
-        "underlying data",
-        "datasets module",
-        "corn planting dataset",
-        "raw data download"
+        "Datasets Module",
+        "IMEA",
+        "export data"
       ],
       "category": "How-to Guide"
 
 *******
 
 "problem": "User cannot access the platform and receives a 'User not found' message, possibly due to using the wrong login URL or forgotten password.",
-      "solution": "To resolve platform access issues: 1) Ensure the user logs in using the correct URL specific to their organization, for example, https://[environment_name].dnext.io/. 2) If the user does not remember their password, instruct them to use the 'reset password' feature on the login page and follow the instructions to set a new password. This approach resolves common access problems related to incorrect URLs and forgotten passwords.",
+      "solution": "To resolve platform access issues: 1) Ensure the user logs in using the correct URL specific to their organization, for example, https://[env/org].dnext.io/. 2) If the user does not remember their password, instruct them to use the 'reset password' feature on the login page and follow the instructions to set a new password. This approach resolves common access problems related to incorrect URLs and forgotten passwords.",
       "keywords": [
         "platform access",
         "login issue",
@@ -1156,7 +1706,7 @@
 *******
 
 "problem": "How to set up a trial demo account with restricted access to specific dashboards and data for a client team.",
-      "solution": "To provide a trial demo account with controlled access, follow these steps: 1) Identify the specific dashboards and tradeflows to be accessible during the trial, focusing on relevant data such as palm oil statistics and related industry information. 2) Configure the demo environment URL (e.g., https://demo.dnext.io) and prepare credentials for the trial users. 3) Assign access to the selected dashboards, including but not limited to: GnO Crop (Indonesia and Malaysia palm oil stats), GnO Economics (Futures, Margin Analysis, Palm Oil Export Levy & Duty), Customs (Southeast Asia), Lineups (Asia South East), SND (Vegoils, Biodiesel Stats, Palm Oil Stocks), Weather (Malindo), and Trade Matrix (DNEXR-vegoils). 4) Add trial users to relevant distribution lists for updates (e.g., vegoils distribution list). 5) Verify and update the demo environment to ensure all requested dashboards are present and correctly configured, addressing any missing pages or incorrect regional data. 6) Provide reports via email for the trial duration (e.g., two weeks). 7) Communicate the demo environment URL and credentials securely to the trial users. This approach ensures clients have focused access to relevant data without overwhelming them, facilitating an effective trial experience.",
+      "solution": "To provide a trial demo account with controlled access, follow these steps: 1) Identify the specific dashboards and tradeflows to be accessible during the trial, focusing on relevant data such as palm oil statistics and related industry information. 2) Configure the demo environment URL (e.g., https://[env/org].dnext.io) and prepare credentials for the trial users. 3) Assign access to the selected dashboards, including but not limited to: GnO Crop (Indonesia and Malaysia palm oil stats), GnO Economics (Futures, Margin Analysis, Palm Oil Export Levy & Duty), Customs (Southeast Asia), Lineups (Asia South East), SND (Vegoils, Biodiesel Stats, Palm Oil Stocks), Weather (Malindo), and Trade Matrix ([env/org]-vegoils). 4) Add trial users to relevant distribution lists for updates (e.g., vegoils distribution list). 5) Verify and update the demo environment to ensure all requested dashboards are present and correctly configured, addressing any missing pages or incorrect regional data. 6) Provide reports via email for the trial duration (e.g., two weeks). 7) Communicate the demo environment URL and credentials securely to the trial users. This approach ensures clients have focused access to relevant data without overwhelming them, facilitating an effective trial experience.",
       "keywords": [
         "demo account",
         "trial setup",
@@ -1175,18 +1725,37 @@
 
 *******
 
-"problem": "User queries the 'usa-weather' dataset expecting county-level weather data for US states but only receives state-level data.",
-      "solution": "County-level weather data is not available in the 'usa-weather' dataset. Instead, a 'district' column has been added to the dataset view, which contains district codes representing subdivisions within each state (e.g., 'AL.10' for a district in Alabama). Users can reference district maps for each state at https://data.nass.usda.gov/Charts_and_Maps/Crops_County/boundary_maps/indexgif.php by clicking on a state to see district numbers and boundaries. To get more granular data, query the 'district' column in the dataset rather than expecting county-level data.",
+"problem": "User is querying the usa-weather dataset for county-level weather data in the US but only receives state-level data.",
+      "solution": "Currently, county-level weather data is not available in the dataset. Instead, a \"district\" column has been added to the \"usa-weather\" view, which contains district codes for each state.
+
+For example, district codes look like this:
+
+```
+AL.10
+```
+
+You can view district maps for each state at the following link, where clicking on a state shows a map with district numbers:
+
+https://data.nass.usda.gov/Charts_and_Maps/Crops_County/boundary_maps/indexgif.php
+
+Use the \"district\" column in your queries to get more granular data than state level. For example:
+
+```python
+cur.execute(\"SELECT * FROM \\"ZIMB\\".\\"LAB\\".\\"usa-weather\\" WHERE \\"Region\\" = 'Texas'\")
+```
+
+will return data with district codes in the \"district\" column, which you can cross-reference with the maps linked above.
+
+If you need further assistance, contact support.",
       "keywords": [
         "county-level data",
+        "weather data",
+        "usa-weather",
         "district codes",
-        "usa-weather dataset",
-        "weather data granularity",
-        "district maps",
-        "state subdivisions",
-        "query district column"
+        "SQL query",
+        "district maps"
       ],
-      "category": "Feature Explanation"
+      "category": "API / Script"
 
 *******
 
@@ -1224,30 +1793,47 @@
 
 *******
 
-"problem": "User wants to export Corn CNF data from the dashboard to Excel and analyze it, including expressing specific values as spreads (e.g., Aug vs Nov Santos value).",
-      "solution": "To export data from the Corn CNF dashboard to Excel: 1) Hover over the dashboard line chart and click the three horizontal dots at the top right corner. 2) Select 'Export Data' from the menu. 3) Choose 'Summarized Data' and select the file format '.xlsx (Excel 150,000-row max)'. 4) Click 'Export' to download the data in Excel format. For advanced analysis such as expressing values as spreads, a 'Spread' tab was added to the Corn CNF dashboard, accessible via Dashboards > Economics > CNF. Additionally, a dataset containing Corn Freight, Cash, and FOB historical data is available with a unique dataset code and URL for direct access. An Excel add-in is also available to fetch datasets directly into Excel, and support can assist with its setup.",
+"problem": "User wants to export Corn CNF data from the dashboard to Excel and analyze specific spreads such as Aug vs Nov Santos values, but finds the data presentation difficult to analyze.",
+      "solution": "To export data from the dashboard to Excel:
+
+1. Hover your mouse over the Dashboard and locate the three horizontal dots on the top right corner of the line chart then click on them.
+
+2. Click on the “Export Data” option in the menu.
+
+3. Choose the option “Summarized Data” and in the “File Format” choose “.xlsx (Excel 150,000-row max)”.
+
+4. Click on the “Export” button and the data will be downloaded in Excel format.
+
+Additionally, there is a dataset containing Corn Freight, Cash, and FOB historical data that is always updated:
+
+- Dataset code: [env/org]-[uuid]
+- Dataset link: https://[env/org].dnext.io/datasets/[env/org]-[resource-type]
+
+An Excel add-in is also available to fetch datasets directly from the platform into Excel.
+
+For analyzing spreads such as Aug vs Nov Santos values, a new “Spread” tab has been added to the existing Corn CNF dashboard. You can find it by navigating to:
+
+Dashboards > Economics > CNF > Spread
+
+If further assistance is needed, a Teams call can be arranged to discuss specific requirements and provide tailored solutions.",
       "keywords": [
         "Corn CNF",
         "data export",
-        "dashboard",
         "Excel export",
-        "export data",
-        "summarized data",
-        "xlsx",
+        "dashboard",
         "spread analysis",
-        "spread tab",
-        "Corn Freight dataset",
-        "historical data",
+        "dataset",
         "Excel add-in",
-        "data download",
-        "data analysis"
+        "spread tab",
+        "Aug vs Nov Santos",
+        "data download"
       ],
       "category": "How-to Guide"
 
 *******
 
 "problem": "Users need to update their dataset and tradeflow UIDs due to platform changes affecting API access and resource identification.",
-      "solution": "The platform automates access to subscribed datasets, tradeflows, and dashboards with dynamic updates reflecting any changes. Users must update their API integrations to use the new resource UIDs instead of the old codes. This ensures continuous and automated access to the most relevant data without manual intervention.",
+      "solution": "Starting from 5 May 2025, users must replace old resource codes (UIDs) with new ones to maintain access to datasets, tradeflows, and dashboards. The platform automates access and dynamically updates resources based on subscriptions. For example, dataset codes like 'dnexr-structured-dnexr-oilseeds-world-snd_item-weekly' are replaced by 'etg-4c8d416c-7f52-4f39-8643-a386e4c3a443'. Users should update their API calls and integrations to use the new 'etg-' prefixed UIDs to ensure continued access and dynamic updates.",
       "keywords": [
         "DNEXT",
         "dataset UID update",
@@ -1278,7 +1864,7 @@
 *******
 
 "problem": "Users need to update their dataset and tradeflow UIDs due to platform changes affecting API access and resource identification.",
-      "solution": "The platform automates access to subscribed datasets, tradeflows, and dashboards with dynamic updates reflecting any changes. Users must update their API integrations to use the new resource UIDs instead of the old codes. Similar mappings apply to other tradeflows. This ensures continuous and automated access to the most relevant data without manual intervention.",
+      "solution": "Starting from May 5, 2025, the platform automates access to subscribed datasets, tradeflows, and dashboards with dynamic updates reflecting any changes. Users must update their API integrations to use the new resource UIDs instead of the old codes. For example, the old TradeMatrix code 'dnexr-crn' for Corn Tradeflow is replaced by 'viserion-6739954d-a4f8-4436-a7bc-f57bf3b79f20'. Similar mappings apply to other tradeflows. This ensures continuous and automated access to the most relevant data without manual intervention.",
       "keywords": [
         "DNEXT",
         "TradeMatrix",
@@ -1317,20 +1903,38 @@
 
 *******
 
-"problem": "Users want to download Argentina farmer selling data directly from the platform.",
-      "solution": "Users can access and download Argentina farmer selling data via provided dataset URLs. There are two datasets available: one for daily data and one for weekly data. To download the data, users can visit the dataset links and click the Download button located at the top right corner of the page. Additionally, an API is available to access this data programmatically, and documentation can be provided upon request.",
+"problem": "A user wants to know how to download the Argentina farmer selling data directly from the platform.",
+      "solution": "The customer support team provided the following dataset links for downloading the Argentina farmer selling data:
+
+- Daily data:
+```plaintext
+https://[env/org].dnext.io/datasets/[env/org]-[uuid]/general
+```
+
+- Weekly data:
+```plaintext
+https://[env/org].dnext.io/datasets/[env/org]-[uuid]
+```
+
+Additionally, a dataset matching the daily news updates with historical data and daily updates is available here:
+
+```plaintext
+https://[env/org].dnext.io/datasets/[env/org]-[uuid]
+```
+
+To download the data, click the Download button at the top right corner of the dataset page.
+
+An API is also offered to access this data. For API documentation and guidance, contact customer support.",
       "keywords": [
         "Argentina farmer selling",
         "data download",
-        "dataset access",
+        "dataset link",
         "daily data",
         "weekly data",
-        "download button",
         "API access",
-        "data retrieval",
-        "platform download"
+        "customer support"
       ],
-      "category": "How-to Guide"
+      "category": "API / Script"
 
 *******
 
@@ -1352,11 +1956,12 @@
 *******
 
 "problem": "User cannot find published data for US wheat planting progress for the current autumn season in the graph.",
-      "solution": "To view the published data for the current autumn season, select the appropriate year filter value in the data interface. This will display the relevant data that was published before the system shutdown.",
+      "solution": "To view the published data for the current autumn season, select the year filter value '20236' in the data interface. This will display the relevant data that was published before the system shutdown.",
       "keywords": [
         "US wheat planting progress",
         "data not visible",
         "year filter",
+        "20236",
         "published data",
         "graph",
         "seasonal data selection"
@@ -1380,12 +1985,13 @@
 
 *******
 
-"problem": "User wants to create a custom dataset triggered by receiving data files sent via email to a specific bot email address in the CFG environment.",
-      "solution": "To create a workflow that automatically triggers dataset creation from files sent by email, send the data files to the designated bot email address. The system will then process the incoming emails, extract the data, and create the custom dataset in the environment. The workflow is set up to listen to this email address and trigger dataset creation upon receiving files. Users can access the created dataset via a provided URL in the environment.",
+"problem": "User wants to create a custom dataset triggered by receiving data files sent via email to a specific bot email address in the [env] environment.",
+      "solution": "To create a workflow that automatically triggers dataset creation from files sent by email, send the data files to the designated bot email address (e.g., bot+[env]@data.dnext.io). The system will then process the incoming emails, extract the data, and create the custom dataset in the [env] environment. The workflow is set up to listen to this email address and trigger dataset creation upon receiving files. Users can access the created dataset via a provided URL in the [env] environment.",
       "keywords": [
         "workflow",
         "email trigger",
         "custom dataset",
+        "[env] environment",
         "bot email",
         "data ingestion",
         "automated dataset creation",
@@ -1395,78 +2001,229 @@
 
 *******
 
-"problem": "Users need to download and access various large weather datasets via API but encounter issues such as no data display or download failures due to dataset size.",
-      "solution": "Use the provided Python script to authenticate and download weather datasets from the API. The script includes: 1) a 'connect' function to obtain an authentication token using email, password, and environment name; 2) a '_get_task_status' function that polls the task status endpoint until the download task succeeds or times out (with wait times increasing up to 30 seconds); 3) a 'download_dataset' function that initiates the dataset download request, waits for task completion, retrieves the download URL, fetches the CSV data, and loads it into a pandas DataFrame. Replace placeholder credentials and dataset codes as needed. Note that large datasets (e.g., Brazil weather) may take longer to download depending on internet speed. Additionally, region mapping datasets are available to interpret the 'nuts' region codes in weather datasets.",
+"problem": "User is unable to retrieve data from certain weather datasets using the provided Python script; the script runs but returns no data, especially for large datasets like 'Weather Brazil All Forecast'.",
+      "solution": "Below is the complete Python script to authenticate, request, and download weather datasets from the API. It includes a fix for handling large datasets by increasing the wait time when polling task status.
+
+```python
+import requests
+import pandas as pd
+from io import BytesIO
+import time
+import json
+
+# Login to API and get token
+def connect(email, pwd, env):
+    '''
+    email: email used to connect to your dnext environment
+    pwd: password 
+    env: name of your enviroment, first part in your dnext URL before the dot
+    ENV.dnext.io -> env = 'ENV'
+    '''
+    # Login to API and get token
+    url = f'https://api.dnext.io/v1.0/auth/custom-login?org={env}'
+    
+    payload = json.dumps({
+        'email': f'{email}',
+        'password': f'{pwd}',
+        'organization': f'{env}'
+    })
+ 
+    headers = {
+        'Content-Type': 'application/json'
+    }
+ 
+    response = requests.post(url, headers=headers, data=payload)
+    token = response.json()['token']
+    return token
+
+# Replace \"xxx.xxx@org.xx\", \"xxxxx\", and \"env/org\" with your credentials and environment name
+
+token = connect(\"xxx.xxx@org.xx\",\"xxxxx\",\"env/org\")
+
+def _get_task_status(task_id, token):
+    my_headers = {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+    }
+    success = False
+    wait_time = 2
+    # Increased max wait time to 30 seconds to handle large datasets
+    while not success and wait_time < 30:
+        time.sleep(wait_time)
+        status_res = requests.get(f'https://api.dnext.io/v1.0/tasks/{task_id}', headers=my_headers)
+        try:
+            success = status_res.json()['status'] == 'SUCCEEDED'
+        except:
+            wait_time += 1
+            continue
+        if not success:
+            wait_time += 1
+    if success:
+        return True
+    else:
+        return False
+
+def download_dataset(code, token):
+    my_headers = {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+    }
+    dl_url = f'https://api.dnext.io/v1.0/data/datasets/{code}/download'
+    res = requests.post(dl_url, headers=my_headers)
+    task_id = res.json()['task']['id']
+    data_ready = _get_task_status(task_id, token)
+    if data_ready:
+        data_url = res.json()['result']['url']
+        data_resp = requests.get(data_url)
+        df = pd.read_csv(BytesIO(data_resp.content))
+    else:
+        df = None
+    return df
+
+# Example usage with the Brazil weather dataset code
+code = \"env/org-[uuid]\"
+df = download_dataset(code, token)
+
+# df now contains the weather data as a pandas DataFrame
+```
+
+Notes:
+- Replace \"xxx.xxx@org.xx\" and \"xxxxx\" with your actual API login credentials.
+- The environment name \"thenv/orgul\" should be kept as is if it matches your dnext environment.
+- The dataset code can be replaced with any other from the provided list.
+- Large datasets like the Brazil weather dataset may take longer to download depending on your internet connection.
+
+Additional Information:
+- To identify exact regions in the datasets, use the 'nuts' column in each weather dataset.
+- Region mapping datasets are available to map 'nuts' codes to region names. Below is a list of region mapping dataset codes and their corresponding regions:
+
+```
+Dataset Code                                   Region
+env/org-[uuid]   Region Mapping for EUR Weather Dashboard
+env/org-[uuid]   Region Mapping for South Africa Weather Dashboard
+env/org-[uuid]   Region Mapping for CAN Weather Dashboard
+env/org-[uuid]   Region Mapping for South America Weather Dashboard
+env/org-[uuid]   Region Mapping for THA Weather Dashboard
+env/org-[uuid]   Production per region for Malindo Weather dashboard
+env/org-[uuid]   Region Mapping for USA Weather Dashboard
+env/org-[uuid]   Region Mapping for Mexico Weather Dashboard
+env/org-[uuid]   Region Mapping for AUS Weather
+env/org-[uuid]   Region Mapping for Middle East Weather Dashboard
+env/org-[uuid]   Region Mapping for North Africa Weather Dashboard
+env/org-[uuid]   Region Mapping for BSEA Weather Dashboard
+env/org-[uuid]   Region Mapping for Malindo Weather Dashboard
+env/org-[uuid]   Region Mapping for India Weather Dashboard
+```
+
+Contact support if you encounter further issues or need assistance.",
       "keywords": [
         "weather datasets",
-        "API download",
+        "API",
         "Python script",
-        "authentication token",
+        "data download",
         "task status polling",
-        "pandas DataFrame",
-        "large dataset download",
+        "large dataset",
         "region mapping",
-        "nuts codes",
-        "dataset codes",
-        "download failure",
-        "data access",
-        "csv download",
+        "nuts code",
         "dnext API"
       ],
-      "category": "How-to Guide"
+      "category": "API / Script"
 
 *******
 
-"problem": "User needs access to a combined feed grain trade flow dataset for China including commodities such as grain sorghum, oats, maize, rye, barley, and DDGs.",
-      "solution": "The China feed grains TradeMatrix is available on the platform. Users can access it by using the TradeMatrix code or by navigating to the TradeMatrix Module on the platform and selecting the TradeMatrix named \"China Feed Grain\". The direct URL to access it is https://[environment_name].dnext.io/fundamentals/tradematrix/[tradematrix_code].",
+"problem": "A user requested the combined feed grain trade flow data for China, specifying commodities like grain sorghum, oats, maize, rye, barley, and DDGs, and asked for an update on availability.",
+      "solution": "The China feed grains TradeMatrix is now available on the platform. You can access it using the following code and link:
+
+TradeMatrix code:
+``` 
+[env/org]-[uuid]
+```
+
+Platform link:
+``` 
+https://[env/org].dnext.io/fundamentals/tradematrix/[env/org]-[uuid]
+```
+
+You can also visualize it on the platform by going to the TradeMatrix Module and searching for the TradeMatrix named \"China Feed Grain\".
+
+If you have any questions or need assistance, please contact customer support.",
       "keywords": [
-        "TradeMatrix",
         "feed grain",
+        "trade flow",
         "China",
+        "TradeMatrix",
         "grain sorghum",
         "oats",
         "maize",
         "rye",
         "barley",
-        "DDGs",
-        "trade flow",
-        "dataset access",
-        "platform navigation"
+        "DDGs"
       ],
-      "category": "How-to Guide"
+      "category": "API / Script"
 
 *******
 
-"problem": "User does not have access to the US customs dataset and needs to obtain it.",
-      "solution": "Access the US customs dataset via the provided direct URL: https://[environment_name].dnext.io/datasets/[dataset_code]/general. Alternatively, fetch the dataset programmatically using the API with the dataset code.",
+"problem": "User does not have access to the US customs dataset and requests access.",
+      "solution": "You can access the United States customs dataset via this link:
+
+```
+https://[env/org].dnext.io/datasets/[env/org]-[uuid]/general
+```
+
+You can also fetch it via the API using this dataset code:
+
+```
+[env/org]-[uuid]
+```
+
+Please contact support if you encounter any issues accessing the dataset.",
       "keywords": [
         "US customs dataset",
-        "data access",
-        "dataset URL",
-        "API access",
-        "dataset code",
-        "fetch data"
+        "dataset access",
+        "API dataset code",
+        "data link"
       ],
-      "category": "Access Issue"
+      "category": "API / Script"
 
 *******
 
-"problem": "How to set up a demo account with restricted access for trial users, specifically disabling download capabilities while sharing other resources like Dashboards, TradeMatrix, Datasets, and Freights.",
-      "solution": "When creating a demo account for trial users, provide access to all resources including Dashboards, TradeMatrix, Datasets, and Freights, but disable the download functionality by default. The demo environment URL is https://demo.dnext.io. Ensure the demo account is created for the actual user (not an internal user) and communicate credentials securely. The download feature is deactivated by default in all demo environments to prevent data extraction during trials.",
+"problem": "A user requested a one-week demo account with access to corn or soy data but no download capability, and clarification was needed on what resources are shared and how to set up the demo account properly.",
+      "solution": "1. Demo accounts are set up with access to all resources including Dashboards, TradeMatrix, Datasets, and Freights.
+2. Download functionality is disabled by default for all demo environments.
+3. Demo accounts are created for the actual user (e.g., the user) and not for internal staff.
+4. Access to the demo platform is provided via the URL https://demo.dnext.io with specific credentials.
+
+Example credentials provided for review before sending to the client:
+
+```plaintext
+Email: xxx.xxx@org.xx
+Password : xxxxx
+```
+
+Note: Replace the above credentials with the actual user's credentials when sending to the client.
+
+Summary of key points from the conversation:
+- All resources are shared in the demo account.
+- Download is disabled by default.
+- Demo accounts should be created for the client user, not internal staff.
+- Provide the client with the demo URL and their credentials.
+
+This ensures the client has a full trial experience with restricted download capability as requested.",
       "keywords": [
         "demo account",
-        "trial account",
-        "download disabled",
-        "resource sharing",
-        "Dashboards",
+        "trial",
+        "no download",
+        "resources",
+        "dashboards",
         "TradeMatrix",
-        "Datasets",
-        "Freights",
+        "datasets",
+        "freights",
         "demo environment",
-        "access control",
-        "trial setup"
+        "credentials",
+        "access",
+        "platform URL"
       ],
-      "category": "Configuration"
+      "category": "API / Script"
 
 *******
 
@@ -1501,25 +2258,34 @@
 
 *******
 
-"problem": "Dashboards and data categories on the Dnext platform disappeared, with only the 'Sugar' button visible but non-functional, affecting access to trade flow and price information.",
-      "solution": "The issue was caused by a technical bug that was fixed by the support team. After the fix, users should be able to navigate all dashboard categories normally again on both the React app and the website. If problems persist, users are advised to contact support.",
+"problem": "User experienced disappearance of all dashboards on the Dnext platform, with only the 'Sugar' button visible but not displaying any data, both on the React app and website.",
+      "solution": "The issue was caused by a small technical bug which has been fixed. Users should now be able to navigate to all dashboard categories without issues. If problems persist, contact support.
+
+No specific code or commands were provided as the fix was applied by the support team.
+
+Contact information for support:
+
+Email: xxx.xxx@org.xx
+
+General support email: xxx@org.xx
+
+Platform URL: https://[env/org].dnext.io/
+
+Note: For first login, change your password by going to your profile and selecting \"change my password\" following the on-screen instructions.",
       "keywords": [
         "Dnext platform",
         "dashboard disappearance",
-        "data access issue",
         "technical bug",
-        "dashboard navigation",
-        "React app",
-        "website",
-        "trade flow data",
-        "price information"
+        "data not loading",
+        "support contact",
+        "password change"
       ],
-      "category": "Error Resolution"
+      "category": "API / Script"
 
 *******
 
 "problem": "A client requested to have monthly data included in a dataset either by adding a monthly data column or by creating a new dataset with monthly data. The existing dataset contains weekly data, and there was confusion about whether to aggregate weekly data into monthly or to provide actual monthly data.",
-      "solution": "If monthly data is available, create a new dataset specifically for the monthly data rather than aggregating weekly data into monthly. Do not estimate or sum weekly data to produce monthly data. The easiest and recommended approach is to create a new dataset with the monthly data source. For example, use official monthly data sources such as the EIA monthly data to build the monthly dataset. Once the monthly dataset is created, share the dataset link for verification before distribution to clients.",
+      "solution": "If monthly data is available, create a new dataset specifically for the monthly data rather than aggregating weekly data into monthly. Do not estimate or sum weekly data to produce monthly data. The easiest and recommended approach is to create a new dataset with the monthly data source. For example, use official monthly data sources such as the EIA monthly data (https://www.eia.gov/totalenergy/data/monthly/) to build the monthly dataset. Once the monthly dataset is created, share the dataset link for verification before distribution to clients.",
       "keywords": [
         "monthly data",
         "dataset creation",
@@ -1567,38 +2333,58 @@
 
 *******
 
-"problem": "User inquires about availability of daily water level data for the Amazon River, expecting daily frequency instead of less frequent updates.",
-      "solution": "Daily water level data for the Amazon River is available internally under the path: Weather > Brazil > Amazon River Level (Internal). It can be accessed via the dashboard URL pattern: https://[environment_name].dnext.io/dashboard/*/Weather/Brazil/[unique-identifier]. This dataset provides daily measurements for internal use.",
+"problem": "User inquires about the availability of daily water level data for the Amazon river, expecting daily measurements instead of less frequent data.",
+      "solution": "The daily water level data for the Amazon river is available internally under the path:
+
+Weather > Brazil > Amazon River Level (Internal)
+
+Accessible via the dashboard URL:
+
+```plaintext
+https://[env/org].dnext.io/dashboard/*/Weather/Brazil/[uuid]
+```
+
+This dataset contains the old daily data intended for internal use.",
       "keywords": [
-        "Amazon River",
-        "river level",
-        "daily data",
-        "water levels",
-        "weather data",
-        "dashboard",
-        "internal data"
+        "Amazon river",
+        "daily water level",
+        "river level data",
+        "internal data",
+        "dashboard URL"
       ],
-      "category": "Feature Explanation"
+      "category": "Platform Navigation"
 
 *******
 
-"problem": "User needs to set up a demo account with restricted product access and no download capability, and requires onboarding to navigate the portal and find specific information such as palm oil economics dashboards.",
-      "solution": "To set up a demo account with restricted access (all products except fertilizers, no download capability) for a limited trial period: 1) Create the demo account with specified product restrictions and disable download functionality. 2) Schedule an onboarding session to guide the user on portal navigation and how to find relevant information. 3) Provide user credentials to the user and a support contact for specific questions. 4) Inform the user that some sections (e.g., Economics for vegoils) may not yet have dashboards published, but related dashboards (e.g., Palm oil under crop) are available and can be added to the demo. 5) Share direct URLs to existing dashboards to facilitate access during the demo. This approach ensures users can explore the portal effectively within the trial constraints.",
+"problem": "A user was given a demo portal account for palm oil data but could not find the Economics dashboards for vegetable oils and needed guidance on available dashboards and navigation.",
+      "solution": "1. A demo portal account was set up with access to all products except fertilizers, with no download capability, for a one-week trial starting October 27th.
+
+2. The user was onboarded with an intro call to help navigate the portal and find needed information.
+
+3. The user reported finding Supply & Demand, customs, lineups, and weather data but could not locate Economics dashboards for vegetable oils.
+
+4. It was clarified that the Economics section currently does not have vegetable oils dashboards published yet.
+
+5. However, Palm oil dashboards under the Crop category are available at the following URLs:
+
+```plaintext
+https://[env/org].dnext.io/dashboard/*/GnO%20Crop/Malaysia/[env/org]-[uuid]
+https://[env/org].dnext.io/dashboard/*/GnO%20Crop/Malaysia/[env/org]-[uuid]
+https://[env/org].dnext.io/dashboard/*/GnO%20Crop/Malaysia/[env/org]-[uuid]
+```
+
+6. It was offered to add these Palm oil dashboards to the demo account for easier access.",
       "keywords": [
         "demo account",
         "portal trial",
-        "restricted access",
-        "no download",
-        "onboarding",
-        "portal navigation",
         "palm oil",
+        "vegetable oils",
         "economics dashboards",
-        "vegoils",
+        "navigation",
         "dashboard URLs",
-        "user credentials",
-        "trial setup"
+        "onboarding"
       ],
-      "category": "How-to Guide"
+      "category": "API / Script"
 
 *******
 
@@ -1664,17 +2450,29 @@
 
 *******
 
-"problem": "User wants to extract corn parity data from a report interface easily.",
-      "solution": "To download corn parity data from the report: 1) Hover the mouse over the desired Matrix; a small horizontal menu appears on the right side. 2) Click the three dots on the right to open options. 3) Select 'Export data'. 4) Choose the 'Underlying Data' option and click 'Export'. Additionally, users can download datasets containing current and historical data by clicking the 'Download' button located at the top right of the screen. This method allows direct export of data from the report interface without needing additional tools.",
+"problem": "A user wants to know if there is an easy way to extract corn parities data from the report.",
+      "solution": "To download the corn parities data directly from the report, follow these steps:
+
+1. Hover your mouse over the Matrix you are interested in; a small horizontal menu will appear on the right side of the screen. Locate the three dots on the right and click on them.
+
+2. Multiple options will appear; click on \"Export data\".
+
+3. Choose the ‘Underlying Data’ option, then click on \"Export\".
+
+Alternatively, you can download the dataset containing the current and historical data by clicking the “Download” button on the top right side of the screen at the following URL:
+
+```plaintext
+https://[env/org].dnext.io/datasets/[env/org]-[resource-type]
+```
+
+Please reach out if you need further assistance.",
       "keywords": [
-        "corn parity",
-        "data extraction",
-        "export data",
+        "corn parities",
+        "data export",
         "underlying data",
-        "report interface",
-        "download dataset",
-        "matrix menu",
-        "export options"
+        "report download",
+        "dataset",
+        "export data"
       ],
       "category": "How-to Guide"
 
@@ -1700,11 +2498,13 @@
 *******
 
 "problem": "Users experience confusion due to duplicate TradeMatrix files appearing with different code formats.",
-      "solution": "To identify the correct and up-to-date TradeMatrix files, use those with the new code format. These files are part of a new sharing system that dynamically updates access and content, ensuring the latest versions are always available. Avoid using the old format files, as they are being phased out and will be removed soon. Transitioning to the new format prevents confusion and guarantees access to the most current TradeMatrix data.",
+      "solution": "To identify the correct and up-to-date TradeMatrix files, use those with the new code format 'ameropa-xxxx-xxxx-xxxx-xxxx'. These files are part of a new sharing system that dynamically updates access and content, ensuring the latest versions are always available. Avoid using the old format 'dnexr-xxxx-xxxx' files, as they are being phased out and will be removed soon. Transitioning to the new format prevents confusion and guarantees access to the most current TradeMatrix data.",
       "keywords": [
         "TradeMatrix",
         "duplicate files",
         "code format",
+        "ameropa",
+        "dnexr",
         "dynamic updates",
         "sharing system",
         "file versioning",
@@ -1730,7 +2530,7 @@
 *******
 
 "problem": "User wants to know if Brazil farmer selling data is available on the platform or API.",
-      "solution": "The Brazil farmer selling data is available via the API under specific dataset codes. The datasets include farmer selling percent and farmer selling volume data for both soybeans and corn. Users can access these datasets through the API using the provided codes.",
+      "solution": "The Brazil farmer selling data is available via the API under specific dataset codes. The datasets include: 'SBS BRA FARMER SELLING PERCENT' (code: [env/org]-[uuid]), 'CRN BRA FARMER SELLING PERCENT' (code: [env/org]-[uuid]), 'CRN BRA FARMER SELLING VOLUME' (code: [env/org]-[uuid]), and 'SBS BRA FARMER SELLING VOLUME' (code: [env/org]-[uuid]). Users can access these datasets through the API using the provided codes.",
       "keywords": [
         "Brazil farmer selling",
         "API",
@@ -1786,7 +2586,6 @@
       "category": "Data Mapping Issue"
 
 *******
-
 
 "problem": "Users are unable to see the latest updates in specific SND datasets, with data values not refreshed beyond a certain date.",
       "solution": "If the latest updates are not visible in SND datasets, verify that the data update process has been executed. In this case, the issue was resolved by manually running the data update process that had been forgotten. After running the process, the datasets will reflect the latest estimates and updates.",
@@ -1866,7 +2665,7 @@
 *******
 
 "problem": "Users receive duplicate FOB quotes for the same day, origin, and product combination from the API, causing confusion on how to interpret these values.",
-      "solution": "To interpret duplicate FOB quotes for the same day/origin/product, use the 'reference' column provided in the dataset. This column distinguishes between different Futures Contract References, such as 'H2025' for the March 2025 contract and 'K2025' for the May 2025 contract. This allows users to differentiate quotes that correspond to different futures contracts even if other attributes are identical. ,
+      "solution": "To interpret duplicate FOB quotes for the same day/origin/product, use the 'reference' column provided in the dataset. This column distinguishes between different Futures Contract References, such as 'H2025' for the March 2025 contract and 'K2025' for the May 2025 contract. This allows users to differentiate quotes that correspond to different futures contracts even if other attributes are identical. Additionally, the Soybean CNF, FOB, and Freight dataset is now available via the API using the code '[env/org]-[uuid]'.",
       "keywords": [
         "FOB quotes",
         "duplicate quotes",
@@ -1883,30 +2682,166 @@
 
 *******
 
-"problem": "User is unable to download a large freight dataset from the API using R; the script runs indefinitely without returning the dataframe.",
-      "solution": "Use the provided R script that authenticates via API to obtain a token, requests the dataset download task, polls the task status with exponential backoff until completion, and then downloads and reads the CSV dataset. Note that large datasets (e.g., around 5GB) may take significant time to process and download, so allow sufficient time for the script to complete. The script includes functions: 1) connect(email, pwd, env) to authenticate and get a token; 2) get_task_status(task_id, token) to poll task status with exponential backoff up to a max wait time; 3) download_dataset(code, token) to initiate download, wait for task completion, and retrieve the dataset as a dataframe. Ensure the dataset code is correctly specified. The script uses libraries httr, jsonlite, and readr.",
+"problem": "User is unable to download the freight dataset from the API using R; the script runs indefinitely without returning the dataframe.",
+      "solution": "Use the following corrected R script to authenticate, check task status with exponential backoff, and download the dataset. Note that the freight dataset is large (~5GB), so the download may take significant time.
+
+```r
+# Load required libraries 
+library(httr) 
+library(jsonlite)
+library(readr)
+
+# Function to login to API and get token 
+connect <- function(email, pwd, env) { 
+  # email: email used to connect to your dnext environment 
+  # pwd: password 
+  # env: name of your environment, first part in your dnext URL before the dot 
+  # Example: ENV.dnext.io -> env = 'ENV' 
+  
+  # Construct the URL 
+  url <- paste0(\"https://api.dnext.io/v1.0/auth/custom-login?org=\", env) 
+  
+  # Create the payload 
+  payload <- toJSON(list( 
+    email = email, 
+    password = pwd, 
+    organization = env 
+  ), auto_unbox = TRUE) 
+  
+  # Set the headers 
+  headers <- add_headers('Content-Type' = 'application/json') 
+  
+  # Send the POST request 
+  response <- POST(url, headers, body = payload) 
+  
+  # Parse the response and extract the token 
+  token <- content(response)$token 
+  return(token) 
+} 
+
+# Call the connect function with your credentials 
+token <- connect(\"xxx.xxx@org.xx\", \"xxxxx\", \"your_env\") 
+token
+
+get_task_status <- function(task_id, token) {
+  my_headers <- add_headers(
+    Authorization = paste(\"Bearer\", token),
+    `Content-Type` = \"application/json\"
+  )
+  
+  success <- FALSE
+  wait_time <- 2  # Initial wait time in seconds
+  max_wait_time <- 120  # Maximum wait time in seconds (e.g., 2 minutes)
+  
+  while (!success && wait_time <= max_wait_time) {
+    Sys.sleep(wait_time)  # Wait before checking status
+    
+    status_res <- GET(paste0('https://api.dnext.io/v1.0/tasks/', task_id), my_headers)
+    status_text <- content(status_res, as = \"text\")
+    print(paste(\"Task Status Response:\", status_text))
+    
+    tryCatch({
+      status_json <- fromJSON(status_text)
+      print(paste(\"Task Status:\", status_json$status))
+      
+      if (status_json$status == \"SUCCEEDED\") {
+        success <- TRUE
+      } else if (status_json$status == \"FAILED\") {
+        print(\"Task failed.\")
+        break  # Exit the loop if the task has failed
+      }
+    }, error = function(e) {
+      print(paste(\"Error parsing task status:\", e$message))
+    })
+    
+    if (!success) {
+      wait_time <- wait_time * 2  # Exponential backoff
+    }
+  }
+  
+  return(success)
+}
+
+# Function to download dataset
+download_dataset <- function(code, token) {
+  my_headers <- add_headers(
+    Authorization = paste(\"Bearer\", token),
+    `Content-Type` = \"application/json\"
+  )
+  
+  dl_url <- paste0('https://api.dnext.io/v1.0/data/datasets/', code, '/download')
+  res <- POST(dl_url, my_headers)
+  
+  # Debug: Print the raw API response
+  print(\"Download request response:\")
+  print(content(res, as = \"text\"))
+  
+  res_json <- fromJSON(content(res, as = \"text\"))
+  
+  if (is.null(res_json$task$id)) {
+    stop(\"Error: Task ID not found in the response.\")
+  }
+  
+  task_id <- res_json$task$id
+  data_ready <- get_task_status(task_id, token)
+  
+  if (data_ready) {
+    if (!is.null(res_json$result$url)) {
+      data_url <- res_json$result$url
+      data_resp <- GET(data_url)
+      
+      # Debug: Print response status code
+      print(paste(\"Download response status code:\", data_resp$status_code))
+      
+      if (data_resp$status_code == 200) {
+        df <- read_csv(content(data_resp, as = \"raw\"), locale = locale(encoding = \"UTF-8\"), show_col_types = FALSE)
+      } else {
+        stop(\"Error: Failed to download dataset.\")
+      }
+    } else {
+      stop(\"Error: Data URL not found.\")
+    }
+  } else {
+    print(\"Task did not succeed. Returning NULL.\")
+    df <- NULL
+  }
+  
+  return(df)
+}
+
+# Example usage
+
+dataset_code <- \"[env/org]-[uuid]\"  # Replace with your dataset code
+df <- download_dataset(dataset_code, token)
+
+# Debug: Print dataset preview if successful
+if (!is.null(df)) {
+  print(\"Dataset successfully downloaded:\")
+  print(head(df))
+} else {
+  print(\"No dataset returned.\")
+}
+```
+
+Note: The freight dataset is large (~5GB), so the download process may take several minutes. If the script runs for a long time without results, consider checking network conditions or contacting support for a live troubleshooting session.",
       "keywords": [
         "R",
         "API",
         "dataset download",
         "freight dataset",
-        "large dataset",
-        "token authentication",
-        "exponential backoff",
-        "task polling",
-        "read_csv",
         "httr",
         "jsonlite",
         "readr",
-        "download script",
-        "dataframe retrieval"
+        "exponential backoff",
+        "task status",
+        "large dataset"
       ],
-      "category": "How-to Guide"
+      "category": "API / Script"
 
 *******
 
 "problem": "User requests access to ABARES historical data including estimate evolution dataset and official SND and production data.",
-      "solution": "The ABARES datasets can be accessed on the platform using the dataset identifiers . Users should look for these dataset codes within the platform to find the estimate evolution dataset and official SND and production data.",
+      "solution": "The ABARES datasets can be accessed on the platform using the dataset identifiers sucden-27ba62ab-8a80-4184-a1bd-836daa59ae8a and sucden-d95185b7-1e44-457a-895c-e05793f27f84. Users should look for these dataset codes within the platform to find the estimate evolution dataset and official SND and production data.",
       "keywords": [
         "ABARES",
         "historical data",
@@ -1952,7 +2887,7 @@
 *******
 
 "problem": "The weekly data for Canadian producer deliveries displayed in the dashboard (SND section) was missing the most recent weeks.",
-      "solution": "The dashboard data was updated to include the missing weeks. Additionally, the dataset feeding the dashboard is accessible via an API using the  correspondant dataset code . Users can run API queries on this dataset using the provided code to retrieve the relevant data programmatically.",
+      "solution": "The dashboard data was updated to include the missing weeks. Additionally, the dataset feeding the dashboard is accessible via an API using the dataset code '[env/org]-[dsataset_code]'. Users can run API queries on this dataset using the provided code to retrieve the relevant data programmatically.",
       "keywords": [
         "dashboard update",
         "Canadian producer deliveries",
@@ -1967,25 +2902,101 @@
 
 *******
 
-"problem": "The user wants to compare current and previous versions of corn trade flows using a script, but the old script no longer works due to changes in tradeflow and forecast code formats.",
-      "solution": "Use the updated Python script provided to authenticate and retrieve trade flow data. Key steps include: 1) Authenticate via POST to https://api.dnext.io/v1.0/auth/custom-login?org={envirement} with email, password, and organization to get a Bearer token. 2) Use the updated tradeflow and forecast codes in the format '[environment_prefix]-xxxx-xxxx-xxxx-xxxx'. 3) Retrieve the list of tradeflows from https://api.dnext.io/v1.0/fundamentals/tradeflows?old_sharing=true and find the tradeflow_id matching the updated code. 4) List snapshots for the tradeflow using GET https://api.dnext.io/v1.0/fundamentals/tradeflows/{tradeflow_id}/snapshots with parameters. 5) Choose a snapshot from the list. 6) Download and compare tradeflow data by POSTing to https://api.dnext.io/fundamentals/tradeflow/compare with JSON payload specifying code, from snapshot, forecasts, and startMonth. 7) Load the returned URL data into a pandas DataFrame and filter relevant columns. This updated script replaces deprecated code formats and endpoints, ensuring successful retrieval of historical trade flow data.",
+"problem": "A user wants to compare current corn trade flows with a previous version but the old script for retrieving previous trade flow versions no longer works due to changes in API codes and endpoints.",
+      "solution": "Use the updated Python script below which authenticates, lists tradeflows with new code format, retrieves snapshots, and downloads the trade flow comparison data:
+
+```python
+import requests
+import json
+import base64
+import pandas as pd
+
+######## get the login token ###############
+user=\"xxx.xxx@org.xx\"
+password=\"xxxxx\"
+org=\"[env/org]\"
+url = f'https://api.dnext.io/dev/auth/custom-login?org='+org
+payload = json.dumps({
+  \"email\": user,
+  \"password\": password,
+  \"organization\": org
+})
+headers = {
+  'Content-Type': 'application/json'
+}
+response = requests.request(\"POST\", url, headers=headers, data=payload).json()
+token = 'Bearer ' + response['token']
+
+headers = {
+  'Content-Type': 'application/json',
+  'Authorization': token
+}
+
+print(\"token\",token)
+############################################
+##### INPUT : TRADEFLOW CODE #########
+tradeflow_ = '[env/org]-[uuid]' 
+forecast_ = '[env/org]-[uuid]'
+######################################
+########## list all tradeflows to find tradeflow_id #################
+url = 'https://api.dnext.io/v1.0/fundamentals/tradeflows?old_sharing=true'
+tf_list = requests.get(url, headers=headers).json()
+print (\"tf list\",tf_list)
+# tf_list=pd.DataFrame(tf_list)
+# print (\"tf list\",tf_list)
+
+# tf_list = pd.DataFrame(tf_list)[['trade_flow']]
+tf_list = pd.json_normalize(tf_list['result'])
+tradeflow_id = tf_list[tf_list.code == tradeflow_].id.iloc[0].strip()
+print(f\"Tradeflow ID: >>{tradeflow_id}<<\")
+###################################
+########### make the list of snapshot #########
+params = {'deep': 'true'}
+data = {\"where\":\"trade_flow_id eq \" + tradeflow_id,\"hastobe\":False}
+urlsnaps=url = f'https://api.dnext.io/v1.0/fundamentals/tradeflows/{tradeflow_id}/snapshots'
+
+response = requests.get(urlsnaps,params=params, headers=headers)
+print(\"response\",response.text)
+snapshot_list = pd.DataFrame(response.json()[\"result\"])
+
+snapshot_list = snapshot_list[['table_name', 'created_at']].copy()
+##############################
+####### INPUT : CHOOSE THE SNAPSHOT FROM ABOVE LIST ########
+snapshot_ = '[snapshot_code]'
+###############################
+################# download the data
+url = 'https://api.dnext.io/fundamentals/tradeflow/compare'
+payload = json.dumps({
+  \"code\": tradeflow_,
+  \"from\": snapshot_,
+  \"to\": None,
+  \"forecastsFrom\": [
+    forecast_
+  ],
+  \"forecastsTo\": [
+    forecast_
+  ],
+  \"startMonth\": 9
+})
+url = requests.request(\"POST\", url, headers=headers, data=payload).json()['url']
+df = pd.read_json(url, lines=True)
+df = df[['Date', 'Product', 'Origin', 'Destination', 'QuantityOld']].copy()
+df.dropna(subset=['QuantityOld'], inplace=True)
+#print(df)
+```
+
+Replace \"xxx.xxx@org.xx\" and \"xxxxx\" with your credentials. Use the updated tradeflow and forecast codes in the format \"[env/org]-[uuid]\". Choose the snapshot from the printed snapshot list to compare versions.",
       "keywords": [
         "trade flows",
-        "tradeflow code",
-        "forecast code",
-        "API authentication",
-        "Bearer token",
-        "tradeflow snapshots",
-        "data retrieval",
+        "API",
         "Python script",
-        "pandas",
-        "API endpoint",
-        "historical data",
-        "tradeflow comparison",
-        "updated code format",
-        
+        "snapshot",
+        "tradeflow_id",
+        "data retrieval",
+        "authentication",
+        "dnext.io"
       ],
-      "category": "How-to Guide"
+      "category": "API / Script"
 
 *******
 
@@ -2008,7 +3019,7 @@
 *******
 
 "problem": "User needs historical USDA acreage estimates (planted and harvested) for US corn, soybeans, wheat, and cotton from 2000 to 2024, including state and national level estimates from March, June, and final USDA surveys. Existing datasets only include corn, soybeans, and wheat, lacking cotton data.",
-      "solution": "A dataset with historical data from 1995 is available including corn, soybeans, and wheat . Upon request, cotton data was collected and added to the same dataset, covering June, March, and final acreage estimates from 2000 to the latest report. The dataset also expanded corn, wheat, and soybean June acreage data back to 2000. Once cotton data is added, it will be included in future updates and reports automatically. Users can access all this data using the same dataset code.",
+      "solution": "A dataset with historical data from 1995 is available including corn, soybeans, and wheat (Dataset Code: [env/org]-[uuid]). Upon request, cotton data was collected and added to the same dataset, covering June, March, and final acreage estimates from 2000 to the latest report. The dataset also expanded corn, wheat, and soybean June acreage data back to 2000. Once cotton data is added, it will be included in future updates and reports automatically. Users can access all this data using the same dataset code.",
       "keywords": [
         "USDA acreage estimates",
         "planted and harvested acreage",
@@ -2047,20 +3058,28 @@
 
 *******
 
-"problem": "Users are unable to access certain dashboards due to deprecated links and experience changes in dataset download formats where downloads now provide zipped folders containing split dataset chunks instead of single files.",
-      "solution": "For dashboard access issues caused by deprecated links, users should use the updated dashboard URLs provided by support, which reflect the current environment and resource identifiers. Regarding dataset downloads, large datasets are now split into multiple CSV files within a zipped folder to facilitate management of large files. To use the dataset, users must download the zipped folder and merge all CSV files together to reconstruct the full dataset. This approach is a permanent change to handle large datasets, and users should be informed to merge files after download. For smaller datasets, improvements are planned to allow single-file downloads.",
+"problem": "Users are experiencing issues accessing certain dashboards due to deprecated links and are confused about changes in dataset downloads where previously a single file was downloaded but now a zipped folder with multiple files is provided.",
+      "solution": "1. For dashboard access issues due to deprecated links, use the updated URL provided by support. For example, the new link for the India SEA Stats dashboard is:
+
+```plaintext
+https://[env].dnext.io/dashboard/*/SND/India/[env]-[uuid]
+```
+
+2. Regarding dataset downloads, the zipped folder contains split chunks of the same dataset in multiple CSV files to better manage large files. To obtain the full dataset, merge all the CSV files together.
+
+Support is working on improving the download experience to allow full dataset downloads in a single file for smaller datasets.
+
+If you encounter any difficulties or have further questions, contact customer support.",
       "keywords": [
         "dashboard access",
         "deprecated link",
-        "updated URL",
         "dataset download",
         "zipped folder",
-        "split CSV files",
-        "merge CSV files",
-        "large dataset management",
-        "DNEXR",
-        "data download format"
+        "CSV files",
+        "merge files",
+        "DNEXT",
+        "data download"
       ],
-      "category": "How-to Guide"
+      "category": "API / Script"
 
 *******

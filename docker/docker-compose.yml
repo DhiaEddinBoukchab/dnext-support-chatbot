@@ -1,0 +1,42 @@
+# Copier-coller cette commande complète :
+
+#version: '3.8'
+
+services:
+  chatbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    container_name: dnext-chatbot
+    
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DOCS_FOLDER=docs_md
+      - CHROMA_DB_PATH=/app/chroma_db
+      - EMBEDDING_MODEL=text-embedding-3-large
+      - OPENAI_MODEL=gpt-4o-mini
+      - SERVER_PORT=7860
+    
+    ports:
+      - "7860:7860"
+    
+    volumes:
+      - ./docs_md:/app/docs_md:ro
+      - chroma_data:/app/chroma_db
+    
+    env_file:
+      - .env
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  chroma_data:
+    driver: local

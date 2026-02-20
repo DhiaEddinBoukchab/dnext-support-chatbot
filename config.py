@@ -19,7 +19,7 @@ class Config:
     
     # Models
     EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-large")
-    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1 mini")
+    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1")
     GROQ_VISION_MODEL = os.getenv("GROQ_VISION_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
     
     # Server
