@@ -1,3 +1,3 @@
 #!/bin/bash
-python admin_dashboard/launcher.py &
+python -m admin_dashboard.launcher &
 python main.py
