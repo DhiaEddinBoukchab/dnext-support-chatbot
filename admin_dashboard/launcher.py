@@ -36,7 +36,7 @@ def main():
         print("⚠️  Change default password immediately!")
         print("=" * 60 + "\n")
 
-        admin.launch(share=True)
+        admin.launch(share=False)
 
     except Exception as e:
         logger.error(f"Failed to start admin dashboard: {e}")
