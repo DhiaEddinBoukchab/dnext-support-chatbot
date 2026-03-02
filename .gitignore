@@ -32,7 +32,6 @@ ENV/
 test.py
 validate_and_reindex.py
 output/
-assets/
 gradio/
 data/
 docker/
