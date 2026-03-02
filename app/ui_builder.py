@@ -89,7 +89,6 @@ def build_interface(app) -> gr.Blocks:
                     gr.HTML("""
                         <div style="margin-bottom:1.5rem;">
                             <h2>How can I help you today?</h2>
-                            <p>Ask me anything about Dnext services, or upload an image for assistance</p>
                         </div>
                     """)
                     with gr.Column(elem_classes="input-container-welcome"):
