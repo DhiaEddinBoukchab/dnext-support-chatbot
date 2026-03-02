@@ -24,7 +24,7 @@ class Config:
     
     # Server
     SERVER_PORT = int(os.getenv("SERVER_PORT", "7860"))
-    SERVER_NAME = "localhost"
+    SERVER_NAME = "0.0.0.0"
     
     # Chunking
     CHUNK_SIZE = 400
