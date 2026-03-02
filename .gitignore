@@ -33,11 +33,9 @@ test.py
 validate_and_reindex.py
 output/
 gradio/
-data/
 docker/
 email_conversations (2)
 # Database
-chroma_db/
 *.db
 *.sqlite
 
