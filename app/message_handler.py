@@ -237,7 +237,7 @@ class MessageHandler:
 
     def _save_attachments(self, files: List) -> List[Dict[str, str]]:
         """Copy uploaded files to the persistent uploads/ directory."""
-        uploads_dir = Path("uploads")
+        uploads_dir = Path("data/uploads")
         uploads_dir.mkdir(parents=True, exist_ok=True)
         meta = []
         for f in files:
