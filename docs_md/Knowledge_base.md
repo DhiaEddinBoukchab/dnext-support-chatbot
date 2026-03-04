@@ -459,3 +459,115 @@ Report unauthorized credential changes immediately.
 
 Keep data filters updated for accurate reporting.
 *********
+Our API authentication has been updated to use API Keys for enhanced security and flexibility. This guide will walk you through creating an API Key and exchanging it for an authentication token.
+
+Creating an API Key
+Step 1: Navigate to API Keys
+From your platform's landing page, locate the profile icon at the bottom of the left navigation bar. Hover over the profile icon to reveal a menu with various options.
+
+Select "API Keys" from the menu.
+
+image-20260207-163620.png
+Step 2: Access API Key Management
+You will be directed to the API Key management page. This page displays:
+
+A list of all your API Keys
+
+Their current status (Active or Revoked)
+
+A "Create API Key" button in the top right corner
+
+image-20260207-163707.png
+Step 3: Create a New API Key
+Click the "Create API Key" button. A modal window will appear in the center of the page with two input fields:
+
+Name: Enter a descriptive name for your API Key (e.g., "Production Server", "Development Environment")
+
+Expiration Date: Select when you want this API Key to expire
+
+After filling in both fields, click the "Create API Key" button at the bottom left of the modal.
+
+image-20260207-163837.png
+Step 4: Copy and Secure Your API Key
+Upon successful creation, a confirmation message will appear displaying your newly generated API Key.
+
+⚠️ IMPORTANT SECURITY NOTICE:
+
+Your API Key is only displayed once
+
+Copy and store it in a secure location immediately
+
+If you lose your API Key, you will need to create a new one
+
+Treat your API Key like a password,never share it publicly or commit it to version control
+
+image-20260207-164035.png
+Authenticating with Your API Key
+Exchanging API Key for Access Token
+Once you have your API Key, you'll need to exchange it for an access token to make authenticated API requests.
+
+Required Information
+api_key: Your dnext API key (format: dnext_1234567890abcdef)
+
+organization: The name of your environment, which is the first part of your dnext URL before the dot
+
+Example: If your URL is ORG.dnext.io, your organization is ORG
+
+Below is a code snippet allowing to exchange your API key with a bearer Token.
+
+
+
+import requests
+''' 
+api_key: your dnext API key (e.g., dnext_1234567890abcdef)
+organization: name of your enviroment, first part in your dnext URL before the dot
+ORG.dnext.io -> organization = 'ORG'
+'''
+api_key = "dnext_1234567890abcdef"
+organization = "ORG"
+# Define the API endpoint
+url = "https://api.dnext.io/v1.0/auth/api-key/exchange"
+headers = {
+    "X-API-Key": api_key,
+    "Content-Type": "application/json"
+}
+data = {
+    "organization": organization
+}
+response = requests.post(url, headers=headers, json=data)
+if response.status_code == 200:
+    response_data = response.json()
+    token = response_data.get("token")
+    user_info = response_data.get("user")
+    expires_in = response_data.get("expiresIn")
+else:
+    # Handle errors
+    print(f"Error: {response.status_code}, {response.text}")
+Response Format
+On successful authentication (HTTP 200), you will receive:
+
+
+
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "first_name": "John",
+    "last_name": "Doe",
+    "language": "en-gb",
+    "user_id": "user-123",
+    "email": "john@example.com",
+    "org": "myorg",
+    "org_id": "org-456"
+  },
+  "expiresIn": 3600
+}
+Using Your Access Token
+Once you have obtained your access token, include it in the Authorization header for subsequent API requests:
+
+
+
+headers = {
+    "Authorization": f"Bearer {token}",
+    "Content-Type": "application/json"
+}
+******
