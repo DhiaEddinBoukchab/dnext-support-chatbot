@@ -41,17 +41,18 @@ def build_interface(app) -> gr.Blocks:
         with gr.Column(visible=True, elem_classes="login-container") as login_section:
             if logo_data:
                 gr.HTML(f"""
-                    <div style="text-align:center;margin-bottom:1.5rem;">
-                        <img src="{logo_data}" style="width:80px;height:80px;margin:0 auto 1rem auto;
-                             display:block;object-fit:contain;">
-                        <h1 style="margin:0;font-size:1.5rem;font-weight:600;color:#1f2937;">
+                    <div style="text-align:center;margin-bottom:2rem;">
+                        <img src="{logo_data}" style="width:80px;height:80px;margin:0 auto 1.25rem auto;
+                             display:block;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
+                        <h1 style="margin:0 0 0.5rem 0;font-size:1.5rem;font-weight:700;background:linear-gradient(135deg, #1e40af 0%, #06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
                             Customer AI Assistant</h1>
+                        <p style="margin:0;font-size:0.9rem;color:#6b7280;">Welcome back! Sign in to continue.</p>
                     </div>
                 """)
             else:
                 gr.Markdown("# 🤖 Customer AI Assistant")
 
-            gr.Markdown("**Sign in to start chatting**")
+            gr.HTML('<div style="margin-bottom:1rem;height:1px;background:linear-gradient(90deg,transparent,#e5e7eb,transparent);"></div>')
             email_input  = gr.Textbox(label="Email",     placeholder="your.email@example.com")
             name_input   = gr.Textbox(label="Full Name", placeholder="John Doe")
             signup_btn   = gr.Button("Sign In / Sign Up", variant="primary", size="sm")
@@ -79,7 +80,10 @@ def build_interface(app) -> gr.Blocks:
                     <div class="app-header">
                         <div class="logo-container">
                             <img src="{logo_data}" class="logo-img" alt="Dnext Logo">
-                            <h1>Customer AI Assistant</h1>
+                            <div>
+                                <h1 style="margin:0;font-size:1.25rem;font-weight:700;">Customer Support</h1>
+                                <p style="margin:0.25rem 0 0 0;font-size:0.75rem;opacity:0.7;">AI-Powered Assistance</p>
+                            </div>
                         </div>
                     </div>
                 """)
@@ -87,8 +91,11 @@ def build_interface(app) -> gr.Blocks:
                 # Welcome screen (shown when chat is empty)
                 with gr.Column(visible=True, elem_classes="welcome-screen") as welcome_screen:
                     gr.HTML("""
-                        <div style="margin-bottom:1.5rem;">
-                            <h2>How can I help you today?</h2>
+                        <div style="margin-bottom:2rem;">
+                            <h2 style="margin:0 0 0.5rem 0;font-size:2rem;font-weight:700;background:linear-gradient(135deg, #1e40af 0%, #06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                                How can I help you today?
+                            </h2>
+                            <p style="margin:0;font-size:0.95rem;opacity:0.7;">Ask questions about our products and services</p>
                         </div>
                     """)
                     with gr.Column(elem_classes="input-container-welcome"):
