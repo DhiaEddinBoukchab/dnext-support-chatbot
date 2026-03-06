@@ -8,36 +8,65 @@ CUSTOM_CSS = """
 
 * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important; }
 
-/* Use Gradio theme variables for automatic light/dark mode */
 body, .gradio-container {
     background-color: var(--background-fill-primary, #ffffff) !important;
     margin: 0 !important; padding: 0 !important;
     height: 100vh !important; overflow: hidden !important;
 }
 
-/* Login container – adapts to theme */
+/* Hide Gradio footer */
+footer, .footer, .gradio-container .footer {
+    display: none !important;
+}
+
+/* ── LOGIN PAGE ──────────────────────────────────────────────────────────── */
+
+/* Full-height row so the card is vertically centered */
+.login-row {
+    min-height: 100vh !important;
+    align-items: center !important;
+    background: var(--background-fill-primary) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Hide the two empty spacer columns visually */
+.login-row > .gap > div:first-child,
+.login-row > .gap > div:last-child {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* The actual login card */
 .login-container {
-    max-width: 380px !important; margin: auto !important;
-    padding: 1.5rem !important; 
-    background: var(--background-fill-primary, #ffffff) !important;
-    border-radius: 12px !important; 
-    box-shadow: var(--shadow-drop, 0 2px 10px rgba(0,0,0,0.1)) !important;
-    position: absolute !important; top: 50% !important; left: 50% !important;
-    transform: translate(-50%, -50%) !important;
+    background: var(--background-fill-secondary, #1e1e1e) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35) !important;
+    padding: 3rem 2.5rem !important;   /* ↕ hauteur interne   ↔ largeur interne */
+    min-height: 420px !important;
+    /* No position:fixed — gr.Row handles centering */
 }
 
 .app-title {
-    color: var(--body-text-color, #1f2937) !important;
+    color: var(--body-text-color, #f9fafb) !important;
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    margin: 0 0 1.25rem 0 !important;
 }
+
+/* ── MAIN APP LAYOUT (post-login) ────────────────────────────────────────── */
 
 .main-container {
     display: flex !important; height: 100vh !important;
     max-height: 100vh !important; overflow: hidden !important;
 }
 
-/* Sidebar – secondary background, theme‑aware border */
+/* Sidebar */
 .sidebar {
-    width: 240px !important; 
+    width: 240px !important;
     background: var(--background-fill-secondary, #f7f7f8) !important;
     border-right: 1px solid var(--border-color-primary, #e5e7eb) !important;
     overflow-y: auto !important;
@@ -54,7 +83,6 @@ body, .gradio-container {
     color: var(--body-text-color, inherit) !important;
 }
 
-/* User badge – neutral and adaptable */
 .user-badge {
     background: var(--background-fill-secondary, #f0fdf4) !important;
     border: 1px solid var(--border-color-primary, #bbf7d0) !important;
@@ -71,6 +99,7 @@ body, .gradio-container {
     margin-bottom: 0.25rem !important; text-transform: uppercase !important;
 }
 
+/* Chat area */
 .chat-container {
     flex: 1 !important; display: flex !important; flex-direction: column !important;
     max-width: 900px !important; margin: 0 auto !important;
@@ -97,7 +126,6 @@ body, .gradio-container {
 
 .logo-img { width: 32px !important; height: 32px !important; object-fit: contain !important; }
 
-/* Chatbot area – no background, inherits from container */
 .chatbot {
     border: none !important; background: transparent !important; box-shadow: none !important;
     flex: 1 !important; overflow-y: auto !important; padding: 1rem 0 !important;
@@ -105,7 +133,6 @@ body, .gradio-container {
     height: calc(100vh - 180px) !important; max-height: calc(100vh - 180px) !important;
 }
 
-/* Message bubbles – differentiate with secondary/primary backgrounds */
 .message {
     padding: 0.75rem 1rem !important; margin: 0.375rem 0 !important;
     border-radius: 8px !important; width: 100% !important; max-width: 100% !important;
@@ -118,7 +145,6 @@ body, .gradio-container {
     background: var(--background-fill-primary, #ffffff) !important;
 }
 
-/* Input containers – consistent with theme */
 .input-container-welcome,
 .input-container-bottom {
     background: var(--background-fill-primary, #ffffff) !important;
@@ -129,12 +155,8 @@ body, .gradio-container {
     margin: 0.5rem auto !important; max-width: 750px !important;
     width: 100% !important; flex-shrink: 0 !important;
 }
-.input-container-welcome {
-    margin-top: 0 !important;
-}
-.input-container-bottom {
-    position: sticky !important; bottom: 0.5rem !important;
-}
+.input-container-welcome { margin-top: 0 !important; }
+.input-container-bottom { position: sticky !important; bottom: 0.5rem !important; }
 
 .welcome-screen {
     display: flex !important; flex-direction: column !important;
@@ -145,7 +167,7 @@ body, .gradio-container {
 
 .logout-btn { margin-top: 0.5rem !important; padding: 0.375rem !important; font-size: 0.75rem !important; }
 
-/* Scrollbar – keep as is, but optional to theme */
+/* Scrollbar */
 ::-webkit-scrollbar { width: 6px !important; }
 ::-webkit-scrollbar-track { background: var(--background-fill-secondary, #f1f1f1) !important; }
 ::-webkit-scrollbar-thumb { background: var(--border-color-primary, #c1c1c1) !important; border-radius: 3px !important; }

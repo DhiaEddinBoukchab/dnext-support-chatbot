@@ -24,38 +24,39 @@ def get_logo_base64() -> str:
 
 
 def build_interface(app) -> gr.Blocks:
-    """
-    Build and return the Gradio Blocks demo.
-    `app` is a ChatbotApp instance that exposes:
-      - app.session_mgr   (SessionManager)
-      - app.msg_handler   (MessageHandler)
-      - app.auth          (AuthenticationService)
-    """
     logo_data = get_logo_base64()
 
     with gr.Blocks(title="Customer AI Assistant", css=CUSTOM_CSS, js=PASTE_FIX_JS) as demo:
-        user_state        = gr.State(None)
+        user_state         = gr.State(None)
         current_session_id = gr.State(None)
 
         # ── LOGIN ────────────────────────────────────────────────────────────
-        with gr.Column(visible=True, elem_classes="login-container") as login_section:
-            if logo_data:
-                gr.HTML(f"""
-                            <div style="text-align:center;margin-bottom:1.5rem;">
-                                <img src="{logo_data}" style="width:80px;height:80px;margin:0 auto 1rem auto;
-                                    display:block;object-fit:contain;">
-                                <h1 class="app-title" style="margin:0;font-size:1.5rem;font-weight:600;">
-                                    Customer AI Assistant</h1>
-                            </div>
-                        """)
-            else:
-                gr.Markdown("# 🤖 Customer AI Assistant")
+        with gr.Row(visible=True, elem_classes="login-row") as login_section:
+            # Left spacer
+            with gr.Column(scale=3):
+                pass
+            # Center card
+            with gr.Column(scale=4, elem_classes="login-container", min_width=500):
+                if logo_data:
+                    gr.HTML(f"""
+                        <div style="text-align:center;margin-bottom:1.5rem;">
+                            <img src="{logo_data}" style="width:80px;height:80px;margin:0 auto 1rem auto;
+                                display:block;object-fit:contain;">
+                            <h1 class="app-title" style="margin:0;font-size:1.5rem;font-weight:600;">
+                                Customer AI Assistant</h1>
+                        </div>
+                    """)
+                else:
+                    gr.Markdown("# 🤖 Customer AI Assistant")
 
-            gr.Markdown("**Sign in to start chatting**")
-            email_input  = gr.Textbox(label="Email",     placeholder="your.email@example.com")
-            name_input   = gr.Textbox(label="Full Name", placeholder="John Doe")
-            signup_btn   = gr.Button("Sign In / Sign Up", variant="primary", size="sm")
-            signup_status = gr.Markdown("")
+                gr.Markdown("**Sign in to start chatting**")
+                email_input   = gr.Textbox(label="Email",     placeholder="your.email@example.com")
+                name_input    = gr.Textbox(label="Full Name", placeholder="John Doe")
+                signup_btn    = gr.Button("Sign In / Sign Up", variant="primary", size="sm")
+                signup_status = gr.Markdown("")
+            # Right spacer
+            with gr.Column(scale=3):
+                pass
 
         # ── MAIN CHAT ────────────────────────────────────────────────────────
         with gr.Row(visible=False, elem_classes="main-container") as chat_section:
@@ -63,7 +64,7 @@ def build_interface(app) -> gr.Blocks:
             # Sidebar
             with gr.Column(scale=1, elem_classes="sidebar", min_width=240):
                 with gr.Column(elem_classes="sidebar-header"):
-                    new_chat_btn     = gr.Button("➕ New Chat", elem_classes="new-chat-btn")
+                    new_chat_btn      = gr.Button("➕ New Chat", elem_classes="new-chat-btn")
                     user_info_display = gr.HTML("")
 
                 gr.HTML('<div class="session-date-header">Recent Conversations</div>')
@@ -84,7 +85,6 @@ def build_interface(app) -> gr.Blocks:
                     </div>
                 """)
 
-                # Welcome screen (shown when chat is empty)
                 with gr.Column(visible=True, elem_classes="welcome-screen") as welcome_screen:
                     gr.HTML("""
                         <div style="margin-bottom:1.5rem;">
@@ -99,7 +99,6 @@ def build_interface(app) -> gr.Blocks:
                             show_label=False, submit_btn=True, interactive=True,
                         )
 
-                # Chatbot + bottom input (shown after first message)
                 chatbot = gr.Chatbot(value=[], show_label=False, visible=False,
                                      elem_id="chatbot-container")
 
@@ -162,7 +161,6 @@ def build_interface(app) -> gr.Blocks:
             text_message = multimodal_input.get("text", "") if isinstance(multimodal_input, dict) else ""
             files        = list(multimodal_input.get("files", [])) if isinstance(multimodal_input, dict) else []
 
-            # Safety net: .txt files that slipped through → read as text
             real_files = []
             for f in files:
                 fp = f if isinstance(f, str) else getattr(f, 'name', str(f))
@@ -195,7 +193,6 @@ def build_interface(app) -> gr.Blocks:
             chat_history.append({"role": "user",      "content": user_content})
             chat_history.append({"role": "assistant", "content": ""})
 
-            # Clear input instantly on first yield
             clear = gr.update(value={"text": "", "files": []})
             yield (chat_history,
                    gr.update(visible=True), gr.update(visible=False),
@@ -270,21 +267,18 @@ def build_interface(app) -> gr.Blocks:
                      input_bottom, msg_welcome],
         )
 
-        # Welcome-screen input
         msg_welcome.submit(
             respond,
             inputs=[msg_welcome, chatbot, user_state, current_session_id],
             outputs=[chatbot, chatbot, welcome_screen, input_bottom, msg_welcome, msg_welcome],
         ).then(refresh_sidebar, inputs=[user_state], outputs=[conversation_selector])
 
-        # Bottom input
         msg.submit(
             respond,
             inputs=[msg, chatbot, user_state, current_session_id],
             outputs=[chatbot, chatbot, welcome_screen, input_bottom, msg_welcome, msg],
         ).then(refresh_sidebar, inputs=[user_state], outputs=[conversation_selector])
 
-        # Sidebar session selection
         conversation_selector.change(
             load_session_handler,
             inputs=[conversation_selector, user_state],
