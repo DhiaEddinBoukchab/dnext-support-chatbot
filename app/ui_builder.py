@@ -41,13 +41,13 @@ def build_interface(app) -> gr.Blocks:
         with gr.Column(visible=True, elem_classes="login-container") as login_section:
             if logo_data:
                 gr.HTML(f"""
-                    <div style="text-align:center;margin-bottom:1.5rem;">
-                        <img src="{logo_data}" style="width:80px;height:80px;margin:0 auto 1rem auto;
-                             display:block;object-fit:contain;">
-                        <h1 style="margin:0;font-size:1.5rem;font-weight:600;color:#1f2937;">
-                            Customer AI Assistant</h1>
-                    </div>
-                """)
+                            <div style="text-align:center;margin-bottom:1.5rem;">
+                                <img src="{logo_data}" style="width:80px;height:80px;margin:0 auto 1rem auto;
+                                    display:block;object-fit:contain;">
+                                <h1 class="app-title" style="margin:0;font-size:1.5rem;font-weight:600;">
+                                    Customer AI Assistant</h1>
+                            </div>
+                        """)
             else:
                 gr.Markdown("# 🤖 Customer AI Assistant")
 

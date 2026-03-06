@@ -1,5 +1,6 @@
 """
 UI styles: CSS and JavaScript for the Gradio interface.
+Uses Gradio's theme variables for automatic light/dark mode compatibility.
 """
 
 CUSTOM_CSS = """
@@ -7,18 +8,26 @@ CUSTOM_CSS = """
 
 * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important; }
 
+/* Use Gradio theme variables for automatic light/dark mode */
 body, .gradio-container {
-    background-color: #ffffff !important;
+    background-color: var(--background-fill-primary, #ffffff) !important;
     margin: 0 !important; padding: 0 !important;
     height: 100vh !important; overflow: hidden !important;
 }
 
+/* Login container – adapts to theme */
 .login-container {
     max-width: 380px !important; margin: auto !important;
-    padding: 1.5rem !important; background: white !important;
-    border-radius: 12px !important; box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+    padding: 1.5rem !important; 
+    background: var(--background-fill-primary, #ffffff) !important;
+    border-radius: 12px !important; 
+    box-shadow: var(--shadow-drop, 0 2px 10px rgba(0,0,0,0.1)) !important;
     position: absolute !important; top: 50% !important; left: 50% !important;
     transform: translate(-50%, -50%) !important;
+}
+
+.app-title {
+    color: var(--body-text-color, #1f2937) !important;
 }
 
 .main-container {
@@ -26,9 +35,12 @@ body, .gradio-container {
     max-height: 100vh !important; overflow: hidden !important;
 }
 
+/* Sidebar – secondary background, theme‑aware border */
 .sidebar {
-    width: 240px !important; background: #f7f7f8 !important;
-    border-right: 1px solid #e5e7eb !important; overflow-y: auto !important;
+    width: 240px !important; 
+    background: var(--background-fill-secondary, #f7f7f8) !important;
+    border-right: 1px solid var(--border-color-primary, #e5e7eb) !important;
+    overflow-y: auto !important;
     padding: 0.75rem !important; height: 100vh !important; flex-shrink: 0 !important;
 }
 
@@ -36,20 +48,26 @@ body, .gradio-container {
 
 .new-chat-btn {
     width: 100% !important; padding: 0.5rem !important;
-    background: white !important; border: 1px solid #d1d5db !important;
+    background: var(--background-fill-primary, #ffffff) !important;
+    border: 1px solid var(--border-color-primary, #d1d5db) !important;
     border-radius: 8px !important; font-size: 0.875rem !important; margin-bottom: 1rem !important;
+    color: var(--body-text-color, inherit) !important;
 }
 
+/* User badge – neutral and adaptable */
 .user-badge {
-    background: #f0fdf4 !important; border: 1px solid #bbf7d0 !important;
-    color: #166534 !important; padding: 0.375rem 0.75rem !important;
+    background: var(--background-fill-secondary, #f0fdf4) !important;
+    border: 1px solid var(--border-color-primary, #bbf7d0) !important;
+    color: var(--body-text-color, #166534) !important;
+    padding: 0.375rem 0.75rem !important;
     border-radius: 16px !important; font-size: 0.75rem !important;
     margin: 0.5rem 0 !important; text-align: center !important;
 }
 
 .session-date-header {
     font-size: 0.6875rem !important; font-weight: 600 !important;
-    color: #6b7280 !important; margin-top: 0.75rem !important;
+    color: var(--block-label-text-color, #6b7280) !important;
+    margin-top: 0.75rem !important;
     margin-bottom: 0.25rem !important; text-transform: uppercase !important;
 }
 
@@ -62,16 +80,24 @@ body, .gradio-container {
 
 .app-header {
     text-align: center !important; padding: 0.75rem 0 !important;
-    border-bottom: 1px solid #e5e7eb !important; flex-shrink: 0 !important;
+    border-bottom: 1px solid var(--border-color-primary, #e5e7eb) !important;
+    flex-shrink: 0 !important;
 }
 
 .logo-container {
     display: flex !important; align-items: center !important;
     justify-content: center !important; gap: 0.5rem !important; margin-bottom: 0.5rem !important;
 }
+.logo-container h1 {
+    color: var(--body-text-color, inherit) !important;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
 
 .logo-img { width: 32px !important; height: 32px !important; object-fit: contain !important; }
 
+/* Chatbot area – no background, inherits from container */
 .chatbot {
     border: none !important; background: transparent !important; box-shadow: none !important;
     flex: 1 !important; overflow-y: auto !important; padding: 1rem 0 !important;
@@ -79,29 +105,35 @@ body, .gradio-container {
     height: calc(100vh - 180px) !important; max-height: calc(100vh - 180px) !important;
 }
 
+/* Message bubbles – differentiate with secondary/primary backgrounds */
 .message {
     padding: 0.75rem 1rem !important; margin: 0.375rem 0 !important;
     border-radius: 8px !important; width: 100% !important; max-width: 100% !important;
     font-size: 0.875rem !important; line-height: 1.4 !important;
 }
-
-.message.user { background: #f7f7f8 !important; border: none !important; }
-.message.bot  { background: white !important;   border: none !important; }
-
-.input-container-welcome {
-    background: white !important; border: 1px solid #d1d5db !important;
-    border-radius: 20px !important; padding: 0.5rem 0.75rem !important;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important; transition: all 0.2s !important;
-    margin: 0.5rem auto 0 !important; max-width: 750px !important;
-    width: 100% !important; flex-shrink: 0 !important;
+.message.user {
+    background: var(--background-fill-secondary, #f7f7f8) !important;
+}
+.message.bot {
+    background: var(--background-fill-primary, #ffffff) !important;
 }
 
+/* Input containers – consistent with theme */
+.input-container-welcome,
 .input-container-bottom {
-    background: white !important; border: 1px solid #d1d5db !important;
+    background: var(--background-fill-primary, #ffffff) !important;
+    border: 1px solid var(--border-color-primary, #d1d5db) !important;
     border-radius: 20px !important; padding: 0.5rem 0.75rem !important;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important; transition: all 0.2s !important;
-    margin: 0.5rem auto !important; max-width: 750px !important; width: 100% !important;
-    flex-shrink: 0 !important; position: sticky !important; bottom: 0.5rem !important;
+    box-shadow: var(--shadow-drop, 0 1px 4px rgba(0,0,0,0.06)) !important;
+    transition: all 0.2s !important;
+    margin: 0.5rem auto !important; max-width: 750px !important;
+    width: 100% !important; flex-shrink: 0 !important;
+}
+.input-container-welcome {
+    margin-top: 0 !important;
+}
+.input-container-bottom {
+    position: sticky !important; bottom: 0.5rem !important;
 }
 
 .welcome-screen {
@@ -113,10 +145,11 @@ body, .gradio-container {
 
 .logout-btn { margin-top: 0.5rem !important; padding: 0.375rem !important; font-size: 0.75rem !important; }
 
+/* Scrollbar – keep as is, but optional to theme */
 ::-webkit-scrollbar { width: 6px !important; }
-::-webkit-scrollbar-track { background: #f1f1f1 !important; }
-::-webkit-scrollbar-thumb { background: #c1c1c1 !important; border-radius: 3px !important; }
-::-webkit-scrollbar-thumb:hover { background: #a8a8a8 !important; }
+::-webkit-scrollbar-track { background: var(--background-fill-secondary, #f1f1f1) !important; }
+::-webkit-scrollbar-thumb { background: var(--border-color-primary, #c1c1c1) !important; border-radius: 3px !important; }
+::-webkit-scrollbar-thumb:hover { background: var(--block-label-text-color, #a8a8a8) !important; }
 
 @media (max-height: 700px) {
     .chatbot { height: calc(100vh - 150px) !important; max-height: calc(100vh - 150px) !important; }
@@ -130,8 +163,7 @@ body, .gradio-container {
 }
 """
 
-# Intercepts paste events so plain-text pastes go into the textarea,
-# not into Gradio's file-upload handler.
+# Paste fix remains unchanged
 PASTE_FIX_JS = """
 function pasteFixInit() {
     function interceptPaste(e) {
@@ -170,6 +202,8 @@ function pasteFixInit() {
 LAUNCH_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important; }
-body, .gradio-container { background-color: #ffffff !important; }
+body, .gradio-container { 
+    background-color: var(--background-fill-primary, #ffffff) !important; 
+}
 .gradio-container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
 """
