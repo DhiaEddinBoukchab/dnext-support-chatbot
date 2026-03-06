@@ -26,7 +26,7 @@ venv/
 env/
 ENV/
 .venv
-
+test1.py
 # Environment Variables
 .env
 test.py
@@ -34,11 +34,11 @@ validate_and_reindex.py
 output/
 gradio/
 docker/
-email_conversations (2)
+chroma_db/
 # Database
 *.db
 *.sqlite
-
+chunk_stats.py
 # IDE
 .vscode/
 .idea/
@@ -52,7 +52,7 @@ Thumbs.db
 
 # Logs
 *.log
-
+email_conversations(2)/
 # Testing
 .pytest_cache/
 .coverage
