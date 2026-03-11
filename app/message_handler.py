@@ -16,7 +16,7 @@ from typing import Dict, Generator, List, Optional
 
 from langsmith import traceable
 
-from models import Conversation
+from models import Conversation, RetrievalTrace
 from app.session import ConversationSession
 from app.rag_engine import RAGEngine
 
@@ -106,10 +106,26 @@ class MessageHandler:
                 full_response += chunk
                 yield full_response
             chunks_retrieved = 0
+            retrieved_chunks_data = []
         else:
             results = self.rag.retrieve(message)
             context = self.rag.format_context(results)
             chunks_retrieved = len(results['documents'][0]) if results['documents'] else 0
+
+            # Capture retrieval details for tracing
+            retrieved_chunks_data = []
+            if results['documents'] and results['documents'][0]:
+                for doc, metadata, distance in zip(
+                    results['documents'][0],
+                    results['metadatas'][0],
+                    results['distances'][0] if 'distances' in results else [None] * len(results['documents'][0])
+                ):
+                    retrieved_chunks_data.append({
+                        "text": doc,
+                        "distance": distance,
+                        "document": metadata.get('document', 'Unknown'),
+                        "section": metadata.get('section', 'Unknown'),
+                    })
 
             if not context:
                 yield NO_CONTEXT_REPLY
@@ -123,7 +139,8 @@ class MessageHandler:
         session.add_message("user", message)
         session.add_message("assistant", full_response)
 
-        self.db.save_conversation(Conversation(
+        # Save conversation
+        conv_id = self.db.save_conversation(Conversation(
             user_id=user_id,
             session_id=session.session_id,
             message=message,
@@ -132,6 +149,18 @@ class MessageHandler:
             conversation_type=conversation_type,
             response_time_ms=int((time.time() - start_time) * 1000),
         ))
+
+        # Save retrieval trace if it's a TECHNICAL conversation
+        if conversation_type == "TECHNICAL" and conv_id:
+            self.db.save_retrieval_trace(RetrievalTrace(
+                conversation_id=conv_id,
+                query_input=message,
+                retrieved_chunks=json.dumps(retrieved_chunks_data),
+                final_answer=full_response,
+                num_chunks_retrieved=chunks_retrieved,
+                timestamp=datetime.now(),
+            ))
+
         logger.info(f"Text query done in {int((time.time()-start_time)*1000)}ms | {conversation_type} | {chunks_retrieved} chunks")
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -208,6 +237,21 @@ class MessageHandler:
         context = self.rag.format_context(results)
         chunks_retrieved = len(results['documents'][0]) if results['documents'] else 0
 
+        # Capture retrieval details for tracing
+        retrieved_chunks_data = []
+        if results['documents'] and results['documents'][0]:
+            for doc, metadata, distance in zip(
+                results['documents'][0],
+                results['metadatas'][0],
+                results['distances'][0] if 'distances' in results else [None] * len(results['documents'][0])
+            ):
+                retrieved_chunks_data.append({
+                    "text": doc,
+                    "distance": distance,
+                    "document": metadata.get('document', 'Unknown'),
+                    "section": metadata.get('section', 'Unknown'),
+                })
+
         if not context:
             yield NO_CONTEXT_REPLY
             full_response = NO_CONTEXT_REPLY
@@ -223,7 +267,8 @@ class MessageHandler:
         # Save attachments to uploads/
         attachments_meta = self._save_attachments(files)
 
-        self.db.save_conversation(Conversation(
+        # Save conversation
+        conv_id = self.db.save_conversation(Conversation(
             user_id=user_id,
             session_id=session.session_id,
             message=user_display_msg,
@@ -233,6 +278,18 @@ class MessageHandler:
             response_time_ms=int((time.time() - start_time) * 1000),
             attachments=json.dumps(attachments_meta) if attachments_meta else None,
         ))
+
+        # Save retrieval trace
+        if conv_id:
+            self.db.save_retrieval_trace(RetrievalTrace(
+                conversation_id=conv_id,
+                query_input=retrieval_query,
+                retrieved_chunks=json.dumps(retrieved_chunks_data),
+                final_answer=full_response,
+                num_chunks_retrieved=chunks_retrieved,
+                timestamp=datetime.now(),
+            ))
+
         logger.info(f"File query done in {int((time.time()-start_time)*1000)}ms | {chunks_retrieved} chunks")
 
     def _save_attachments(self, files: List) -> List[Dict[str, str]]:

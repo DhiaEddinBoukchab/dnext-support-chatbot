@@ -5,6 +5,7 @@ Called by ui_builder.py to compose the full dashboard layout.
 
 import pandas as pd
 import gradio as gr
+from admin_dashboard.retrieval_traces import build_retrieval_traces_tab
 
 
 def build_stats_tab():

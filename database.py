@@ -8,7 +8,7 @@ from typing import List, Optional, Tuple
 from datetime import datetime, timedelta
 import logging
 from pathlib import Path
-from models import User, Conversation, AdminUser, UserStatus
+from models import User, Conversation, AdminUser, UserStatus, RetrievalTrace
 import hashlib
 
 
@@ -105,6 +105,31 @@ class DatabaseRepository:
             cursor.execute('''
                 CREATE INDEX IF NOT EXISTS idx_conversations_session_id
                 ON conversations(session_id)
+            ''')
+
+            # Retrieval traces table - tracks RAG pipeline details
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS retrieval_traces (
+                    retrieval_trace_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    conversation_id INTEGER NOT NULL,
+                    query_input TEXT NOT NULL,
+                    retrieved_chunks TEXT NOT NULL,
+                    final_answer TEXT NOT NULL,
+                    num_chunks_retrieved INTEGER NOT NULL,
+                    timestamp TIMESTAMP NOT NULL,
+                    FOREIGN KEY (conversation_id) REFERENCES conversations (conversation_id) ON DELETE CASCADE
+                )
+            ''')
+
+            # Indexes for retrieval traces
+            cursor.execute('''
+                CREATE INDEX IF NOT EXISTS idx_retrieval_traces_conversation_id
+                ON retrieval_traces(conversation_id)
+            ''')
+
+            cursor.execute('''
+                CREATE INDEX IF NOT EXISTS idx_retrieval_traces_timestamp
+                ON retrieval_traces(timestamp)
             ''')
 
             conn.commit()
@@ -668,4 +693,81 @@ class DatabaseRepository:
                 return [(row['day'], row['count']) for row in rows]
         except Exception as e:
             logger.error(f"Error getting conversations timeseries: {e}")
+            return []
+
+    # ==================== RETRIEVAL TRACE OPERATIONS ====================
+    
+    def save_retrieval_trace(self, trace: RetrievalTrace) -> Optional[int]:
+        """Save a retrieval trace to the database - returns retrieval_trace_id"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO retrieval_traces 
+                    (conversation_id, query_input, retrieved_chunks, final_answer, num_chunks_retrieved, timestamp)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (
+                    trace.conversation_id,
+                    trace.query_input,
+                    trace.retrieved_chunks,
+                    trace.final_answer,
+                    trace.num_chunks_retrieved,
+                    trace.timestamp,
+                ))
+                conn.commit()
+                return cursor.lastrowid
+        except Exception as e:
+            logger.error(f"Error saving retrieval trace: {e}")
+            return None
+
+    def get_retrieval_trace_by_conversation(self, conversation_id: int) -> Optional[RetrievalTrace]:
+        """Get retrieval trace for a specific conversation"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT * FROM retrieval_traces WHERE conversation_id = ?', (conversation_id,))
+                row = cursor.fetchone()
+                
+                if row:
+                    return RetrievalTrace(
+                        retrieval_trace_id=row['retrieval_trace_id'],
+                        conversation_id=row['conversation_id'],
+                        query_input=row['query_input'],
+                        retrieved_chunks=row['retrieved_chunks'],
+                        final_answer=row['final_answer'],
+                        num_chunks_retrieved=row['num_chunks_retrieved'],
+                        timestamp=datetime.fromisoformat(row['timestamp']),
+                    )
+                return None
+        except Exception as e:
+            logger.error(f"Error getting retrieval trace: {e}")
+            return None
+
+    def get_retrieval_traces_by_session(self, session_id: str) -> List[RetrievalTrace]:
+        """Get all retrieval traces for a session"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT rt.* FROM retrieval_traces rt
+                    INNER JOIN conversations c ON rt.conversation_id = c.conversation_id
+                    WHERE c.session_id = ?
+                    ORDER BY rt.timestamp ASC
+                ''', (session_id,))
+                rows = cursor.fetchall()
+                
+                traces = []
+                for row in rows:
+                    traces.append(RetrievalTrace(
+                        retrieval_trace_id=row['retrieval_trace_id'],
+                        conversation_id=row['conversation_id'],
+                        query_input=row['query_input'],
+                        retrieved_chunks=row['retrieved_chunks'],
+                        final_answer=row['final_answer'],
+                        num_chunks_retrieved=row['num_chunks_retrieved'],
+                        timestamp=datetime.fromisoformat(row['timestamp']),
+                    ))
+                return traces
+        except Exception as e:
+            logger.error(f"Error getting retrieval traces by session: {e}")
             return []

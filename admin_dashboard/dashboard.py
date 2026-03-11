@@ -21,8 +21,9 @@ from admin_dashboard.dataframes  import (
 )
 from admin_dashboard.ui_tabs import (
     build_stats_tab, build_users_tab, build_user_details_tab,
-    build_live_monitor_tab, build_conversations_tab,
+    build_live_monitor_tab, build_conversations_tab, build_retrieval_traces_tab
 )
+from admin_dashboard.retrieval_traces import create_traces_handlers
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +97,11 @@ class AdminDashboard:
                         (filter_email, filter_from, filter_to, filter_type,
                          apply_filters_btn, export_btn,
                          convs_table, export_status, export_file) = build_conversations_tab()
+
+                    with gr.Tab("🔬 Retrieval Traces"):
+                        (session_id_input, search_btn, traces_table,
+                         trace_id_input, view_btn,
+                         query_display, answer_display, chunks_display) = build_retrieval_traces_tab()
 
             # ── Event handlers ───────────────────────────────────────────────
 
@@ -187,6 +193,21 @@ class AdminDashboard:
                 export_handler,
                 inputs=[filter_email, filter_from, filter_to, filter_type],
                 outputs=[export_file, export_status],
+            )
+
+            # Retrieval traces
+            search_traces_handler, view_traces_handler = create_traces_handlers(self.db)
+            
+            search_btn.click(
+                search_traces_handler,
+                inputs=session_id_input,
+                outputs=traces_table,
+            )
+            
+            view_btn.click(
+                view_traces_handler,
+                inputs=trace_id_input,
+                outputs=[query_display, answer_display, chunks_display],
             )
 
         return demo

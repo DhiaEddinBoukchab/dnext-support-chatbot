@@ -99,6 +99,43 @@ class Conversation:
 
 
 @dataclass
+class RetrievalTrace:
+    """Retrieval trace model - SRP: Tracks RAG retrieval details for full pipeline visibility"""
+    conversation_id: int
+    query_input: str
+    retrieved_chunks: str  # JSON: [{"text": "...", "distance": 0.15, "document": "...", "section": "..."}]
+    final_answer: str
+    num_chunks_retrieved: int
+    timestamp: datetime = field(default_factory=datetime.now)
+    retrieval_trace_id: Optional[int] = None
+    
+    def to_dict(self) -> dict:
+        """Convert retrieval trace to dictionary"""
+        return {
+            'retrieval_trace_id': self.retrieval_trace_id,
+            'conversation_id': self.conversation_id,
+            'query_input': self.query_input,
+            'retrieved_chunks': self.retrieved_chunks,
+            'final_answer': self.final_answer,
+            'num_chunks_retrieved': self.num_chunks_retrieved,
+            'timestamp': self.timestamp.isoformat(),
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> 'RetrievalTrace':
+        """Create retrieval trace from dictionary"""
+        return cls(
+            conversation_id=data['conversation_id'],
+            query_input=data['query_input'],
+            retrieved_chunks=data['retrieved_chunks'],
+            final_answer=data['final_answer'],
+            num_chunks_retrieved=data['num_chunks_retrieved'],
+            timestamp=datetime.fromisoformat(data['timestamp']),
+            retrieval_trace_id=data.get('retrieval_trace_id'),
+        )
+
+
+@dataclass
 class AdminUser:
     """Admin user model - SRP: Represents admin credentials"""
     username: str
