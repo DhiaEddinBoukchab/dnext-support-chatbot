@@ -19,6 +19,7 @@ from langsmith import traceable
 from models import Conversation, RetrievalTrace
 from app.session import ConversationSession
 from app.rag_engine import RAGEngine
+from src.retrieval_config import get_config_for_conversation_type
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +109,11 @@ class MessageHandler:
             chunks_retrieved = 0
             retrieved_chunks_data = []
         else:
-            results = self.rag.retrieve(message)
+            # Get retrieval config based on conversation type
+            retrieval_config = get_config_for_conversation_type(conversation_type)
+            
+            # Use hybrid retrieval (semantic + BM25)
+            results = self.rag.retrieve_hybrid(message, retrieval_config)
             context = self.rag.format_context(results)
             chunks_retrieved = len(results['documents'][0]) if results['documents'] else 0
 
@@ -118,7 +123,7 @@ class MessageHandler:
                 for doc, metadata, distance in zip(
                     results['documents'][0],
                     results['metadatas'][0],
-                    results['distances'][0] if 'distances' in results else [None] * len(results['documents'][0])
+                    results['distances'] if results.get('distances') else [None] * len(results['documents'][0])
                 ):
                     retrieved_chunks_data.append({
                         "text": doc,
@@ -233,7 +238,9 @@ class MessageHandler:
             retrieval_query = f"{message}\n\nFile content(s):\n{combined}"
             user_display_msg = f"[{num_files} FILE(S) + TEXT] {message}"
 
-        results = self.rag.retrieve(retrieval_query, top_k=5)
+        # Use hybrid retrieval with TECHNICAL config (files are always technical)
+        retrieval_config = get_config_for_conversation_type("TECHNICAL")
+        results = self.rag.retrieve_hybrid(retrieval_query, retrieval_config)
         context = self.rag.format_context(results)
         chunks_retrieved = len(results['documents'][0]) if results['documents'] else 0
 
@@ -243,7 +250,7 @@ class MessageHandler:
             for doc, metadata, distance in zip(
                 results['documents'][0],
                 results['metadatas'][0],
-                results['distances'][0] if 'distances' in results else [None] * len(results['documents'][0])
+                results['distances'] if results.get('distances') else [None] * len(results['documents'][0])
             ):
                 retrieved_chunks_data.append({
                     "text": doc,

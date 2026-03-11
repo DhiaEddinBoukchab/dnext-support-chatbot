@@ -34,7 +34,7 @@ def build_retrieval_traces_df(traces: List[RetrievalTrace]) -> pd.DataFrame:
 
 
 def format_chunks_display(chunks_json: str) -> str:
-    """Format retrieved chunks JSON into readable markdown"""
+    """Format retrieved chunks JSON into readable markdown with distance metrics"""
     try:
         chunks = json.loads(chunks_json)
     except json.JSONDecodeError:
@@ -43,11 +43,20 @@ def format_chunks_display(chunks_json: str) -> str:
     if not chunks:
         return "No chunks retrieved"
     
-    md = "## Retrieved Chunks\n\n"
+    md = "## Retrieved Chunks (Ranked by Distance/Score)\n\n"
+    
+    # Check if chunks include distance/score info for hybrid search metrics
     for i, chunk in enumerate(chunks, 1):
         md += f"### Chunk {i}\n"
         md += f"**Document:** {chunk.get('document', 'Unknown')}\n"
         md += f"**Section:** {chunk.get('section', 'Unknown')}\n"
+        
+        # Show distance metric
+        distance = chunk.get('distance')
+        if distance is not None:
+            # Distance ranges from 0 (perfect match) to 1 (no match)
+            quality = "🟢 Excellent" if distance < 0.3 else "🟡 Good" if distance < 0.6 else "🔴 Fair"
+            md += f"**Distance (Similarity):** {distance:.3f} {quality}\n"
         md += f"**Distance:** {chunk.get('distance', 'N/A')}\n"
         md += f"\n{chunk.get('text', 'N/A')}\n\n"
         md += "---\n\n"
