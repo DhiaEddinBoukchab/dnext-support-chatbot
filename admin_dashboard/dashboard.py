@@ -99,8 +99,11 @@ class AdminDashboard:
                          convs_table, export_status, export_file) = build_conversations_tab()
 
                     with gr.Tab("🔬 Retrieval Traces"):
-                        (session_id_input, search_btn, traces_table,
+                        (filter_mode, session_id_input, user_email_input, conv_id_input,
+                         search_btn, traces_table,
                          trace_id_input, view_btn,
+                         conv_id_display, user_display, session_display, conv_type_display,
+                         response_time_display, timestamp_display,
                          query_display, answer_display, chunks_display) = build_retrieval_traces_tab()
 
             # ── Event handlers ───────────────────────────────────────────────
@@ -195,19 +198,37 @@ class AdminDashboard:
                 outputs=[export_file, export_status],
             )
 
-            # Retrieval traces
+            # Retrieval traces - update visibility based on filter mode
+            def update_filter_visibility(mode):
+                session_visible = mode == "By Session ID"
+                user_visible = mode == "By User Email"
+                conv_visible = mode == "By Conversation ID"
+                return (
+                    gr.update(visible=session_visible),
+                    gr.update(visible=user_visible),
+                    gr.update(visible=conv_visible),
+                )
+            
+            filter_mode.change(
+                update_filter_visibility,
+                inputs=filter_mode,
+                outputs=[session_id_input, user_email_input, conv_id_input]
+            )
+            
             search_traces_handler, view_traces_handler = create_traces_handlers(self.db)
             
             search_btn.click(
                 search_traces_handler,
-                inputs=session_id_input,
+                inputs=[filter_mode, session_id_input, user_email_input, conv_id_input],
                 outputs=traces_table,
             )
             
             view_btn.click(
                 view_traces_handler,
                 inputs=trace_id_input,
-                outputs=[query_display, answer_display, chunks_display],
+                outputs=[conv_id_display, user_display, session_display, conv_type_display,
+                         response_time_display, timestamp_display,
+                         query_display, answer_display, chunks_display],
             )
 
         return demo

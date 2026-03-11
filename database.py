@@ -771,3 +771,152 @@ class DatabaseRepository:
         except Exception as e:
             logger.error(f"Error getting retrieval traces by session: {e}")
             return []
+
+    def get_retrieval_traces_by_user(self, user_id: int, limit: int = 100) -> List[dict]:
+        """Get all retrieval traces for a user with conversation details"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT 
+                        rt.retrieval_trace_id,
+                        rt.conversation_id,
+                        rt.query_input,
+                        rt.retrieved_chunks,
+                        rt.final_answer,
+                        rt.num_chunks_retrieved,
+                        rt.timestamp,
+                        c.session_id,
+                        c.message,
+                        c.conversation_type,
+                        u.email,
+                        u.full_name
+                    FROM retrieval_traces rt
+                    INNER JOIN conversations c ON rt.conversation_id = c.conversation_id
+                    INNER JOIN users u ON c.user_id = u.user_id
+                    WHERE c.user_id = ?
+                    ORDER BY rt.timestamp DESC
+                    LIMIT ?
+                ''', (user_id, limit))
+                rows = cursor.fetchall()
+                
+                traces = []
+                for row in rows:
+                    traces.append({
+                        'retrieval_trace_id': row['retrieval_trace_id'],
+                        'conversation_id': row['conversation_id'],
+                        'query_input': row['query_input'],
+                        'retrieved_chunks': row['retrieved_chunks'],
+                        'final_answer': row['final_answer'],
+                        'num_chunks_retrieved': row['num_chunks_retrieved'],
+                        'timestamp': row['timestamp'],
+                        'session_id': row['session_id'],
+                        'message': row['message'],
+                        'conversation_type': row['conversation_type'],
+                        'email': row['email'],
+                        'full_name': row['full_name'],
+                    })
+                return traces
+        except Exception as e:
+            logger.error(f"Error getting retrieval traces by user: {e}")
+            return []
+
+    def get_retrieval_trace_with_conversation(self, trace_id: int) -> Optional[dict]:
+        """Get a specific retrieval trace with full conversation details"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT 
+                        rt.retrieval_trace_id,
+                        rt.conversation_id,
+                        rt.query_input,
+                        rt.retrieved_chunks,
+                        rt.final_answer,
+                        rt.num_chunks_retrieved,
+                        rt.timestamp,
+                        c.session_id,
+                        c.message,
+                        c.response,
+                        c.conversation_type,
+                        c.response_time_ms,
+                        c.timestamp as conversation_timestamp,
+                        u.user_id,
+                        u.email,
+                        u.full_name
+                    FROM retrieval_traces rt
+                    INNER JOIN conversations c ON rt.conversation_id = c.conversation_id
+                    INNER JOIN users u ON c.user_id = u.user_id
+                    WHERE rt.retrieval_trace_id = ?
+                ''', (trace_id,))
+                row = cursor.fetchone()
+                
+                if row:
+                    return {
+                        'retrieval_trace_id': row['retrieval_trace_id'],
+                        'conversation_id': row['conversation_id'],
+                        'query_input': row['query_input'],
+                        'retrieved_chunks': row['retrieved_chunks'],
+                        'final_answer': row['final_answer'],
+                        'num_chunks_retrieved': row['num_chunks_retrieved'],
+                        'timestamp': row['timestamp'],
+                        'session_id': row['session_id'],
+                        'message': row['message'],
+                        'response': row['response'],
+                        'conversation_type': row['conversation_type'],
+                        'response_time_ms': row['response_time_ms'],
+                        'conversation_timestamp': row['conversation_timestamp'],
+                        'user_id': row['user_id'],
+                        'email': row['email'],
+                        'full_name': row['full_name'],
+                    }
+                return None
+        except Exception as e:
+            logger.error(f"Error getting retrieval trace with conversation: {e}")
+            return None
+
+    def get_all_retrieval_traces(self, limit: int = 100) -> List[dict]:
+        """Get all retrieval traces across all users (for admin overview)"""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT 
+                        rt.retrieval_trace_id,
+                        rt.conversation_id,
+                        rt.query_input,
+                        rt.retrieved_chunks,
+                        rt.final_answer,
+                        rt.num_chunks_retrieved,
+                        rt.timestamp,
+                        c.session_id,
+                        c.conversation_type,
+                        u.email,
+                        u.full_name
+                    FROM retrieval_traces rt
+                    INNER JOIN conversations c ON rt.conversation_id = c.conversation_id
+                    INNER JOIN users u ON c.user_id = u.user_id
+                    ORDER BY rt.timestamp DESC
+                    LIMIT ?
+                ''', (limit,))
+                rows = cursor.fetchall()
+                
+                traces = []
+                for row in rows:
+                    traces.append({
+                        'retrieval_trace_id': row['retrieval_trace_id'],
+                        'conversation_id': row['conversation_id'],
+                        'query_input': row['query_input'],
+                        'retrieved_chunks': row['retrieved_chunks'],
+                        'final_answer': row['final_answer'],
+                        'num_chunks_retrieved': row['num_chunks_retrieved'],
+                        'timestamp': row['timestamp'],
+                        'session_id': row['session_id'],
+                        'conversation_type': row['conversation_type'],
+                        'email': row['email'],
+                        'full_name': row['full_name'],
+                    })
+                return traces
+        except Exception as e:
+            logger.error(f"Error getting all retrieval traces: {e}")
+            return []
