@@ -44,11 +44,9 @@
 
 ```https://[organisation].dnext.io/datasets/[organisation]-[uuid]/data-exploration```
 
-4. For reference, the original NASS fats and oils report is available here:
 
-```https://usda.library.cornell.edu/concern/publications/mp48sc77c```
 
-Users can access the updated dataset via the provided link and contact support for any further inquiries or dataset adjustments.",
+Users can contact support for any further inquiries or dataset adjustments.",
       "keywords": [
         "NASS fats and oils dataset",
         "soybean oil data",
@@ -243,7 +241,7 @@ def _extract_data(dataset_code: str, email: str, pwd: str, organisation: str) ->
     return _get_dataset(dataset_code, token)
 
 # Example usage:
-_extract_data(\"[organisation]-[uuid]\", \"xxx.xxx@org.xx\", \"xxxxx\", \"[organisation]\")
+_extract_data(\"[organisation]-[uuid]\", \"username.lastname@org.domain\", \"password", \"[organisation]\")
 ```
 
 Notes:
@@ -443,8 +441,8 @@ https://[organisation].dnext.io/fundamentals/tradematrix/[organisation]-[uuid]
 The download button on this page is now available and fully functional.
 
 Important notes:
-- TradeMatrix codes in the format \"[organisation]-xxxx-xxxx\" (from the old system) will be removed soon.
-- Use TradeMatrix codes in the \"[organisation]-xxxx-xxxx\" format, which are from the new system.
+- TradeMatrix codes in the format \"[organisation]-code\" (from the old system) will be removed soon.
+- Use TradeMatrix codes in the \"[organisation]-code\" format, which are from the new system.
 
 Using the new format ensures that updates or changes to resources are dynamically reflected in your access.",
       "keywords": [
@@ -551,7 +549,7 @@ AND \"Product\":\"Code\" = 'BLY'
 
 4. The Oilseeds SnD Excel files have been added to the Dropbox folder upon request.
 
-5. For technical assistance or requests, users are encouraged to contact xxx.xxx@org.xx, although some users have experienced issues with request creation via this email and are advised to contact the team directly if needed.
+5. For technical assistance or requests, users are encouraged to contact support, although some users have experienced issues with request creation via this email and are advised to contact the team directly if needed.
 
 6. Training sessions on the technical aspects of the platform can be arranged upon user availability.",
       "keywords": [
@@ -872,7 +870,7 @@ Please contact support if you have further questions.",
 *******
 
 "problem": "User is unable to download TradeMatrix aggregated data due to changes in the download URL and needs a correct script to authenticate and retrieve the data.",
-      "solution": "Use the following Python script to authenticate with the DNEXT API, check task status, and download TradeMatrix aggregated tradeflow data. Replace \"xxx.xxx@org.xx\", \"xxxxx\", and \"organisation\" with your actual credentials and environment name.
+      "solution": "Use the following Python script to authenticate with the DNEXT API, check task status, and download TradeMatrix aggregated tradeflow data. Replace \"email", \"password\", and \"organisation\" with your actual credentials and environment name.
 
 ```python
 import requests
@@ -899,7 +897,7 @@ def connect(email, pwd, organisation):
     token = response.json()['token']
     return token
 
-token = connect(\"xxx.xxx@org.xx\",\"xxxxx\",\"organisation\")
+token = connect(\"email\",\"password\",\"organisation\")
 
 def _get_task_status(task_id, token):
     my_headers = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
@@ -1115,7 +1113,7 @@ Replace the placeholders with your actual email, password, and environment name.
 *******
 
 "problem": "Users experience data mismatches between US corn export values in the Supply and Demand (SnD) module and the TradeMatrix module.",
-      "solution": "The mismatch occurs because users are consulting the Corn TradeMatrix from an old system that is being phased out and no longer updated. To resolve this, users should navigate to the TradeMatrix module, search for 'Corn' in the 'Name' column, and select the TradeMatrix entry with a 'Code' formatted as 'organisation-xxxx-xxxx-xxxx-xxxx'. This version is provided by the new system and contains up-to-date data, ensuring consistency with the SnD module.",
+      "solution": "The mismatch occurs because users are consulting the Corn TradeMatrix from an old system that is being phased out and no longer updated. To resolve this, users should navigate to the TradeMatrix module, search for 'Corn' in the 'Name' column, and select the TradeMatrix entry with a 'Code' formatted as 'organisation-code'. This version is provided by the new system and contains up-to-date data, ensuring consistency with the SnD module.",
       "keywords": [
         "TradeMatrix",
         "Corn exports",
@@ -1123,7 +1121,7 @@ Replace the placeholders with your actual email, password, and environment name.
         "old system",
         "new system",
         "code format",
-        "organisation-xxxx",
+        "organisation-code",
         "SnD module",
         "data update",
         "forecast visibility"
@@ -1511,7 +1509,7 @@ WHERE LEFT(\"Product\":\"Source\",4) IN ('1501','1502','1503','1516','1518')
 *******
 
 "problem": "User logs into the platform but cannot see any dashboards or data after changing the password.",
-      "solution": "After logging in to the platform at https://[organisation].dnext.io/, users should navigate to the dashboards by clicking the 'Dashboards' button on the left menu. To access the Tradematrix module, go to the 'Fundamentals' button on the left menu, then select 'Tradematrix'. Users will see a list of available tradematrixes and can view any by clicking the 'eye' icon on the right side of each row. Note that some tradematrixes are duplicates from an old system; users should prefer those with codes in the format '[organisation]-xxxxx-xxxxx-xxxxx' as older ones will be removed soon.",
+      "solution": "After logging in to the platform at https://[organisation].dnext.io/, users should navigate to the dashboards by clicking the 'Dashboards' button on the left menu. To access the Tradematrix module, go to the 'Fundamentals' button on the left menu, then select 'Tradematrix'. Users will see a list of available tradematrixes and can view any by clicking the 'eye' icon on the right side of each row. Note that some tradematrixes are duplicates from an old system; users should prefer those with codes in the format '[organisation]-code' as older ones will be removed soon.",
       "keywords": [
         "platform login",
         "dashboard access",
@@ -1527,7 +1525,7 @@ WHERE LEFT(\"Product\":\"Source\",4) IN ('1501','1502','1503','1516','1518')
 *******
 
 "problem": "Users experienced issues retrieving data for the new 'wheat aggregation' trade flow code via the DNEXT API after the update on dataset and trade flow UIDs.",
-      "solution": "To correctly download aggregated TradeMatrix data using the updated trade flow codes, use the following Python script. Replace \"xxx.xxx@org.xx\", \"xxxxx\", and \"[organisation]\" with your actual DNEXT login credentials and environment name.
+      "solution": "To correctly download aggregated TradeMatrix data using the updated trade flow codes, use the following Python script. Replace \"email\", \"password\", and \"[organisation]\" with your actual DNEXT login credentials and environment name.
 
 ```python
 import requests
@@ -1561,7 +1559,7 @@ def connect(email, pwd, organisation):
     token = response.json()['token']
     return token
     
-token = connect(\"xxx.xxx@org.xx\",\"xxxxx\",\"[organisation]\")
+token = connect(\"email",\"password\",\"[organisation]\")
 
 def _get_task_status(task_id, token):
     my_headers = {
@@ -2036,9 +2034,9 @@ def connect(email, pwd, organisation):
     token = response.json()['token']
     return token
 
-# Replace \"xxx.xxx@org.xx\", \"xxxxx\", and \"organisation\" with your credentials and environment name
+# Replace \"email\", \"password\", and \"organisation\" with your credentials and environment name
 
-token = connect(\"xxx.xxx@org.xx\",\"xxxxx\",\"organisation\")
+token = connect(\"email\",\"password\",\"organisation\")
 
 def _get_task_status(task_id, token):
     my_headers = {
@@ -2088,7 +2086,7 @@ df = download_dataset(code, token)
 ```
 
 Notes:
-- Replace \"xxx.xxx@org.xx\" and \"xxxxx\" with your actual API login credentials.
+- Replace \"email\" and \"password\" with your actual API login credentials.
 - The environment name \"thenv/orgul\" should be kept as is if it matches your dnext environment.
 - The dataset code can be replaced with any other from the provided list.
 - Large datasets like the Brazil weather dataset may take longer to download depending on your internet connection.
@@ -2196,8 +2194,8 @@ Please contact support if you encounter any issues accessing the dataset.",
 Example credentials provided for review before sending to the client:
 
 ```plaintext
-Email: xxx.xxx@org.xx
-Password : xxxxx
+Email: email
+Password : password
 ```
 
 Note: Replace the above credentials with the actual user's credentials when sending to the client.
@@ -2263,11 +2261,8 @@ This ensures the client has a full trial experience with restricted download cap
 
 No specific code or commands were provided as the fix was applied by the support team.
 
-Contact information for support:
 
-Email: xxx.xxx@org.xx
-
-General support email: xxx@org.xx
+General support email: support@dnext.io
 
 Platform URL: https://[organisation].dnext.io/
 
@@ -2498,7 +2493,7 @@ Please reach out if you need further assistance.",
 *******
 
 "problem": "Users experience confusion due to duplicate TradeMatrix files appearing with different code formats.",
-      "solution": "To identify the correct and up-to-date TradeMatrix files, use those with the new code format 'ameropa-xxxx-xxxx-xxxx-xxxx'. These files are part of a new sharing system that dynamically updates access and content, ensuring the latest versions are always available. Avoid using the old format 'dnexr-xxxx-xxxx' files, as they are being phased out and will be removed soon. Transitioning to the new format prevents confusion and guarantees access to the most current TradeMatrix data.",
+      "solution": "To identify the correct and up-to-date TradeMatrix files, use those with the new code format 'org-code'. These files are part of a new sharing system that dynamically updates access and content, ensuring the latest versions are always available. Transitioning to the new format prevents confusion and guarantees access to the most current TradeMatrix data.",
       "keywords": [
         "TradeMatrix",
         "duplicate files",
@@ -2720,7 +2715,7 @@ connect <- function(email, pwd, organisation) {
 } 
 
 # Call the connect function with your credentials 
-token <- connect(\"xxx.xxx@organisation.xx\", \"xxxxx\", \"your_env\") 
+token <- connect(\"email\", \"password\", \"your_env\") 
 token
 
 get_task_status <- function(task_id, token) {
@@ -2912,8 +2907,8 @@ import base64
 import pandas as pd
 
 ######## get the login token ###############
-user=\"xxx.xxx@org.xx\"
-password=\"xxxxx\"
+user=\"email"
+password=\"password\"
 org=\"[organisation]\"
 url = f'https://api.dnext.io/dev/auth/custom-login?org='+org
 payload = json.dumps({
@@ -2985,7 +2980,7 @@ df.dropna(subset=['QuantityOld'], inplace=True)
 #print(df)
 ```
 
-Replace \"xxx.xxx@org.xx\" and \"xxxxx\" with your credentials. Use the updated tradeflow and forecast codes in the format \"[organisation]-[uuid]\". Choose the snapshot from the printed snapshot list to compare versions.",
+Replace \"email\" and \"password\" with your credentials. Use the updated tradeflow and forecast codes in the format \"[organisation]-[uuid]\". Choose the snapshot from the printed snapshot list to compare versions.",
       "keywords": [
         "trade flows",
         "API",
