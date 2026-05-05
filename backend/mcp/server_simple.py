@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
-MCP_PORT = int(os.getenv("MCP_PORT", "8001"))
+MCP_PORT = int(os.getenv("PORT", "8001"))
 
 # HTTP client
 async_client: Optional[httpx.AsyncClient] = None
