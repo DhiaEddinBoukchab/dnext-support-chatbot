@@ -1,0 +1,108 @@
+═════════════════════════════════════════════════════════════════════════════
+                    DNEXT MCP SERVER - QUICK START
+═════════════════════════════════════════════════════════════════════════════
+
+WHAT IS THIS?
+  An MCP server that lets Haotian's agent ask DNEXT platform documentation
+  questions. One tool: query_platform_supporting
+
+YOUR ROLE:
+  Keep the server running so Haotian can use it
+
+─────────────────────────────────────────────────────────────────────────────
+STEP 1: INSTALL (one-time)
+─────────────────────────────────────────────────────────────────────────────
+
+  cd backend/mcp_spec_server
+  pip install -r requirements.txt
+
+─────────────────────────────────────────────────────────────────────────────
+STEP 2: CONFIGURE (one-time)
+─────────────────────────────────────────────────────────────────────────────
+
+  Create .env file with:
+  
+  MCP_SERVER_HOST=0.0.0.0
+  MCP_SERVER_PORT=8001
+  BACKEND_URL=http://localhost:8000
+
+─────────────────────────────────────────────────────────────────────────────
+STEP 3: START SERVER (every time)
+─────────────────────────────────────────────────────────────────────────────
+
+  python http_server.py
+
+  Expected output:
+  [MCP HTTP] Starting server on 0.0.0.0:8001
+  [MCP HTTP] Endpoint: http://0.0.0.0:8001/mcp
+  INFO: Uvicorn running on http://0.0.0.0:8001
+
+  ⚠️  KEEP THIS TERMINAL OPEN - Server must stay running!
+
+─────────────────────────────────────────────────────────────────────────────
+STEP 4: TEST (verify it works)
+─────────────────────────────────────────────────────────────────────────────
+
+  Open NEW terminal and run:
+
+  curl http://localhost:8001/health
+
+  Expected response:
+  {"status":"ok","service":"dnext-mcp-server"}
+
+  ✓ If you see this, the server is working!
+
+─────────────────────────────────────────────────────────────────────────────
+STEP 5: SHARE WITH HAOTIAN
+─────────────────────────────────────────────────────────────────────────────
+
+  Send Haotian:
+  1. Server URL: http://<YOUR_IP>:8001/mcp
+  2. File: HAOTIAN_INTEGRATION.md
+  
+  To find your IP:
+  - macOS: ipconfig getifaddr en0
+  - Linux: hostname -I
+  - Windows: ipconfig
+
+─────────────────────────────────────────────────────────────────────────────
+WHAT HAOTIAN CAN DO
+─────────────────────────────────────────────────────────────────────────────
+
+  ✓ Ask about DNEXT platform features
+  ✓ Ask how-to questions
+  ✓ Ask for troubleshooting help
+  ✓ Ask about documentation
+
+  ✗ Cannot ask about specific data
+  ✗ Cannot ask SQL questions
+  ✗ Cannot ask about metadata
+
+─────────────────────────────────────────────────────────────────────────────
+COMMON ISSUES
+─────────────────────────────────────────────────────────────────────────────
+
+  Issue: Port 8001 already in use
+  Fix: Change MCP_SERVER_PORT in .env to 8002 (or another port)
+
+  Issue: Backend not responding
+  Fix: Make sure DNEXT backend is running on http://localhost:8000
+
+  Issue: Haotian can't connect
+  Fix: Check firewall allows port 8001, use correct IP address
+
+  Issue: Slow responses
+  Fix: Check DNEXT backend load, check network latency
+
+─────────────────────────────────────────────────────────────────────────────
+FILES TO READ
+─────────────────────────────────────────────────────────────────────────────
+
+  YOUR_SETUP.md              ← Detailed setup guide for you
+  HAOTIAN_INTEGRATION.md     ← How Haotian uses the tool
+  DEPLOYMENT.md              ← Production deployment options
+  README.md                  ← Server overview
+
+═════════════════════════════════════════════════════════════════════════════
+                    START: python http_server.py
+═════════════════════════════════════════════════════════════════════════════

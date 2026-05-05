@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DNEXT Chat Widget - Development</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+          'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+          'Helvetica Neue', sans-serif;
+        background: #f5f5f5;
+      }
+
+      .container {
+        display: flex;
+        height: 100vh;
+        gap: 20px;
+        padding: 20px;
+      }
+
+      .demo-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .demo-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .widget-demo {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .code-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      pre {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 16px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 12px;
+        line-height: 1.5;
+        flex: 1;
+      }
+
+      code {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      }
+
+      .controls {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      button {
+        padding: 8px 16px;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s;
+      }
+
+      button:hover {
+        background: #2563eb;
+      }
+
+      .info {
+        padding: 12px;
+        background: #eff6ff;
+        border-left: 4px solid #3b82f6;
+        border-radius: 4px;
+        font-size: 13px;
+        color: #1e40af;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="demo-section">
+        <h1 class="demo-title">Chat Widget - Live Demo</h1>
+        <div class="info">
+          💡 Backend must be running on http://localhost:8000
+        </div>
+        <div id="root" class="widget-demo"></div>
+      </div>
+
+      <div class="code-section">
+        <h2 class="demo-title">Implementation Guide</h2>
+        <pre><code>// React Component
+import { ChatWidget } from '@dnext/chat-widget'
+
+export default function App() {
+  return (
+    &lt;ChatWidget
+      sessionId="optional-session-id"
+      apiUrl="http://localhost:8000"
+    /&gt;
+  )
+}
+
+// Or with container
+import { ChatWidgetContainer } from '@dnext/chat-widget'
+
+export default function App() {
+  return (
+    &lt;ChatWidgetContainer
+      title="Support Assistant"
+      position="bottom-right"
+      width={400}
+      height={600}
+    /&gt;
+  )
+}</code></pre>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

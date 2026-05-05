@@ -1,0 +1,136 @@
+================================================================================
+                    MCP SERVER - 5 FILES TO COPY
+================================================================================
+
+Copy these 5 files from the v0-project to your local repository:
+
+FILE 1: backend/mcp/server_simple.py
+  Size: ~334 lines
+  Purpose: Main MCP server (FastAPI)
+  Status: ✓ Ready to copy
+
+FILE 2: backend/mcp/requirements.txt  
+  Size: 6 lines
+  Purpose: Python dependencies
+  Status: ✓ Ready to copy
+
+FILE 3: backend/mcp/SIMPLE_START.md
+  Size: 287 lines
+  Purpose: Setup and usage guide
+  Status: ✓ Ready to copy
+
+FILE 4: backend/mcp/examples/client_simple_python.py
+  Size: 228 lines
+  Purpose: Python client library
+  Status: ✓ Ready to copy
+
+FILE 5: backend/mcp/examples/curl_examples.sh
+  Size: 75 lines
+  Purpose: cURL command examples
+  Status: ✓ Ready to copy
+
+================================================================================
+                            QUICK SETUP
+================================================================================
+
+After copying:
+
+1. Install dependencies
+   $ cd backend/mcp
+   $ pip install -r requirements.txt
+
+2. Make sure backend is running
+   $ # Terminal 1
+   $ cd backend
+   $ python main.py
+
+3. Start MCP server
+   $ # Terminal 2
+   $ cd backend/mcp
+   $ python server_simple.py
+
+4. Test it works
+   $ curl http://localhost:8001/health
+
+5. Start using!
+   - Python: Use examples/client_simple_python.py
+   - cURL:   Run bash examples/curl_examples.sh
+   - JS:     See SIMPLE_START.md for examples
+
+================================================================================
+                        WHAT YOU GET
+================================================================================
+
+✓ No API keys needed
+✓ 3 tools:
+  1. Send message to chatbot (streaming)
+  2. Upload PDF/images for knowledge base
+  3. Search knowledge base
+
+✓ Multiple ways to use:
+  - Python (async & sync)
+  - cURL (command line)
+  - JavaScript/Node.js
+
+✓ Ready to share with colleagues
+  - Just give them the URL
+  - No setup needed
+
+================================================================================
+                       FILES LOCATIONS
+================================================================================
+
+In this v0-project:
+  backend/mcp/server_simple.py
+  backend/mcp/requirements.txt
+  backend/mcp/SIMPLE_START.md
+  backend/mcp/examples/client_simple_python.py
+  backend/mcp/examples/curl_examples.sh
+
+Copy to your project:
+  your-repo/backend/mcp/server_simple.py
+  your-repo/backend/mcp/requirements.txt
+  your-repo/backend/mcp/SIMPLE_START.md
+  your-repo/backend/mcp/examples/client_simple_python.py
+  your-repo/backend/mcp/examples/curl_examples.sh
+
+================================================================================
+                       WHAT TO IGNORE
+================================================================================
+
+Do NOT copy these (they're for API key version):
+  ✗ auth.py
+  ✗ manage_keys.py
+  ✗ server_secure.py
+  ✗ COLLEAGUE_QUICK_START.md
+  ✗ MCP_SERVER_GUIDE.md
+  ✗ MCP_IMPLEMENTATION_SUMMARY.md
+
+================================================================================
+                      DOCUMENTATION
+================================================================================
+
+After copying, read:
+  1. backend/mcp/SIMPLE_START.md        → Setup and usage
+  2. backend/mcp/examples/curl_examples.sh → Command examples
+
+Optional reading:
+  3. MCP_FILES_TO_ADD.md                → File descriptions
+  4. MCP_SIMPLE_CHECKLIST.md            → Setup checklist
+  5. MCP_READY_TO_USE.md                → Overview
+
+================================================================================
+                         THAT'S IT!
+================================================================================
+
+Copy 5 files → Install → Run → Done!
+
+Your colleagues can start using immediately with:
+  • Python client
+  • cURL
+  • JavaScript
+  • Or any HTTP client
+
+No authentication, no setup needed!
+
+================================================================================

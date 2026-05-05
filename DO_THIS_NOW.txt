@@ -1,0 +1,217 @@
+================================================================================
+            STEP-BY-STEP: SET UP MCP SERVER WITH TOOLS
+================================================================================
+
+WHAT YOU NEED TO DO (Server Owner)
+================================================================================
+
+You are setting up a server so colleagues can use 3 tools:
+  1. Send messages to the chatbot
+  2. Upload files (PDF, images)
+  3. Search the knowledge base
+
+THESE FILES ARE ALREADY IN YOUR REPO:
+  ✓ backend/mcp/server_simple.py
+  ✓ backend/mcp/requirements.txt
+  ✓ backend/mcp/examples/client_simple_python.py
+  ✓ backend/mcp/examples/curl_examples.sh
+
+NO COPYING NEEDED - JUST FOLLOW STEPS BELOW!
+
+================================================================================
+STEP 1: MAKE SURE YOUR BACKEND IS RUNNING
+================================================================================
+
+Open Terminal 1 in VSCode:
+
+  cd backend
+  python main.py
+
+Wait until you see:
+  "Application startup complete"
+
+This is REQUIRED! The MCP server needs the backend to work.
+
+Status: Backend running on http://localhost:8000 ✓
+
+================================================================================
+STEP 2: INSTALL MCP SERVER DEPENDENCIES
+================================================================================
+
+Open Terminal 2 in VSCode:
+
+  cd backend/mcp
+  pip install -r requirements.txt
+
+This should finish in 10-20 seconds.
+
+Status: Dependencies installed ✓
+
+================================================================================
+STEP 3: START THE MCP SERVER
+================================================================================
+
+In the SAME Terminal 2, run:
+
+  python server_simple.py
+
+You should see:
+  [MCP] Initializing tools...
+  [MCP] Starting simple MCP server
+  [MCP] Server running on http://0.0.0.0:8001
+  [MCP] Available tools: send_message, upload_file, search_knowledge_base
+
+Status: MCP server running on http://localhost:8001 ✓
+
+================================================================================
+STEP 4: TEST IT WORKS
+================================================================================
+
+Open Terminal 3 in VSCode and run:
+
+  curl http://localhost:8001/health
+
+You should see:
+  {"status":"ok","service":"dnext-mcp-server","version":"1.0.0"}
+
+Status: Server is working ✓
+
+================================================================================
+STEP 5: GET YOUR SERVER URL
+================================================================================
+
+WHERE IS YOUR SERVER LOCATED?
+
+Option A: If colleagues are on SAME WiFi:
+  
+  Get your IP address:
+    Windows: ipconfig
+    Mac: ifconfig
+    Linux: hostname -I
+  
+  Example result: 192.168.1.100
+  
+  Your URL: http://192.168.1.100:8001
+
+Option B: If colleagues are REMOTE (different location):
+  
+  Use your domain or public IP
+  
+  Example: http://your-domain.com:8001
+  Example: http://34.56.78.90:8001
+
+Option C: Just testing (for now):
+  
+  Your URL: http://localhost:8001
+
+STATUS: You have your server URL ✓
+
+================================================================================
+STEP 6: SHARE WITH COLLEAGUES
+================================================================================
+
+Send your colleagues these 3 things:
+
+  1. Your SERVER URL (from Step 5)
+     Example: http://192.168.1.100:8001
+
+  2. The file: backend/mcp/COLLEAGUE_SETUP.md
+     This tells them how to use the tools
+
+  3. Optional: backend/mcp/examples/client_simple_python.py
+     If they want Python example code
+
+STATUS: Colleagues have the info they need ✓
+
+================================================================================
+STEP 7: KEEP IT RUNNING
+================================================================================
+
+Your setup is complete! Now just keep these running:
+
+  Terminal 1: Backend (cd backend && python main.py)
+  Terminal 2: MCP Server (cd backend/mcp && python server_simple.py)
+
+You can also run:
+
+  Terminal 3: Frontend (cd frontend && npm run dev)  - Optional for UI
+
+Keep these running while colleagues are using the tools.
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+PROBLEM: Port 8001 already in use
+
+SOLUTION:
+  # Kill existing process
+  lsof -i :8001  # Find what's using it
+  kill -9 <PID>  # Kill it
+  
+  # Then restart
+  python server_simple.py
+
+---
+
+PROBLEM: Cannot connect to backend
+
+SOLUTION:
+  Check Terminal 1 is running with "python main.py"
+  Test: curl http://localhost:8000/api/health
+  Should return successful response
+
+---
+
+PROBLEM: Colleague cannot reach server
+
+SOLUTION:
+  1. Make sure you gave the CORRECT IP address (not localhost for remote)
+  2. Check firewall allows port 8001
+  3. If using different network, use domain name or public IP
+  4. Test yourself from another computer: ping your-ip
+
+================================================================================
+WHAT YOUR COLLEAGUES CAN DO
+================================================================================
+
+Once they connect to http://your-server:8001, they can:
+
+  1. SEND MESSAGES
+     curl -X POST http://your-server:8001/tools/send-message \
+       -H "Content-Type: application/json" \
+       -d '{"message": "What is DNEXT?"}'
+
+  2. UPLOAD FILES
+     curl -X POST http://your-server:8001/tools/upload-file \
+       -F "file=@document.pdf"
+
+  3. SEARCH KNOWLEDGE BASE
+     curl -X POST http://your-server:8001/tools/search \
+       -H "Content-Type: application/json" \
+       -d '{"query": "help"}'
+
+They can use Python, JavaScript, or any HTTP client!
+
+================================================================================
+SUMMARY
+================================================================================
+
+✓ Step 1: Backend running (port 8000)
+✓ Step 2: MCP dependencies installed
+✓ Step 3: MCP server running (port 8001)
+✓ Step 4: Tested with curl
+✓ Step 5: Got your server URL
+✓ Step 6: Shared with colleagues
+✓ Step 7: Keeping servers running
+
+YOU'RE DONE! Colleagues can now use the tools!
+
+================================================================================
+
+Questions? Check these files:
+  - YOUR_SETUP.md              (More detailed version of this)
+  - COLLEAGUE_SETUP.md         (What colleagues should do)
+  - backend/mcp/SIMPLE_START.md (Technical details)
+
+================================================================================

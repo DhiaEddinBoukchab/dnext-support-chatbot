@@ -1,0 +1,125 @@
+================================================================================
+                    MCP SERVER - QUICK REFERENCE CARD
+================================================================================
+
+YOU (SERVER OWNER) - 3 TERMINALS RUNNING
+================================================================================
+
+Terminal 1 - BACKEND API (Port 8000)
+  $ cd backend
+  $ python main.py
+  ✓ Wait for: "Application startup complete"
+
+Terminal 2 - MCP SERVER (Port 8001)
+  $ cd backend/mcp
+  $ pip install -r requirements.txt    (first time only)
+  $ python server_simple.py
+  ✓ Wait for: "[MCP] Server running on http://0.0.0.0:8001"
+
+Terminal 3 - FRONTEND (Optional - Port 3000)
+  $ cd frontend
+  $ npm run dev
+
+GET YOUR SERVER URL:
+  Local:   http://localhost:8001           (testing only)
+  Network: http://192.168.1.100:8001       (use your IP)
+  Cloud:   http://your-domain.com:8001     (if hosted)
+
+SHARE WITH COLLEAGUES:
+  1. Send them the server URL
+  2. Send them: backend/mcp/COLLEAGUE_SETUP.md
+  3. They pick their method and start using!
+
+================================================================================
+COLLEAGUES (USERS) - PICK ONE METHOD
+================================================================================
+
+METHOD 1: PYTHON (Easiest)
+  $ pip install requests
+  $ Create script from COLLEAGUE_SETUP.md
+  $ python script.py
+
+METHOD 2: CURL (Command Line)
+  $ curl -X POST http://SERVER:8001/tools/send-message \
+    -H "Content-Type: application/json" \
+    -d '{"message": "Hello!"}'
+
+METHOD 3: JAVASCRIPT (Node.js)
+  $ npm install axios
+  $ Create script from COLLEAGUE_SETUP.md
+  $ node script.js
+
+METHOD 4: POSTMAN (GUI)
+  1. Download Postman
+  2. POST to: http://SERVER:8001/tools/send-message
+  3. Set header: Content-Type: application/json
+  4. Set body: {"message": "Hello!"}
+  5. Click Send
+
+================================================================================
+AVAILABLE TOOLS (All Methods)
+================================================================================
+
+1. SEND MESSAGE
+   POST /tools/send-message
+   Body: {"message": "Your question here"}
+
+2. UPLOAD FILE
+   POST /tools/upload
+   Form: file = document.pdf
+
+3. SEARCH KNOWLEDGE BASE
+   POST /tools/search
+   Body: {"query": "search term"}
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+YOU:
+  "Port 8001 already in use"
+    → Kill process: lsof -i :8001 (Mac/Linux) or netstat -ano | findstr :8001 (Windows)
+    → Restart: python server_simple.py
+
+  "Cannot connect to backend"
+    → Check: python main.py is running in backend/
+    → URL should be: http://localhost:8000
+
+COLLEAGUES:
+  "Connection refused"
+    → Ask you for the correct server URL
+    → Check network connection
+
+  "Server error"
+    → Ask you if backend is running
+
+================================================================================
+FILE LOCATIONS
+================================================================================
+
+YOUR FILES (Already in repo):
+  backend/mcp/server_simple.py
+  backend/mcp/requirements.txt
+  backend/mcp/examples/client_simple_python.py
+  backend/mcp/examples/curl_examples.sh
+
+FOR COLLEAGUES (Send these):
+  COLLEAGUE_SETUP.md               ← Complete guide
+  backend/mcp/COLLEAGUE_SETUP.md   ← Same file
+
+================================================================================
+ONE-LINE SUMMARY
+================================================================================
+
+YOU:
+  Terminal 1: cd backend && python main.py
+  Terminal 2: cd backend/mcp && python server_simple.py
+  → Share URL with colleagues
+
+COLLEAGUES:
+  Copy the server URL
+  Pick a method (Python/cURL/JS/Postman)
+  Follow 3-4 simple steps
+  → Start using!
+
+================================================================================
