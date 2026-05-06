@@ -8,8 +8,23 @@ load_dotenv()
 MCP_SERVER_HOST = os.getenv("MCP_SERVER_HOST", "0.0.0.0")
 MCP_SERVER_PORT = int(os.getenv("MCP_SERVER_PORT", "8001"))
 
+
+def _resolve_backend_url() -> str:
+    """Resolve the API base URL used by the MCP server."""
+    backend_url = os.getenv("BACKEND_URL")
+    if backend_url:
+        return backend_url.rstrip("/")
+
+    api_host = os.getenv("API_HOST", "localhost")
+    if api_host in {"0.0.0.0", "::"}:
+        api_host = "localhost"
+
+    api_port = os.getenv("API_PORT", "8000")
+    return f"http://{api_host}:{api_port}"
+
+
 # Backend Configuration
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = _resolve_backend_url()
 BACKEND_CHAT_ENDPOINT = f"{BACKEND_URL}/api/chat"
 
 # Tool Configuration

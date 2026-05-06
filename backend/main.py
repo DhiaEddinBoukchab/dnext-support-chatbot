@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from config import Config
 
 # Set paths relative to the repository root so the API and UI share one data store.
 import os
@@ -44,19 +45,19 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI app
 app = FastAPI(
-    title="DNEXT Support Chatbot API",
-    description="REST API for the DNEXT Support Chatbot",
-    version="2.0.0",
+    title=Config.API_TITLE,
+    description=Config.API_DESCRIPTION,
+    version=Config.API_VERSION,
     lifespan=lifespan,
 )
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # TODO: Configure in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=Config.CORS_ORIGINS,
+    allow_credentials=Config.CORS_ALLOW_CREDENTIALS,
+    allow_methods=Config.CORS_ALLOW_METHODS,
+    allow_headers=Config.CORS_ALLOW_HEADERS,
 )
 
 # Include routes
@@ -78,7 +79,7 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
-        port=8000,
+        host=Config.HOST,
+        port=Config.PORT,
         reload=True,
     )

@@ -20,9 +20,25 @@ from auth import validate_api_key
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+def _resolve_backend_url() -> str:
+    """Resolve the API base URL used by the MCP server."""
+    backend_url = os.getenv("BACKEND_URL")
+    if backend_url:
+        return backend_url.rstrip("/")
+
+    api_host = os.getenv("API_HOST", "localhost")
+    if api_host in {"0.0.0.0", "::"}:
+        api_host = "localhost"
+
+    api_port = os.getenv("API_PORT", "8000")
+    return f"http://{api_host}:{api_port}"
+
+
 # Configuration
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = _resolve_backend_url()
 MCP_PORT = int(os.getenv("MCP_PORT", "8001"))
+HTTP_TIMEOUT = httpx.Timeout(30.0, connect=5.0)
 
 # HTTP client
 async_client: Optional[httpx.AsyncClient] = None
@@ -33,7 +49,7 @@ async def get_client():
     """Get or create async HTTP client"""
     global async_client
     if async_client is None:
-        async_client = httpx.AsyncClient(base_url=BACKEND_URL, timeout=30.0)
+        async_client = httpx.AsyncClient(base_url=BACKEND_URL, timeout=HTTP_TIMEOUT)
     yield async_client
 
 
@@ -112,7 +128,8 @@ async def health_check():
     return {
         "status": "ok",
         "service": "dnext-mcp-server",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "backend_url": BACKEND_URL,
     }
 
 
@@ -175,6 +192,24 @@ async def send_message(
     
     except HTTPException:
         raise
+    except httpx.ConnectError as e:
+        logger.error(f"Error reaching backend at {BACKEND_URL}: {e}")
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                f"Cannot reach the backend at {BACKEND_URL}. "
+                "Start backend/main.py or set BACKEND_URL to the FastAPI API server."
+            ),
+        )
+    except httpx.TimeoutException as e:
+        logger.error(f"Backend timeout at {BACKEND_URL}: {e}")
+        raise HTTPException(
+            status_code=504,
+            detail=(
+                f"The backend at {BACKEND_URL} did not respond in time. "
+                "Check that the FastAPI API is running and healthy at /api/health."
+            ),
+        )
     except Exception as e:
         logger.error(f"Error processing message: {str(e)}")
         raise HTTPException(
@@ -321,6 +356,7 @@ async def search_knowledge_base(
 async def tools_info():
     """Get information about available tools"""
     return {
+        "backend_url": BACKEND_URL,
         "tools": [
             {
                 "name": "send_message",
