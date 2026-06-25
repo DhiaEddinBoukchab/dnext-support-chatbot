@@ -1,8 +1,6 @@
 from openai import OpenAI
 from typing import List, Dict, Generator, Optional
 import logging
-import requests
-from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
@@ -98,20 +96,14 @@ CASUAL or ACTIONABLE
     # RESPONSE GENERATION (NON-STREAMING)
     # =========================
     def generate_response(self, context: str, query: str, conversation_history: Optional[List[Dict]] = None) -> str:
-        """Generate response using LLM with website-aware context (non-streaming)"""
+        """Generate response using indexed knowledge-base context (non-streaming)"""
         
         conversation_type = self.classify_conversation(query)
 
         if conversation_type == "CASUAL":
             prompt = self._create_casual_prompt(query)
         else:  # ACTIONABLE
-            # Fetch dnext.io content
-            website_context = self.fetch_website_content("https://www.dnext.io/")
-            
-            # Combine with previous context (e.g., docs)
-            combined_context = f"{context}\n\n--- WEBSITE CONTENT ---\n{website_context}"
-            
-            prompt = self._create_technical_prompt(combined_context, query)
+            prompt = self._create_technical_prompt(context, query)
 
         # ── Build messages: system instruction extracted from prompt + history + current ──
         # We keep the original prompt as the user message for full backward compatibility,
@@ -137,20 +129,14 @@ CASUAL or ACTIONABLE
     # RESPONSE GENERATION (STREAMING)
     # =========================
     def generate_response_stream(self, context: str, query: str, conversation_history: Optional[List[Dict]] = None) -> Generator[str, None, None]:
-        """Generate streaming response using LLM with website-aware context and conversation memory"""
+        """Generate streaming response using indexed knowledge-base context and conversation memory"""
         
         conversation_type = self.classify_conversation(query)
 
         if conversation_type == "CASUAL":
             prompt = self._create_casual_prompt(query)
         else:  # ACTIONABLE
-            # Fetch dnext.io content
-            website_context = self.fetch_website_content("https://www.dnext.io/")
-            
-            # Combine with previous context (e.g., docs)
-            combined_context = f"{context}\n\n--- WEBSITE CONTENT ---\n{website_context}"
-            
-            prompt = self._create_technical_prompt(combined_context, query)
+            prompt = self._create_technical_prompt(context, query)
 
         # ── Build messages: history + current prompt (original prompt templates fully preserved) ──
         messages = []
@@ -254,23 +240,3 @@ You are Dnext Assistant, a technical and product support expert providing precis
 
 Now provide the best possible answer:"""
 
-    # =========================
-    # WEBSITE CONTENT FETCHING  (unchanged)
-    # =========================
-    def fetch_website_content(self, url: str) -> str:
-        """Fetch and clean text content from a website."""
-        try:
-            response = requests.get(url, timeout=10)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, "html.parser")
-
-            # Remove scripts and styles
-            for script in soup(["script", "style"]):
-                script.decompose()
-
-            text = " ".join(soup.stripped_strings)
-            logger.info(f"Website content fetched from {url}")
-            return text[:4000]  # truncate to avoid token overflow
-        except Exception as e:
-            logger.error(f"Error fetching website content: {e}")
-            return ""
