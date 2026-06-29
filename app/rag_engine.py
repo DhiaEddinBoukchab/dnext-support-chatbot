@@ -9,11 +9,10 @@ from typing import Dict, List, Tuple, Optional
 from langsmith import traceable
 
 from config import Config
-from src.embeddings import EmbeddingManager
-from src.vector_store import VectorStore
 from src.chunker import Chunker
 from src.bm25_search import get_bm25_indexer
-from src.retrieval_config import RetrievalConfig, get_config_for_conversation_type
+from src.retrieval_config import RetrievalConfig
+from src.provider_factories import create_embedding_manager, create_vector_store
 from app.document_processor import DocumentProcessor
 
 logger = logging.getLogger(__name__)
@@ -23,8 +22,8 @@ class RAGEngine:
     """Handles document loading/indexing and semantic retrieval."""
 
     def __init__(self):
-        self.embedding_manager = EmbeddingManager(Config.EMBEDDING_MODEL)
-        self.vector_store = VectorStore(Config.CHROMA_DB_PATH)
+        self.embedding_manager = create_embedding_manager()
+        self.vector_store = create_vector_store()
         self.doc_processor = DocumentProcessor()
         self.collection = None
         self.bm25_indexer = get_bm25_indexer()  # Initialize BM25 indexer

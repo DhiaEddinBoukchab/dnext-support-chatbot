@@ -38,6 +38,10 @@ email_conversations (2)
 # Database
 *.db
 *.sqlite
+chroma_db/
+runtime_data/
+data/chroma_db/
+data/qdrant/
 
 # IDE
 .vscode/

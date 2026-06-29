@@ -50,3 +50,22 @@ A client-side chatbot assistant built for customer support. This is a working pr
 - `config.py` - Application settings
 - `docs_md/` - Our fundamental database containing different sources (emails, documentation)
 - `admin_dashboard/` - To track users' conversations
+
+## FastAPI API
+
+The project now also includes a FastAPI service under `api/` for API-based chatbot access alongside the Gradio interface.
+
+Run the API locally:
+
+```bash
+uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Main endpoints:
+
+- `GET /health`
+- `POST /api/v1/auth/login`
+- `POST /api/v1/chat/query`
+- `GET /api/v1/chat/sessions`
+- `GET /api/v1/chat/sessions/{session_id}`
+- `POST /api/v1/knowledge/reindex`

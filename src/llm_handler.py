@@ -23,7 +23,7 @@ class LLMHandler:
     def classify_conversation(self, query: str) -> str:
         """
         Classify user message into exactly one category:
-        CASUAL | ACTIONABLE
+        CASUAL | TECHNICAL
         """
 
         classification_prompt = f"""
@@ -37,7 +37,7 @@ CASUAL:
 - Jokes, chitchat
 - "hello", "thanks", "how are you?"
 
-ACTIONABLE:
+TECHNICAL:
 - Platform usage or troubleshooting
 - Market data, analysis, forecasts
 - API, code, technical questions
@@ -48,7 +48,7 @@ User message:
 "{query}"
 
 Respond with ONLY ONE WORD:
-CASUAL or ACTIONABLE
+CASUAL or TECHNICAL
 """
 
         try:
@@ -62,11 +62,11 @@ CASUAL or ACTIONABLE
             classification = response.choices[0].message.content.strip().upper()
             logger.info(f"Conversation classified as: {classification}")
 
-            return classification if classification in ["CASUAL", "ACTIONABLE"] else "ACTIONABLE"
+            return classification if classification in ["CASUAL", "TECHNICAL"] else "TECHNICAL"
 
         except Exception as e:
             logger.error(f"Classification error: {e}")
-            return "ACTIONABLE"  # Safe default
+            return "TECHNICAL"  # Safe default
 
     # =========================
     # HISTORY HELPER  ← NEW
@@ -102,7 +102,7 @@ CASUAL or ACTIONABLE
 
         if conversation_type == "CASUAL":
             prompt = self._create_casual_prompt(query)
-        else:  # ACTIONABLE
+        else:  # TECHNICAL
             prompt = self._create_technical_prompt(context, query)
 
         # ── Build messages: system instruction extracted from prompt + history + current ──
@@ -135,7 +135,7 @@ CASUAL or ACTIONABLE
 
         if conversation_type == "CASUAL":
             prompt = self._create_casual_prompt(query)
-        else:  # ACTIONABLE
+        else:  # TECHNICAL
             prompt = self._create_technical_prompt(context, query)
 
         # ── Build messages: history + current prompt (original prompt templates fully preserved) ──
@@ -189,7 +189,7 @@ You are Dnext Assistant, a professional and helpful AI assistant for the Dnext p
 Now respond naturally:"""
 
     def _create_technical_prompt(self, context: str, query: str) -> str:
-        """Prompt for actionable (technical or procedural) questions"""
+        """Prompt for technical or procedural questions"""
         return f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 You are Dnext Assistant, a technical and product support expert providing precise, reliable answers.
 

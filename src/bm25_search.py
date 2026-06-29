@@ -5,7 +5,11 @@ Provides fast keyword-based retrieval to complement semantic (vector) search.
 
 import logging
 from typing import List, Dict, Tuple, Optional
-from rank_bm25 import BM25Okapi
+
+try:
+    from rank_bm25 import BM25Okapi
+except ImportError:  # pragma: no cover - optional dependency fallback
+    BM25Okapi = None
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +36,11 @@ class BM25Indexer:
             chunk_ids: Optional list of chunk IDs (defaults to indices)
         """
         try:
+            if BM25Okapi is None:
+                logger.warning("rank_bm25 is not installed. BM25 indexing is disabled.")
+                self.is_indexed = False
+                return
+
             if not chunks:
                 logger.warning("No chunks to index for BM25")
                 return
