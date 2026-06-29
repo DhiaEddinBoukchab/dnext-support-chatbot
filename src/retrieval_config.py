@@ -1,32 +1,31 @@
 """
 Retrieval configuration system for flexible, per-query RAG settings.
-Supports hybrid search with configurable distance thresholds and chunk limits.
+Currently configured for semantic-only search.
 """
 
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 
 @dataclass
 class RetrievalConfig:
     """
-    Configuration for RAG retrieval with support for hybrid search
+    Configuration for RAG retrieval with support for semantic search
     and dynamic chunk selection based on distance thresholds.
     """
     
     # Distance-based filtering
     distance_threshold: float = 0.5  # Max distance to include chunk (0.0-1.0)
     min_chunks: int = 2  # Minimum chunks to retrieve
-    max_chunks: int = 10  # Maximum chunks to retrieve
+    max_chunks: int = 5  # Maximum chunks to retrieve
     
-    # Hybrid search settings
-    use_hybrid_search: bool = True  # Enable BM25 + semantic blending
-    semantic_weight: float = 0.7  # Weight for semantic (vector) results
-    keyword_weight: float = 0.3  # Weight for BM25 keyword results
-    
+    # Search mode settings
+    use_hybrid_search: bool = False  # Keep semantic search only for now
+    semantic_weight: float = 1.0  # Full weight for semantic (vector) results
+    keyword_weight: float = 0.0  # No BM25 contribution
+
     # Search parameters
     top_k_semantic: int = 15  # Top-k for semantic search (before filtering)
-    top_k_keyword: int = 15  # Top-k for BM25 search (before filtering)
+    top_k_keyword: int = 0  # Unused while semantic-only search is enabled
     
     def __post_init__(self):
         """Validate configuration"""
@@ -44,30 +43,30 @@ class RetrievalConfig:
 TECHNICAL_CONFIG = RetrievalConfig(
     distance_threshold=0.5,  # Stricter threshold for technical accuracy
     min_chunks=2,
-    max_chunks=10,
-    use_hybrid_search=True,
-    semantic_weight=0.7,
-    keyword_weight=0.3,
+    max_chunks=5,
+    use_hybrid_search=False,
+    semantic_weight=1.0,
+    keyword_weight=0.0,
     top_k_semantic=15,
-    top_k_keyword=15,
+    top_k_keyword=0,
 )
 
 CASUAL_CONFIG = RetrievalConfig(
     distance_threshold=0.6,  # More lenient for casual queries
     min_chunks=1,
     max_chunks=5,
-    use_hybrid_search=True,
-    semantic_weight=0.8,  # More reliance on semantic understanding
-    keyword_weight=0.2,
+    use_hybrid_search=False,
+    semantic_weight=1.0,
+    keyword_weight=0.0,
     top_k_semantic=10,
-    top_k_keyword=10,
+    top_k_keyword=0,
 )
 
 # Pure semantic search (no hybrid)
 SEMANTIC_ONLY_CONFIG = RetrievalConfig(
     distance_threshold=0.5,
     min_chunks=2,
-    max_chunks=10,
+    max_chunks=5,
     use_hybrid_search=False,
     semantic_weight=1.0,
     keyword_weight=0.0,
