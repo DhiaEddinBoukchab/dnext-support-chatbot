@@ -1,12 +1,9 @@
 from datetime import datetime
 import logging
 
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status
 
-from auth_service import AuthenticationService
-from config import Config
-from database import DatabaseRepository
-from models import UserStatus
+from api.dependencies import get_chat_service, get_current_user
 from api.schemas import (
     ChatRequest,
     ChatResponse,
@@ -16,7 +13,7 @@ from api.schemas import (
     SessionSummary,
     UserResponse,
 )
-from api.service import ChatService
+from core.config import Config
 
 
 logging.basicConfig(
@@ -26,51 +23,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
-db = DatabaseRepository(Config.API_DB_PATH)
-auth = AuthenticationService(db)
-chat_service: ChatService | None = None
-
 app = FastAPI(
     title="Dnext Support Chatbot API",
     version="0.1.0",
     description="Local REST API for testing the current chatbot logic before AWS migration.",
 )
-
-
-def get_chat_service() -> ChatService:
-    """Initialize the heavy chat stack lazily on first use."""
-    global chat_service
-    if chat_service is None:
-        chat_service = ChatService(db, auth)
-    return chat_service
-
-
-def get_current_user(
-    x_user_email: str | None = Header(default=None, alias="X-User-Email"),
-    x_user_name: str | None = Header(default=None, alias="X-User-Name"),
-) -> UserResponse:
-    """Resolve the current user from upstream-provided identity headers."""
-    if not x_user_email:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing X-User-Email header",
-        )
-
-    full_name = x_user_name or x_user_email.split("@", 1)[0].replace(".", " ").title()
-    success, message, user = auth.register_user(x_user_email, full_name)
-    if not success or not user or not user.user_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
-
-    if not auth.verify_user_access(user.user_id):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or blocked")
-
-    return UserResponse(
-        user_id=user.user_id,
-        email=user.email,
-        full_name=user.full_name,
-        status=user.status.value if isinstance(user.status, UserStatus) else str(user.status),
-    )
 
 
 @app.get("/health", response_model=HealthResponse)

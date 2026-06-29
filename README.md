@@ -12,15 +12,23 @@ API-only branch for the Dnext support chatbot. This branch is prepared for conta
 
 ## Repository Layout
 
-- `api/` FastAPI routes, schemas, and service layer
-- `app/` RAG engine, document processing, and session management
-- `src/` OpenAI, Chroma, chunking, and retrieval helpers
+- `api/` FastAPI interface layer: routes, schemas, and request dependencies
+- `core/` runtime configuration
+- `domain/` domain models shared across the app
+- `infrastructure/` persistence adapters such as SQLite
+- `services/` application services for auth and chat orchestration
+- `rag/` retrieval, embeddings, vector store, session, and LLM helpers
 - `docs_md/` indexed knowledge base documents
-- `auth_service.py` user registration and access checks
-- `config.py` environment-driven configuration
-- `database.py` SQLite repository
-- `models.py` domain models
 - `Dockerfile` production container entrypoint
+
+Current high-level flow:
+
+```text
+api -> services -> rag
+     -> infrastructure
+     -> domain
+     -> core
+```
 
 ## Required Environment Variables
 
@@ -70,7 +78,8 @@ docker run --rm -p 8000:8000 \
 
 ## Notes For DevOps
 
-- The image copies only the runtime code, configuration files, and `docs_md/`.
+- The image copies only the runtime packages, configuration, and `docs_md/`.
 - If the Chroma store is empty on first startup, the app auto-indexes `docs_md/`.
 - `chroma_db/` and `runtime_data/` are runtime directories and are not baked into the image.
+- Local development data such as `.gradio/`, `data/`, and archived email folders is intentionally excluded from this branch.
 - The service is ready for later replacement of local storage pieces such as ChromaDB or file-based docs with AWS-managed components.

@@ -14,10 +14,10 @@ venv
 .mypy_cache
 .ruff_cache
 *.log
-email_conversations (2)
-data/uploads
-chroma_db
-data/chroma_db
-data/qdrant
-runtime_data
 *.db
+*.sqlite
+*.sqlite3
+email_conversations (2)
+data
+chroma_db
+runtime_data

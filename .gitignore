@@ -1,4 +1,3 @@
-"""
 # Python
 __pycache__/
 *.py[cod]
@@ -6,7 +5,6 @@ __pycache__/
 *.so
 .Python
 build/
-develop-eggs/
 dist/
 downloads/
 eggs/
@@ -18,47 +16,42 @@ sdist/
 var/
 wheels/
 *.egg-info/
-.installed.cfg
 *.egg
 
-# Virtual Environment
+# Virtual environments
 venv/
 env/
 ENV/
-.venv
+.venv/
 
-# Environment Variables
+# Local configuration
 .env
-test.py
-validate_and_reindex.py
-output/
-gradio/
-docker/
-email_conversations (2)
-# Database
-*.db
-*.sqlite
+.env.*
+
+# Local runtime data
+.gradio/
 chroma_db/
 runtime_data/
-data/chroma_db/
-data/qdrant/
+data/
+email_conversations (2)/
+*.db
+*.sqlite
+*.sqlite3
 
-# IDE
+# Tooling and IDE
+.agents/
 .vscode/
 .idea/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# OS and logs
+.DS_Store
+Thumbs.db
+*.log
 *.swp
 *.swo
 *~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-"""

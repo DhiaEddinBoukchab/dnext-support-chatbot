@@ -1,1 +1,1 @@
-"""Local REST API package for the Dnext support chatbot."""
+"""FastAPI interface layer for the Dnext support chatbot."""
