@@ -1,3 +1,4 @@
+*******
 # Dnext Business Page Snapshot
 Company Overview
 
@@ -78,4 +79,4 @@ Avenue Louis-Casai 81
 Switzerland
 
 The website also links to the company LinkedIn page and public contact pages.
-
+*******
