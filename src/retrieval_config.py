@@ -24,7 +24,7 @@ class RetrievalConfig:
     keyword_weight: float = 0.0  # No BM25 contribution
 
     # Search parameters
-    top_k_semantic: int = 15  # Top-k for semantic search (before filtering)
+    top_k_semantic: int = 5  # Top-k for semantic search (before filtering)
     top_k_keyword: int = 0  # Unused while semantic-only search is enabled
     
     def __post_init__(self):
@@ -47,7 +47,7 @@ TECHNICAL_CONFIG = RetrievalConfig(
     use_hybrid_search=False,
     semantic_weight=1.0,
     keyword_weight=0.0,
-    top_k_semantic=15,
+    top_k_semantic=5,
     top_k_keyword=0,
 )
 
@@ -58,7 +58,7 @@ CASUAL_CONFIG = RetrievalConfig(
     use_hybrid_search=False,
     semantic_weight=1.0,
     keyword_weight=0.0,
-    top_k_semantic=10,
+    top_k_semantic=5,
     top_k_keyword=0,
 )
 
@@ -70,6 +70,7 @@ SEMANTIC_ONLY_CONFIG = RetrievalConfig(
     use_hybrid_search=False,
     semantic_weight=1.0,
     keyword_weight=0.0,
+    top_k_semantic=5,
 )
 
 
