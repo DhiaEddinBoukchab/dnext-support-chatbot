@@ -69,3 +69,20 @@ Main endpoints:
 - `GET /api/v1/chat/sessions`
 - `GET /api/v1/chat/sessions/{session_id}`
 - `POST /api/v1/knowledge/reindex`
+
+## Docker
+
+Build the container:
+
+```bash
+docker build -t dnext-support-chatbot .
+```
+
+Run the container:
+
+```bash
+docker run --rm -p 8000:8000 \
+  -e OPENAI_API_KEY=your_key_here \
+  -e JWT_SECRET_KEY=change-me \
+  dnext-support-chatbot
+```
