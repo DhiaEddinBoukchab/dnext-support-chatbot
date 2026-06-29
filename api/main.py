@@ -1,19 +1,16 @@
 from datetime import datetime
 import logging
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, Header, HTTPException, status
 
 from auth_service import AuthenticationService
 from config import Config
 from database import DatabaseRepository
 from models import UserStatus
-from api.auth import create_access_token, get_token_payload
 from api.schemas import (
     ChatRequest,
     ChatResponse,
     HealthResponse,
-    LoginRequest,
-    LoginResponse,
     ReindexResponse,
     SessionHistoryResponse,
     SessionSummary,
@@ -49,14 +46,23 @@ def get_chat_service() -> ChatService:
     return chat_service
 
 
-def get_current_user(payload: dict = Depends(get_token_payload)) -> UserResponse:
-    """Resolve the current user from the JWT payload."""
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
+def get_current_user(
+    x_user_email: str | None = Header(default=None, alias="X-User-Email"),
+    x_user_name: str | None = Header(default=None, alias="X-User-Name"),
+) -> UserResponse:
+    """Resolve the current user from upstream-provided identity headers."""
+    if not x_user_email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing X-User-Email header",
+        )
 
-    user = db.get_user_by_id(int(user_id))
-    if not user or not auth.verify_user_access(user.user_id):
+    full_name = x_user_name or x_user_email.split("@", 1)[0].replace(".", " ").title()
+    success, message, user = auth.register_user(x_user_email, full_name)
+    if not success or not user or not user.user_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+
+    if not auth.verify_user_access(user.user_id):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or blocked")
 
     return UserResponse(
@@ -75,26 +81,6 @@ def health_check():
         providers=Config.provider_summary(),
         docs_folder=Config.DOCS_FOLDER,
         timestamp=datetime.utcnow(),
-    )
-
-
-@app.post("/api/v1/auth/login", response_model=LoginResponse)
-def login(payload: LoginRequest):
-    """Create or reuse a local user and return a JWT for localhost testing."""
-    success, message, user = auth.register_user(payload.email, payload.full_name)
-    if not success or not user or not user.user_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
-
-    token = create_access_token(user)
-    return LoginResponse(
-        access_token=token,
-        expires_in_minutes=Config.JWT_EXPIRE_MINUTES,
-        user=UserResponse(
-            user_id=user.user_id,
-            email=user.email,
-            full_name=user.full_name,
-            status=user.status.value,
-        ),
     )
 
 

@@ -4,23 +4,11 @@ from typing import List, Optional
 from pydantic import BaseModel, EmailStr, Field
 
 
-class LoginRequest(BaseModel):
-    email: EmailStr
-    full_name: str = Field(min_length=2, max_length=100)
-
-
 class UserResponse(BaseModel):
     user_id: int
     email: EmailStr
     full_name: str
     status: str
-
-
-class LoginResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    expires_in_minutes: int
-    user: UserResponse
 
 
 class ChatRequest(BaseModel):

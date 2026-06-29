@@ -39,11 +39,6 @@ class Config:
     SERVER_NAME = "0.0.0.0"
     API_PORT = int(os.getenv("API_PORT", "8000"))
 
-    # Local JWT auth for localhost API testing
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "local-dev-secret-change-me-1234567890")
-    JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-    JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "480"))
-
     # Chunking
     CHUNK_SIZE = 400
     CHUNK_OVERLAP = 50

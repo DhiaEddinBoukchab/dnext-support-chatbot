@@ -61,10 +61,16 @@ Run the API locally:
 uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+Authenticated API routes expect upstream identity headers instead of local JWT:
+
+```bash
+X-User-Email: user@example.com
+X-User-Name: John Doe
+```
+
 Main endpoints:
 
 - `GET /health`
-- `POST /api/v1/auth/login`
 - `POST /api/v1/chat/query`
 - `GET /api/v1/chat/sessions`
 - `GET /api/v1/chat/sessions/{session_id}`
@@ -83,6 +89,5 @@ Run the container:
 ```bash
 docker run --rm -p 8000:8000 \
   -e OPENAI_API_KEY=your_key_here \
-  -e JWT_SECRET_KEY=change-me \
   dnext-support-chatbot
 ```
