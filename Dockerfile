@@ -10,9 +10,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-COPY . .
+COPY api ./api
+COPY app ./app
+COPY src ./src
+COPY docs_md ./docs_md
+COPY auth_service.py .
+COPY config.py .
+COPY database.py .
+COPY models.py .
 
-RUN mkdir -p /app/runtime_data /app/chroma_db /app/data/uploads
+RUN mkdir -p /app/runtime_data /app/chroma_db
 
 EXPOSE 8000
 

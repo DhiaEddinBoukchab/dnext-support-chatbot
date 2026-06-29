@@ -50,7 +50,7 @@ class ChatService:
             answer = self.llm.generate_response("", query, conversation_history=session.messages)
         else:
             retrieval_config = get_config_for_conversation_type(conversation_type)
-            results = self.rag.retrieve_hybrid(query, retrieval_config)
+            results = self.rag.retrieve_semantic(query, retrieval_config)
             context = self.rag.format_context(results)
             retrieved_chunks = self._build_retrieved_chunks(results)
             chunks_retrieved = len(retrieved_chunks)

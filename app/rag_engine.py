@@ -1,5 +1,5 @@
 """
-RAG engine: document indexing, vector retrieval, and context formatting.
+RAG engine: document indexing, semantic retrieval, and context formatting.
 """
 
 import logging
@@ -10,7 +10,6 @@ from langsmith import traceable
 
 from app.document_processor import DocumentProcessor
 from config import Config
-from src.bm25_search import get_bm25_indexer
 from src.chunker import Chunker
 from src.provider_factories import create_embedding_manager, create_vector_store
 from src.retrieval_config import RetrievalConfig
@@ -19,14 +18,13 @@ logger = logging.getLogger(__name__)
 
 
 class RAGEngine:
-    """Handles document loading/indexing and semantic retrieval."""
+    """Handles document loading, indexing, and semantic retrieval."""
 
     def __init__(self):
         self.embedding_manager = create_embedding_manager()
         self.vector_store = create_vector_store()
         self.doc_processor = DocumentProcessor()
         self.collection = None
-        self.bm25_indexer = get_bm25_indexer()
 
     def initialize(self):
         """Load an existing vector DB or build it from documents."""
@@ -40,7 +38,6 @@ class RAGEngine:
                 return
 
             logger.info(f"Loaded existing vector database with {existing_count} chunks")
-            self._index_collection_with_bm25()
         except Exception:
             logger.info("No existing database found. Building from documents...")
             self.load_documents()
@@ -115,9 +112,6 @@ class RAGEngine:
             embeddings = self.embedding_manager.encode_batch(all_chunks)
             self.vector_store.add_documents(all_chunks, all_metadatas, embeddings)
 
-            logger.info("Indexing chunks with BM25 for keyword search...")
-            self.bm25_indexer.index_chunks(all_chunks)
-
             final_count = self.collection.count()
             msg = f"Indexed {final_count} chunks from {len(md_files)} documents."
             logger.info(msg)
@@ -128,52 +122,9 @@ class RAGEngine:
             logger.error(msg, exc_info=True)
             return False, msg
 
-    @traceable(name="retrieve_relevant_chunks", run_type="retriever")
-    def retrieve(self, query: str, top_k: int = None) -> Dict:
-        """Embed the query and return top-k matching chunks from the vector store."""
-        if top_k is None:
-            top_k = Config.TOP_K_RESULTS
-
-        query_embedding = self.embedding_manager.encode(query)
-        results = self.vector_store.query(query_embedding, top_k)
-
-        if results["documents"] and results["documents"][0]:
-            for i, (doc, metadata, distance) in enumerate(
-                zip(
-                    results["documents"][0],
-                    results["metadatas"][0],
-                    results["distances"][0]
-                    if "distances" in results
-                    else [None] * len(results["documents"][0]),
-                )
-            ):
-                logger.info(
-                    f"  Rank {i + 1}: {metadata.get('document', '?')} / "
-                    f"{metadata.get('section', '?')} (dist: {distance})"
-                )
-        return results
-
-    def _index_collection_with_bm25(self) -> None:
-        """Index all chunks in the collection with BM25 for compatibility."""
-        try:
-            if self.collection is None:
-                logger.warning("Collection not initialized. Skipping BM25 indexing.")
-                return
-
-            all_results = self.collection.get()
-            if all_results and all_results["documents"]:
-                logger.info(f"Indexing {len(all_results['documents'])} chunks with BM25...")
-                self.bm25_indexer.index_chunks(all_results["documents"])
-            else:
-                logger.warning("No documents found in collection for BM25 indexing.")
-        except Exception as exc:
-            logger.error(f"Error indexing collection with BM25: {exc}")
-
     @traceable(name="retrieve_semantic", run_type="retriever")
-    def retrieve_hybrid(self, query: str, config: Optional[RetrievalConfig] = None) -> Dict:
-        """
-        Semantic retrieval with threshold-based filtering and min/max chunk bounds.
-        """
+    def retrieve_semantic(self, query: str, config: Optional[RetrievalConfig] = None) -> Dict:
+        """Run semantic retrieval with threshold filtering and min/max chunk bounds."""
         if config is None:
             config = RetrievalConfig()
 
@@ -185,7 +136,7 @@ class RAGEngine:
         query_embedding = self.embedding_manager.encode(query)
         semantic_results = self.vector_store.query(query_embedding, config.top_k_semantic)
 
-        merged = {}
+        ranked = []
         if semantic_results["documents"] and semantic_results["documents"][0]:
             for doc, metadata, distance in zip(
                 semantic_results["documents"][0],
@@ -195,50 +146,33 @@ class RAGEngine:
                 else [None] * len(semantic_results["documents"][0]),
             ):
                 score = 1.0 - distance if distance is not None else 0.5
-                merged[doc] = {
+                ranked.append({
+                    "document_text": doc,
                     "distance": distance,
                     "metadata": metadata,
-                    "semantic_score": score,
-                    "combined_score": score,
-                }
+                    "score": score,
+                })
 
-        filtered = {
-            text: data for text, data in merged.items()
-            if data["distance"] is None or data["distance"] <= config.distance_threshold
-        }
+        filtered = [
+            item for item in ranked
+            if item["distance"] is None or item["distance"] <= config.distance_threshold
+        ]
+        logger.info(f"Before filtering: {len(ranked)} chunks, After: {len(filtered)}")
 
-        logger.info(f"Before filtering: {len(merged)} chunks, After: {len(filtered)}")
-
-        sorted_results = sorted(
-            filtered.items(),
-            key=lambda item: item[1]["combined_score"],
-            reverse=True,
-        )
-
-        if len(sorted_results) < config.min_chunks and len(merged) >= config.min_chunks:
+        if len(filtered) < config.min_chunks and len(ranked) >= config.min_chunks:
             logger.info(
-                f"Below min_chunks ({len(sorted_results)} < {config.min_chunks}), relaxing threshold..."
+                f"Below min_chunks ({len(filtered)} < {config.min_chunks}), relaxing threshold..."
             )
-            sorted_results = sorted(
-                merged.items(),
-                key=lambda item: item[1]["combined_score"],
-                reverse=True,
-            )[: config.min_chunks]
+            filtered = ranked[: config.min_chunks]
 
-        if len(sorted_results) > config.max_chunks:
-            sorted_results = sorted_results[: config.max_chunks]
-
-        logger.info(f"Final retrieval: {len(sorted_results)} chunks")
-
-        documents = [text for text, _ in sorted_results]
-        metadatas = [data["metadata"] for _, data in sorted_results]
-        distances = [data["distance"] for _, data in sorted_results]
+        filtered = filtered[: config.max_chunks]
+        logger.info(f"Final retrieval: {len(filtered)} chunks")
 
         return {
-            "documents": [documents],
-            "metadatas": [metadatas],
-            "distances": distances,
-            "ids": [None] * len(documents),
+            "documents": [[item["document_text"] for item in filtered]],
+            "metadatas": [[item["metadata"] for item in filtered]],
+            "distances": [item["distance"] for item in filtered],
+            "ids": [None] * len(filtered),
         }
 
     def format_context(self, results: Dict) -> str:
